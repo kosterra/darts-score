@@ -53,7 +53,7 @@ const pillLabel = (entry) => (String(entry.label).startsWith(String(entry.value)
  * attempt opens to what every double took, for the trainings around the board
  * (from its darts).
  */
-const RulesTrainingBoard = ({ definition, version = 0, highlight = null, highlightRecord = false, settings = {} }) => {
+const RulesTrainingBoard = ({ definition, version = 0, highlight = null, highlightRecord = false, settings = {}, onPick = null }) => {
     const [entries, setEntries] = useState(null);
     // the settings whose attempts are shown, those of the setup until the pills choose others
     const setupKey = boardKeyOf(definition, settings);
@@ -207,7 +207,8 @@ const RulesTrainingBoard = ({ definition, version = 0, highlight = null, highlig
                             <SelectButton
                                 value={board[option.key]}
                                 options={option.values.map(entry => ({ label: pillLabel(entry), value: entry.value, title: entry.label }))}
-                                onChange={(e) => { if (e.value !== null && e.value !== undefined) { setBoard({ ...board, [option.key]: e.value }); setShown(PAGE); setPhase(null); setOpen(null); } }}
+                                // a board picked here is the one the next training is set up for: what is tapped is what is played
+                                onChange={(e) => { if (e.value !== null && e.value !== undefined) { setBoard({ ...board, [option.key]: e.value }); onPick?.({ [option.key]: e.value }); setShown(PAGE); setPhase(null); setOpen(null); } }}
                                 className="p-selectbutton-pills pills-inline"
                                 aria-label={option.label}
                             />

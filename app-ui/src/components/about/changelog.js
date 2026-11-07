@@ -11,6 +11,7 @@ const CHANGELOG = [
     {
         version: 'Next release',
         changes: [
+            t('Training scoreboards: picking a board there (e.g. T18 in Treble practice) also sets up the next training for it, so what you tap is what you play.'),
             t('Training scoreboards: the same result is ranked by what fits the training – in Bull practice more bullseyes, in Treble practice more points on the number, in the checkout trainings and Catch 40 more checkouts and fewer darts, in Scoring more ton-plus visits, in Shortest leg the better average.'),
             t('Fix: while a global admin looks at a club, the menu is the club\'s alone, as its admins see it; the administration is back with the button in the bar on top.'),
             t('Darts as tags, as in the visits of a game: the darts of the visit while training, the bar above the menu on a phone, and an attempt opened on a training scoreboard, which now shows its darts visit by visit for every training; how far a failed Bob\'s 27 got (out at D6) is a tag too.'),
