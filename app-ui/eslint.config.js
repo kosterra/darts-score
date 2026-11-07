@@ -6,7 +6,7 @@ import globals from 'globals'
 
 export default [
   // TypeScript files are checked by `npm run typecheck` (tsc)
-  { ignores: ['dist', '**/*.ts', '**/*.tsx'] },
+  { ignores: ['dist', '.cache', '**/*.ts', '**/*.tsx'] },
   js.configs.recommended,
   react.configs.flat.recommended,
   react.configs.flat['jsx-runtime'],
