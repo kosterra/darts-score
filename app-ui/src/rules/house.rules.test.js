@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { replayGame } from './engine';
 import { HALVE_IT, KILLER, SHANGHAI } from './games';
-import { dartPoints, replayX01 } from './x01';
+import { dartPoints, legWinnerOf, replayX01 } from './x01';
+import { eliminationInDart, replayElimination } from './elimination';
 import { replayCricket } from './cricket';
 
 // the house rules a club may set (see club.rules.js), as the games count them
@@ -44,11 +45,68 @@ describe('X01 house rules', () => {
         expect(x01({}, rounds).currentSetLeg).toBe(1);
     });
 
+    it('names the winner of a leg the round limit decided, kept without a checkout', () => {
+        const rounds = [visit('a', 'S20', '0', '0'), visit('b', 'S10', '0', '0'), visit('a', 'S5', '0', '0'), visit('b', 'S5', '0', '0')];
+        const decided = x01({ roundLimit: 2 }, rounds);
+        const leg = decided.allSetsThrows['set-1']['leg-1'];
+        expect(leg.some(entry => entry.scoreLeft === 0)).toBe(false);
+        expect(legWinnerOf(decided, leg)).toBe('a');
+        // a checkout names its thrower
+        const won = x01({}, legWonByA);
+        expect(legWinnerOf(won, won.allSetsThrows['set-1']['leg-1'])).toBe('a');
+    });
+
     it('counts the outer bull as 50 when the club wants it', () => {
         expect(dartPoints('S25')).toBe(25);
         expect(dartPoints('S25', 'fifty')).toBe(50);
         expect(x01({ bull: 'fifty' }, [visit('a', 'S25', '0', '0')]).playerModels.a.score).toBe(51);
         expect(x01({}, [visit('a', 'S25', '0', '0')]).playerModels.a.score).toBe(76);
+    });
+});
+
+describe('X01 figures', () => {
+    it('keeps a bust out of the best visit', () => {
+        // a leaves 98, then busts with 120
+        const game = x01({}, [visit('a', 'S1', 'S1', 'S1'), visit('b', 'S1', '0', '0'), visit('a', 'T20', 'T20', '0')]);
+        expect(game.playerModels.a.score).toBe(98);
+        expect(game.playerModels.a.bestThreeDarts.game.value).toBe(3);
+        expect(game.playerModels.a.bestThreeDarts['set-1']['leg-1'].value).toBe(3);
+    });
+});
+
+describe('Elimination', () => {
+    const elimination = (settings, visits, players = ['a', 'b']) => replayElimination({
+        players, visits, targetScore: 101, gameInMode: 'Straight In', gameOutMode: 'Double Out', ...settings,
+    });
+
+    it('busts one short of the target with master out, as with double out', () => {
+        // a reaches 100: 1 left cannot be checked out on a double or treble
+        for (const gameOutMode of ['Double Out', 'Master Out']) {
+            const game = elimination({ gameOutMode }, [visit('a', 'T20', 'S20', 'S20')]);
+            expect(game.playerModels.a.score).toBe(0);
+            expect(game.allThrows[0].bust).toBe(true);
+        }
+        expect(elimination({ gameOutMode: 'Straight Out' }, [visit('a', 'T20', 'S20', 'S20')]).playerModels.a.score).toBe(100);
+        // master out: a treble finishes
+        expect(elimination({ gameOutMode: 'Master Out' }, [visit('a', 'T20', 'S20', 'T7')]).playerModels.a.hasWonGame).toBe(true);
+    });
+
+    it('lets the darts after the opening double of a visit count (double in, master in)', () => {
+        const game = { gameInMode: 'Double In', currentPlayerTurn: 'a', playerModels: { a: { score: 0 } } };
+        // not started: a single counts nothing, a double does
+        expect(eliminationInDart(game, ['', '', ''], 0, 'T20')).toBe('0');
+        expect(eliminationInDart(game, ['', '', ''], 0, 'D20')).toBe('D20');
+        // after the double in the same visit everything counts
+        expect(eliminationInDart(game, ['D20', '', ''], 1, 'T20')).toBe('T20');
+        expect(eliminationInDart(game, ['0', '', ''], 1, 'T20')).toBe('0');
+        // a dart changed before the double: the double comes later
+        expect(eliminationInDart(game, ['S5', 'D20', ''], 0, 'T20')).toBe('0');
+        const master = { ...game, gameInMode: 'Master In' };
+        expect(eliminationInDart(master, ['', '', ''], 0, 'T20')).toBe('T20');
+        expect(eliminationInDart(master, ['', '', ''], 0, 'S20')).toBe('0');
+        // started in an earlier visit: every dart counts
+        expect(eliminationInDart({ ...game, playerModels: { a: { score: 40 } } }, ['', '', ''], 0, 'S1')).toBe('S1');
+        expect(eliminationInDart({ ...game, gameInMode: 'Straight In' }, ['', '', ''], 0, 'S1')).toBe('S1');
     });
 });
 

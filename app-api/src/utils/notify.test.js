@@ -25,7 +25,7 @@ const { deliver, digestDue, readUnsubscribeToken, unsubscribeToken, unsubscribe 
 const { normalizePreferences, preferenceOf, topicOfKind } = await import('../rules/notifications.js');
 const { translate, tr } = await import('./translate.js');
 const { progressNotices, ratingMoves } = await import('./player.notices.js');
-const { clubRatings } = await import('./compare.js');
+const { clubRatings, ratingBoard } = await import('./compare.js');
 
 const ANNA = 'a'.repeat(24);
 const BEN = 'b'.repeat(24);
@@ -181,6 +181,8 @@ describe("the notices of a player's progress", () => {
 describe('the club rating', () => {
     // A beat B five times, C beat D five times: A, C ahead of B, D; then D beats A once and twice more
     const tally = (id, winner, loser, at) => ({ sourceId: id, players: [winner, loser], winners: [winner], at: new Date(2026, 9, at) });
+    // the places of the club's board, with everyone a member
+    const board = (members = ['A', 'B', 'C', 'D'], now = new Date(2026, 10, 1)) => (ratings) => ratingBoard(ratings, members, { now });
     const base = [
         ...[1, 2, 3, 4, 5].map(n => tally(`ab${n}`, 'A', 'B', n)),
         ...[1, 2, 3, 4, 5].map(n => tally(`cd${n}`, 'C', 'D', n)),
@@ -190,20 +192,34 @@ describe('the club rating', () => {
     it('tells who moved up past whom', () => {
         const wins = (count) => [...base, ...Array.from({ length: count }, (_, index) => tally(`da${index + 1}`, 'D', 'A', 11 + index))];
         // the second win lifts D past B, the eighth past A
-        expect(ratingMoves(wins(2), 'da2', { clubRatings, minGames: 5 })).toMatchObject({ climbed: [{ id: 'D', place: 3, passed: ['B'] }] });
-        expect([...ratingMoves(wins(8), 'da8', { clubRatings, minGames: 5 }).passedBy]).toEqual([['A', ['D']]]);
+        expect(ratingMoves(wins(2), 'da2', { clubRatings, board: board() })).toMatchObject({ climbed: [{ id: 'D', place: 3, passed: ['B'] }] });
+        expect([...ratingMoves(wins(8), 'da8', { clubRatings, board: board() }).passedBy]).toEqual([['A', ['D']]]);
         // a win that changes no places tells nobody
-        expect(ratingMoves(wins(4), 'da4', { clubRatings, minGames: 5 }).climbed).toEqual([]);
+        expect(ratingMoves(wins(4), 'da4', { clubRatings, board: board() }).climbed).toEqual([]);
     });
 
     it('places only the members when the club names them', () => {
         const wins = [...base, ...Array.from({ length: 2 }, (_, index) => tally(`da${index + 1}`, 'D', 'A', 11 + index))];
         // without B on the board, D's second win passes nobody
-        expect(ratingMoves(wins, 'da2', { clubRatings, minGames: 5, among: new Set(['A', 'C', 'D']) }).climbed).toEqual([]);
+        expect(ratingMoves(wins, 'da2', { clubRatings, board: board(['A', 'C', 'D']) }).climbed).toEqual([]);
+    });
+
+    it('places as the board does: without those who have not played for a year', () => {
+        // B's games were more than a year before: off the board, so nobody passes B
+        const old = (id, winner, loser, day) => ({ ...tally(id, winner, loser, day), at: new Date(2025, 5, day) });
+        const tallies = [
+            ...[1, 2, 3, 4, 5].map(n => old(`ab${n}`, 'A', 'B', n)),
+            ...[1, 2, 3, 4, 5].map(n => tally(`cd${n}`, 'C', 'D', n)),
+            ...[1, 2, 3, 4, 5].map(n => tally(`ad${n}`, 'A', 'D', 5 + n)),
+            ...[1, 2].map(n => tally(`da${n}`, 'D', 'A', 10 + n)),
+        ];
+        const moves = ratingMoves(tallies, 'da2', { clubRatings, board: board() });
+        expect(moves.after).not.toContain('B');
+        expect(moves.climbed).toEqual([]);
     });
 
     it('leaves friendly games and games without one winner out', () => {
-        expect(ratingMoves([...base, { ...tally('f', 'D', 'A', 20), friendly: true }], 'f', { clubRatings, minGames: 5 }).climbed).toEqual([]);
-        expect(ratingMoves([...base, { sourceId: 'x', players: ['A', 'D'], winners: [] }], 'x', { clubRatings, minGames: 5 }).climbed).toEqual([]);
+        expect(ratingMoves([...base, { ...tally('f', 'D', 'A', 20), friendly: true }], 'f', { clubRatings, board: board() }).climbed).toEqual([]);
+        expect(ratingMoves([...base, { sourceId: 'x', players: ['A', 'D'], winners: [] }], 'x', { clubRatings, board: board() }).climbed).toEqual([]);
     });
 });

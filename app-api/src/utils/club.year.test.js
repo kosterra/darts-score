@@ -1,7 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 
-vi.mock('../models/db.model.js', () => ({ default: {} }));
-const { yearAwards, AVERAGE_MIN_GAMES } = await import('./club.year.js');
+// the club's games and players of a test, in memory
+const db = vi.hoisted(() => ({}));
+vi.mock('../models/db.model.js', () => ({ default: db }));
+const { clubYear, yearAwards, AVERAGE_MIN_GAMES } = await import('./club.year.js');
 
 const row = (id, fields = {}) => ({ id, games: 0, wins: 0, x01Games: 0, points: 0, darts: 0, oneEighties: 0, highestCheckout: 0, clubNights: 0, ...fields });
 // an X01 average as points and darts
@@ -31,5 +33,31 @@ describe('the awards of the club\'s year', () => {
         expect(yearAwards([row('anna'), row('ben')])).toEqual([]);
         const awards = yearAwards([row('anna', { games: 10, wins: 7 }), row('ben', { games: 10, wins: 3 })]);
         expect(awards.map(award => award.id)).not.toContain('woodenSpoon');
+    });
+});
+
+describe('the club\'s year', () => {
+    const lean = (value) => ({ lean: async () => value, sort: () => ({ lean: async () => value[0] ?? null }) });
+    const at = new Date('2026-05-01T19:00:00Z');
+    // a game of the rules engine: what is stored is what is shown
+    const game = (players, winners) => ({ kind: 'shanghai', players, createdAt: at, hasWinner: true, playerModels: Object.fromEntries(players.map(id => [id, { hasWonGame: winners.includes(id) }])) });
+
+    it('gives both partners of doubles the win, and none for a game alone', async () => {
+        const games = [game(['a', 'b', 'c', 'd'], ['a', 'c']), game(['a', 'b', 'c', 'd'], ['a', 'c']), game(['b', 'c'], ['c']), game(['b'], ['b'])];
+        Object.assign(db, {
+            player: { find: () => lean(['a', 'b', 'c', 'd'].map(id => ({ _id: id, nickname: id.toUpperCase() }))) },
+            x01: { find: () => lean([]), findOne: () => lean([]) },
+            cricket: { find: () => lean([]), findOne: () => lean([]) },
+            elimination: { find: () => lean([]), findOne: () => lean([]) },
+            clock: { find: () => lean([]), findOne: () => lean([]) },
+            rulesGame: { find: () => lean(games), findOne: () => lean(games) },
+            attendance: { find: () => lean([]) },
+        });
+        const year = await clubYear({ _id: 'club', name: 'Club' }, 2026, new Date('2026-11-01T12:00:00Z'));
+        // c won both doubles with a and one game against b; b won only alone
+        expect(year.awards.find(award => award.id === 'champion')).toMatchObject({ player: { id: 'c' }, value: 3 });
+        const spoon = year.awards.find(award => award.id === 'woodenSpoon');
+        expect(['b', 'd']).toContain(spoon.player.id);
+        expect(spoon.value).toBe(0);
     });
 });

@@ -80,3 +80,39 @@ describe('matchMoments', () => {
         expect(matchMoments(decided).find(moment => moment.id === 'decider')).toMatchObject({ value: 'leg 3', playerId: 'a' });
     });
 });
+
+describe('busts and the round limit', () => {
+    // a busts on 41 with 60 (the visit keeps its points, the score stays); b wins the leg
+    const busted = {
+        startingScore: 101,
+        players: ['a', 'b'],
+        setsPlayed: 1,
+        allSetsThrows: { 'set-1': { 'leg-1': [
+            visit('a', 60, 41), visit('b', 45, 56), visit('a', 60, 41, ['T20', '', '']), visit('b', 56, 0, ['S16', 'D20', '']),
+        ] } },
+        playerModels: { a: {}, b: {} },
+    };
+
+    it('scores a bust as nothing', () => {
+        const [leg] = legsOf(busted);
+        expect(leg.scores).toEqual([60, 45, 0, 56]);
+        expect(leg.highest).toEqual({ playerId: 'a', score: 60 });
+        // first nine of a: 60 and the bust
+        expect(playerFigures(busted, 'a')).toMatchObject({ firstNine: 30, highestVisit: 60 });
+    });
+
+    it('gives a leg decided by the round limit to the fewest points left, without darts or checkout', () => {
+        const limited = {
+            ...busted,
+            roundLimit: 1,
+            allSetsThrows: { 'set-1': {
+                'leg-1': [visit('a', 60, 41), visit('b', 45, 56)],
+                'leg-2': [visit('b', 101, 0, ['T20', 'S1', 'D20'])],
+            } },
+        };
+        const [first] = legsOf(limited);
+        expect(first).toMatchObject({ winner: 'a', winnerDarts: null, checkout: null });
+        expect(playerFigures(limited, 'a').bestLeg).toBeNull();
+        expect(matchMoments(limited).find(moment => moment.id === 'quickest')).toMatchObject({ value: '3 darts', playerId: 'b' });
+    });
+});

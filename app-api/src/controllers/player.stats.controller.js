@@ -3,7 +3,7 @@ import db from '../models/db.model.js';
 import dayjs from 'dayjs';
 import { playerStatsModel, checkoutItemModel } from '../models/player.stats.models.js';
 import { averageTrend, monthlyForm, scoringVsFinishing, dartsPerLegDistribution, trainingProgress, trainingDarts, threeDartAverage } from '../utils/chart.data.js';
-import { x01Kpis, cricketKpis, eliminationKpis, clockKpis } from '../utils/kpi.data.js';
+import { x01Kpis, x01PointsScored, cricketKpis, eliminationKpis, clockKpis } from '../utils/kpi.data.js';
 import { playerLevel, levelInputs } from '../utils/levels.js';
 import { countBadges } from '../utils/badges.js';
 import { seesTrainingsOf } from '../utils/training.privacy.js';
@@ -160,7 +160,7 @@ export async function calculatePlayerStats(playerId, filters = profileFiltersOf(
     playerStats.avg.dartsPerLegX01 = calculateDartsPerLegX01Avg(x01Games, playerId);
 
     playerStats.throwedDarts.x01 = getTotalDartsThrownX01(x01Games, playerId);
-    playerStats.throwedPoints.x01 = getTotalPointsThrownX01(x01Games, playerId);
+    playerStats.throwedPoints.x01 = x01PointsScored(x01Games, playerId);
 
     playerStats.num180s = getNumberOf180sX01(x01Games, playerId);
     // each count is its own range, like the 180s: 160+ means 160–179
@@ -243,26 +243,6 @@ const getTotalDartsThrownX01 = (x01Games, playerId) => {
             return null;
         }
         return ((((game.playerModels[playerId] || {}).totalThrow || {}).game || {}).darts || 0);
-    }).filter(stat => stat !== null).reduce((accumulator, value) => {
-        return accumulator + value;
-    }, 0);
-}
-
-const getTotalPointsThrownX01 = (x01Games, playerId) => {
-    return x01Games.map(stored => viewOf('x01', stored)).map(game => {
-        for (let i = 1; i <= game.setsPlayed || 0; i++) {
-            for (let x = 1; x <= game.legsPlayed || 0; x++) {
-                const rounds = (((game.allSetsThrows || {})['set-' + i] || {})['leg-' + x] || {});
-                return rounds.map(round => {
-                    if (round.playerId !== playerId) {
-                        return null;
-                    }
-                    return round.roundScore;
-                }).filter(stat => stat !== null).reduce((accumulator, value) => {
-                    return accumulator + value;
-                }, 0);
-            }
-        }
     }).filter(stat => stat !== null).reduce((accumulator, value) => {
         return accumulator + value;
     }, 0);

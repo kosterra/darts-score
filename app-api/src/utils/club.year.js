@@ -75,7 +75,6 @@ export const clubYear = async (club, year, now = new Date()) => {
         days.add(new Date(game.createdAt).toISOString().slice(0, 10));
         const ids = (game.view.players ?? []).map(String);
         ids.forEach(id => active.add(id));
-        const winner = ids.find(id => game.view.playerModels?.[id]?.hasWonGame);
         for (const id of ids) {
             const model = game.view.playerModels?.[id] ?? {};
             const thrown = game.x01 ? model.totalThrow?.game?.darts ?? 0 : 0;
@@ -86,7 +85,8 @@ export const clubYear = async (club, year, now = new Date()) => {
             const row = rows.get(id);
             if (!row || game.friendly) continue;
             row.games += 1;
-            if (id === winner && ids.length > 1) row.wins += 1;
+            // a win against someone (in doubles both partners won)
+            if (model.hasWonGame && ids.length > 1) row.wins += 1;
             if (game.x01) {
                 row.x01Games += 1;
                 row.darts += thrown;

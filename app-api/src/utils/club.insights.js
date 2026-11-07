@@ -1,6 +1,7 @@
 import { legsInOrder, thrownDarts } from './badges.js';
 import { legVisits } from './kpi.data.js';
 import { startingScoreOf } from './x01.rules.js';
+import { teamsOf } from '../rules/x01.js';
 
 // Club-wide figures for the dashboard: key figures, who beats whom, records
 // and a small log of when games were played (the browser groups it by day and
@@ -10,6 +11,9 @@ const model = (game, playerId) => game.playerModels?.[playerId] ?? {};
 const round = (value, digits = 1) => Math.round(value * 10 ** digits) / 10 ** digits;
 const monthKey = (date) => new Date(date).toISOString().slice(0, 7);
 const finishedAt = (game) => game.updatedAt ?? game.createdAt;
+
+// the checkout of a leg for a best leg: a player's own, so not in doubles (the darts were the team's)
+const soloFinish = (game, leg) => (teamsOf(game) ? null : leg.find(visit => Number(visit?.scoreLeft) === 0));
 
 /**
  * Key figures over the club's finished games ("finishedByType": [{ type, games }]).
@@ -38,7 +42,7 @@ export const clubKpis = ({ finishedByType, allGames, members, now = new Date() }
         }
         for (const leg of legsInOrder(game)) {
             legs += 1;
-            const finish = leg.find(visit => Number(visit?.scoreLeft) === 0);
+            const finish = soloFinish(game, leg);
             if (finish && startingScoreOf(game, finish.playerId) === 501) {
                 const legDarts = legVisits(game, leg, finish.playerId).reduce((sum, visit) => sum + visit.darts, 0);
                 if (legDarts > 0 && (!bestLeg || legDarts < bestLeg.value)) bestLeg = { value: legDarts, player: finish.playerId };
@@ -85,7 +89,8 @@ export const clubKpis = ({ finishedByType, allGames, members, now = new Date() }
 };
 
 /**
- * Who beats whom: in every finished game the winner beats each other player.
+ * Who beats whom: in every finished game the winner (in doubles both
+ * partners) beats each player who lost.
  * The players who played most (up to "limit") form the rows and columns.
  */
 export const headToHead = (finishedByType, memberIds, limit = 8) => {
@@ -95,11 +100,13 @@ export const headToHead = (finishedByType, memberIds, limit = 8) => {
         for (const game of list) {
             const players = (game.players ?? []).map(String).filter(id => memberIds.has(id));
             players.forEach(id => games.set(id, (games.get(id) ?? 0) + 1));
-            const winner = players.find(id => model(game, id).hasWonGame);
-            if (!winner) continue;
-            for (const other of players.filter(id => id !== winner)) {
-                wins[winner] ??= {};
-                wins[winner][other] = (wins[winner][other] ?? 0) + 1;
+            // in doubles both partners won: each beats the losers, never the partner
+            const winners = players.filter(id => model(game, id).hasWonGame);
+            for (const winner of winners) {
+                for (const other of players.filter(id => !winners.includes(id))) {
+                    wins[winner] ??= {};
+                    wins[winner][other] = (wins[winner][other] ?? 0) + 1;
+                }
             }
         }
     }
@@ -131,7 +138,7 @@ export const clubRecords = (x01Games) => {
             if (average > 0 && (playerModel.totalThrow?.game?.rounds ?? 0) >= 3) better('bestGameAverage', { ...base, player, value: round(average, 1) });
         }
         for (const leg of legsInOrder(game)) {
-            const finish = leg.find(visit => Number(visit?.scoreLeft) === 0);
+            const finish = soloFinish(game, leg);
             if (!finish || startingScoreOf(game, finish.playerId) !== 501) continue;
             const darts = leg.filter(visit => visit?.playerId === finish.playerId)
                 .reduce((sum, visit) => sum + thrownDarts(visit.darts).length, 0);

@@ -42,14 +42,15 @@ const dartsThrown = (type, model) => {
 };
 
 /**
- * Adds up what each player did over all finished games of the club.
+ * Adds up what each player did over all finished games of the club. A game
+ * alone is practice: it counts as played, but not as won, nor in the win rate.
  */
-const collectPlayerTotals = (gamesByType) => {
+export const collectPlayerTotals = (gamesByType) => {
     const totals = new Map();
     const of = (playerId) => {
         if (!totals.has(playerId)) {
             totals.set(playerId, {
-                games: 0, wins: 0, winsX01: 0, winsCricket: 0, winsElimination: 0, winsClock: 0, winsRules: 0,
+                games: 0, againstOthers: 0, wins: 0, winsX01: 0, winsCricket: 0, winsElimination: 0, winsClock: 0, winsRules: 0,
                 darts: 0, num180s: 0, highestCheckout: 0, averageSum: 0, averageRounds: 0,
             });
         }
@@ -63,7 +64,10 @@ const collectPlayerTotals = (gamesByType) => {
                 const player = of(playerId);
                 player.games += 1;
                 player.darts += dartsThrown(type, model);
-                if (model.hasWonGame) {
+                // beating nobody is no win (in doubles both partners won)
+                const competitive = (game.players ?? []).length > 1;
+                if (competitive) player.againstOthers += 1;
+                if (competitive && model.hasWonGame) {
                     player.wins += 1;
                     player[{ x01: 'winsX01', cricket: 'winsCricket', elimination: 'winsElimination', clock: 'winsClock', rules: 'winsRules' }[type]] += 1;
                 }
@@ -83,7 +87,7 @@ const collectPlayerTotals = (gamesByType) => {
     return totals;
 };
 
-const buildLeaderboards = (totals, memberIds) => {
+export const buildLeaderboards = (totals, memberIds) => {
     const members = [...totals.entries()].filter(([playerId]) => memberIds.has(playerId));
     const top = (valueOf, qualifies = () => true) => members
         .filter(([, t]) => qualifies(t))
@@ -96,7 +100,7 @@ const buildLeaderboards = (totals, memberIds) => {
     return {
         mostGames: top(t => t.games),
         mostWins: top(t => t.wins),
-        winRate: top(t => round(t.wins / t.games * 100, 1), t => t.games >= MIN_GAMES_FOR_WIN_RATE),
+        winRate: top(t => round(t.wins / t.againstOthers * 100, 1), t => t.againstOthers >= MIN_GAMES_FOR_WIN_RATE),
         winsX01: top(t => t.winsX01),
         winsCricket: top(t => t.winsCricket),
         winsElimination: top(t => t.winsElimination),

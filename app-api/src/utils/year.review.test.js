@@ -39,6 +39,24 @@ describe('your year in darts', () => {
         expect(review.badges.latest[0]).toMatchObject({ id: 'max180-1', earnedAt: new Date('2026-03-10T19:30:00Z') });
     });
 
+    it('takes no partner of doubles as the rival', async () => {
+        // p1 and p3 against p4 and p5 four times, against p6 and p7 once: p1 and p3 check out 301 together
+        const doubles = (id, opponents = ['p4', 'p5']) => ({
+            ...x01(id, '2026-09-01T19:00:00Z', [v('p1', 'T20', 'T20', 'T20'), v(opponents[0], 'S1', 'S1', 'S1'), v('p3', 'T20', 'T11', 'D14')]),
+            doubles: true,
+            players: ['p1', opponents[0], 'p3', opponents[1]],
+        });
+        const added = [...['d1', 'd2', 'd3', 'd4'].map(id => doubles(id)), doubles('d5', ['p6', 'p7'])];
+        games.push(...added);
+        try {
+            const review = await yearReview('p1', 2026);
+            expect(review.games).toMatchObject({ total: 8, wins: 6 });
+            expect(review.opponent).toMatchObject({ id: 'p4', games: 4, wins: 4 });
+        } finally {
+            games.splice(games.length - added.length, added.length);
+        }
+    });
+
     it('has a year to look back at from the first game on', () => {
         expect(reviewYears(new Date('2024-06-01'), new Date('2026-12-01'))).toEqual([2026, 2025, 2024]);
         expect(reviewYears(null)).toEqual([]);

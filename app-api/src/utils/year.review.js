@@ -2,6 +2,7 @@ import db from '../models/db.model.js';
 import { viewOf } from './game.view.js';
 import { x01Kpis } from './kpi.data.js';
 import { getBadge } from './badges.js';
+import { partnersOf } from '../rules/x01.js';
 
 /**
  * "Your year in darts": what a player did in one calendar year, in all their
@@ -72,10 +73,11 @@ export const yearReview = async (playerId, year) => {
     for (const game of games) months[new Date(game.createdAt).getUTCMonth()] += 1;
     const busiest = months.indexOf(Math.max(...months));
 
-    // the rival: the one played most against, and how it went
+    // the rival: the one played most against, and how it went (in doubles the partner played with, not against)
     const rivals = new Map();
     for (const game of together) {
-        for (const other of (game.players ?? []).map(String).filter(entry => entry !== id)) {
+        const team = game.kind === 'x01' ? [id, ...partnersOf(game, id)] : [id];
+        for (const other of (game.players ?? []).map(String).filter(entry => !team.includes(entry))) {
             const entry = rivals.get(other) ?? { player: other, games: 0, wins: 0 };
             entry.games += 1;
             if (won(game)) entry.wins += 1;

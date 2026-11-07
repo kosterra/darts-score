@@ -57,6 +57,27 @@ export const legScores = (game, leg) => {
         return { visit, before, scoreLeft, taken: Number.isFinite(scoreLeft) ? Math.max(0, before - scoreLeft) : 0 };
     });
 };
+
+/**
+ * Who won a finished leg, as the rules count it: who checked out, or (a
+ * club's round limit, the leg kept without a checkout) the side with the
+ * fewest points left, by its first player. → the id, or null
+ */
+export const legWinnerOf = (game, leg) => {
+    const finish = (leg ?? []).find(visit => visit?.scoreLeft != null && Number(visit.scoreLeft) === 0);
+    if (finish) return finish.playerId;
+    if (!Number(game?.roundLimit) || !leg?.length) return null;
+    const sides = sidesOf(game);
+    const keyOf = sideKeysOf(game);
+    const left = Object.fromEntries(sides.map(([id]) => [id, startingScoreOf(game, id)]));
+    for (const { visit, scoreLeft } of legScores(game, leg)) {
+        const key = keyOf[visit?.playerId];
+        if (key != null && Number.isFinite(scoreLeft)) left[key] = scoreLeft;
+    }
+    const scores = sides.map(([id]) => left[id]);
+    const fewest = Math.min(...scores);
+    return scores.filter(score => score === fewest).length === 1 ? sides[scores.indexOf(fewest)][0] : null;
+};
 export const startingScoreOf = (game, playerId) => Number(own(game, playerId).startingScore ?? game?.startingScore);
 export const inModeOf = (game, playerId) => own(game, playerId).legInMode ?? game?.legInMode;
 export const outModeOf = (game, playerId) => own(game, playerId).legOutMode ?? game?.legOutMode;
@@ -312,7 +333,8 @@ export const x01Visit = (game, darts) => {
     for (const partner of partnersOf(game, playerId)) game.playerModels[partner].score = model.score;
 
     const [bestGame, bestSet, bestLeg] = levels(model.bestThreeDarts, set, leg, () => ({ value: 0 }));
-    [bestGame, bestSet, bestLeg].forEach(entry => { if (points > entry.value) entry.value = points; });
+    // a bust scores nothing
+    if (!busted) [bestGame, bestSet, bestLeg].forEach(entry => { if (points > entry.value) entry.value = points; });
     for (const dart of thrown(currentThrow)) {
         const key = Number(dart) === 0 ? 'Missed' : dart.toUpperCase();
         model.hit[key] = (model.hit[key] ?? 0) + 1;
