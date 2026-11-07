@@ -631,8 +631,16 @@
       font-weight: $weight-bold;
       font-variant-numeric: tabular-nums;
 
-      span + span::before { content: '·'; margin-right: 0.3rem; color: var(--text-faint); font-weight: $weight-regular; }
-      .is-empty { color: var(--text-faint); font-weight: $weight-regular; }
+      // each dart a tag, as the darts of a visit are shown elsewhere; the ones still to throw faint
+      span {
+        min-width: 2.4rem;
+        padding: 0.05rem 0.4rem;
+        border-radius: $radius-md;
+        background: ink(0.1);
+        font-size: $text-sm;
+        text-align: center;
+      }
+      .is-empty { background: ink(0.04); color: var(--text-faint); font-weight: $weight-regular; }
     }
 
     .x01-visit-total { grid-area: total; margin: 0; font-size: $text-xs; text-align: left; }

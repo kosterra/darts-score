@@ -1,10 +1,9 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, MOCK } from './fixtures.js';
 
 // The account's ways in are guarded on the profile: a new email address asks for
 // the current password (and a code when two-step login is on), adding a passkey
 // asks for a code when two-step login is on, removing one asks for the password
 // inline. The API's own checks are in app-api/test/integration/account.security.test.js.
-const MOCK = 'http://localhost:3901';
 const post = (path, body) => fetch(`${MOCK}${path}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
 
 test.skip(({ isMobile }) => isMobile, 'once is enough: the password, the code and the passkey are asked the same at every width');
@@ -13,11 +12,6 @@ test.beforeEach(async ({ page }) => {
     await post('/__test/logged-out', { loggedOut: false });
     await post('/__test/role', { admin: false });
     await page.addInitScript(() => localStorage.setItem('darts-score.activeClub', 'c1'));
-});
-
-test.afterEach(async () => {
-    await post('/__test/mfa', { enabled: false });
-    await post('/__test/passkeys', { passkeys: [] });
 });
 
 test('a new email address asks for the password, and the code once two-step login is on', async ({ page }) => {

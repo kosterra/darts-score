@@ -1,10 +1,9 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, MOCK } from './fixtures.js';
 
 // Passkeys, with a fingerprint reader of the device simulated by Chrome (it says yes to every
 // request): adding one on the profile, then logging in with it, by the button and by the offer
 // in the email field. The stand-in for the API keeps the passkeys without checking them; the
 // API's own checks are in app-api/src/controllers/passkey.controller.test.js.
-const MOCK = 'http://localhost:3901';
 const post = (path, body) => fetch(`${MOCK}${path}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
 
 test.skip(({ isMobile }) => isMobile, 'once is enough: the device is simulated the same way');

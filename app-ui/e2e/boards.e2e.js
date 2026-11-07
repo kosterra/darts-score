@@ -1,21 +1,14 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, MOCK } from './fixtures.js';
 
 // Boards: a tournament played on two boards (the user's match called to board 1, a game live on
 // board 2, the rest in the queue), the admin's tools, "Your match" for the player, the big screen of
 // the boards, and a club night switched to boards.
-const MOCK = process.env.MOCK_URL ?? 'http://localhost:3901';
 const post = (path, body = {}) => fetch(`${MOCK}${path}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
 const tournamentId = async () => (await (await fetch(`${MOCK}/api/tournaments`)).json()).tournaments[0].id;
 const today = () => {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 };
-
-// what was set up on boards does not stay for the other checks (the club night of tonight)
-test.afterEach(async () => {
-    await post('/__test/boards', { reset: true });
-    await post('/__test/tournaments', { scenario: 'none' });
-});
 
 test.beforeEach(async ({ page }) => {
     await post('/__test/logged-out', { loggedOut: false });

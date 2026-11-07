@@ -1,7 +1,6 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, MOCK } from './fixtures.js';
 
 // The notifications page: all of them cleared at once, after asking.
-const MOCK = 'http://localhost:3901';
 const post = (path, body = {}) => fetch(`${MOCK}${path}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
 
 test.skip(({ isMobile }) => isMobile, 'once is enough: clearing works the same at every width');

@@ -389,7 +389,7 @@ const GamesTable = ({ scope = 'club', initialType = 'all', initialPlayerId = nul
                 <TypeFilter groups={GAME_TYPE_GROUPS} value={types} onChange={setTypes} allLabel={t('All game types')} ariaLabel={t('Game type')} />
                 <FilterPills label={t('Status')} value={status} options={acrossClubs ? STATUS_OPTIONS : CLUB_STATUS_OPTIONS} onChange={setStatus} ariaLabel={t('Status')} dropdownOnPhone />
                 {/* with a player chosen: the games that player played at the level */}
-                <FilterPills label={t('Level')} value={level} options={LEVEL_OPTIONS} onChange={setLevel} ariaLabel={t('Level played at')} dropdownOnPhone />
+                <FilterPills label={t('Level')} value={level} options={LEVEL_OPTIONS} onChange={setLevel} ariaLabel={t('Level played at')} dropdown />
                 <Dropdown
                     value={playerId}
                     options={playerOptions}
@@ -402,7 +402,7 @@ const GamesTable = ({ scope = 'club', initialType = 'all', initialPlayerId = nul
                     filter
                     showClear
                     aria-label={t('Player')}
-                    style={{ minWidth: '12rem' }}
+                    style={{ minWidth: '11rem' }}
                 />
             </AdminToolbar>
 

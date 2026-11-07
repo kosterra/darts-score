@@ -17,12 +17,14 @@ const OptionIcon = ({ option, className = '' }) => {
  * options: [{ label, value, icon (a PrimeIcons class, e.g. 'pi pi-play', or an
  * icon component), iconColor? }];
  * dropdownOnPhone: a dropdown on a phone instead (for a choice of several);
+ * dropdown: a compact dropdown at every width, the icon of the choice in it (for a choice of many,
+ * e.g. the eight levels, which would take a line of their own as pills);
  * label: a name shown before the group (e.g. "Status"), when the pills alone are not clear
  */
 const FilterPills = ({ label, ...props }) => {
     const phone = useMediaQuery('(max-width: 575.98px)');
     // a dropdown on a phone carries its name inside: "Status: All"
-    if (!label || (props.dropdownOnPhone && phone)) return <FilterPillsField {...props} label={label} />;
+    if (!label || ((props.dropdownOnPhone || props.dropdown) && phone)) return <FilterPillsField {...props} label={label} />;
     return (
         <span className="filter-labelled">
             <span className="filter-label" aria-hidden="true">{label}</span>
@@ -31,10 +33,10 @@ const FilterPills = ({ label, ...props }) => {
     );
 };
 
-const FilterPillsField = ({ value, options, onChange, ariaLabel, className = '', disabled = false, dropdownOnPhone = false, label = null }) => {
+const FilterPillsField = ({ value, options, onChange, ariaLabel, className = '', disabled = false, dropdownOnPhone = false, dropdown = false, label = null }) => {
     // on a phone a choice of several (e.g. the status of games) is a dropdown, as the other filters there
     const phone = useMediaQuery('(max-width: 575.98px)');
-    if (dropdownOnPhone && phone) {
+    if (dropdown || (dropdownOnPhone && phone)) {
         return (
             <Dropdown
                 value={value}
@@ -44,8 +46,10 @@ const FilterPillsField = ({ value, options, onChange, ariaLabel, className = '',
                 itemTemplate={(option) => <span className="d-inline-flex align-items-center gap-2"><OptionIcon option={option} />{option.label}</span>}
                 valueTemplate={(option) => (label && option
                     ? <span><span className="text-faint">{label}:</span> {option.label}</span>
-                    : option?.label)}
-                className={`filter-dropdown ${className}`}
+                    : dropdown && option
+                        ? <span className="d-inline-flex align-items-center gap-2"><OptionIcon option={option} />{option.label}</span>
+                        : option?.label)}
+                className={`filter-dropdown ${dropdown ? 'is-compact' : ''} ${dropdown && value === options[0]?.value ? 'is-all' : ''} ${className}`}
                 aria-label={ariaLabel}
             />
         );

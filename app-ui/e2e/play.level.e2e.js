@@ -1,8 +1,7 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, MOCK } from './fixtures.js';
 
 // The level a game was played at, as an estimate under every player of the result:
 // an X01 quick game, one player at about a world-class average, the other at a hobby player's.
-const MOCK = process.env.MOCK_URL ?? 'http://localhost:3901';
 const post = (path, body = {}) => fetch(`${MOCK}${path}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
 const v = (player, ...darts) => ({ player, darts });
 
@@ -44,7 +43,9 @@ test('the games list shows the level each played at and filters by it', async ({
         await page.locator('.filter-dropdown', { hasText: 'Level:' }).click();
         await page.getByRole('option', { name: 'World class' }).click();
     } else {
-        await page.getByRole('group', { name: 'Level played at' }).getByText('World class', { exact: true }).click();
+        // a compact dropdown on a wide screen too, beside the other filters
+        await page.locator('.filter-dropdown.is-compact').click();
+        await page.getByRole('option', { name: 'World class' }).click();
     }
     await asked;
     await expect(page).toHaveURL(/level=worldClass/);

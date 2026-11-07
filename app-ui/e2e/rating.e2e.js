@@ -1,8 +1,7 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, MOCK } from './fixtures.js';
 
 // The club rating: the Strongest widget on My club, a player's rating in their header with the
 // chart, the chance in a sentence in the comparison, and the favourite's chance on a bracket match.
-const MOCK = process.env.MOCK_URL ?? 'http://localhost:3901';
 const post = (path, body = {}) => fetch(`${MOCK}${path}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
 
 test.beforeEach(async ({ page }) => {

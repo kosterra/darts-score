@@ -1,8 +1,7 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, MOCK } from './fixtures.js';
 
 // Scoring without a connection: the game goes on, is kept on the device and
 // is sent once the connection is back.
-const MOCK = 'http://localhost:3901';
 const post = (path, body) => fetch(`${MOCK}${path}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
 
 const visit = async (page, ring, number) => {

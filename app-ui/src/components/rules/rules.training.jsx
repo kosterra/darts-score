@@ -635,7 +635,7 @@ const RulesTraining = () => {
                     </Panel>
                 </div>
                 <div className={`col-12 col-xl-4 ${finished ? 'order-1' : 'order-3'} order-xl-2`}>
-                    <RulesTrainingBoard definition={definition} version={boardVersion} highlight={finished?.saved?.id} settings={settings} />
+                    <RulesTrainingBoard definition={definition} version={boardVersion} highlight={finished?.saved?.id} highlightRecord={Boolean(finished?.saved?.isRecord)} settings={settings} onPick={(picked) => setSettings(current => ({ ...current, ...picked }))} />
                 </div>
             </div>
             {celebration && <Celebration {...celebration} onClose={() => setCelebration(null)} />}

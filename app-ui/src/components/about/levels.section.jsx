@@ -121,6 +121,13 @@ const LevelsSection = ({ levels, rules, flights }) => {
                     </ul>
                 </div>
             )}
+            {/* the quiet level tag after every result (PlayLevelTag), on the same steps */}
+            <div className="about-xp">
+                <h3 className="fs-7 fw-semibold text-default mb-2">{t('The level of a game or training')}</h3>
+                <p className="text-subtle fs-7 m-0">
+                    {t('Every game and training shows the level it was played at: on its result, in the lists and in their filters. It uses the same steps as the averages, from {{lowest}} to {{highest}}, and judges each game by what fits it: the 3-dart average in X01, the marks per round in Cricket, the hit rate or the points in a training. It is an estimate from that one result alone, not the level of the player.', { lowest: AVERAGE_LEVELS[0].name, highest: AVERAGE_LEVELS.at(-1).name })}
+                </p>
+            </div>
         </section>
 
         {flights && (

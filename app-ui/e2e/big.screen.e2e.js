@@ -1,8 +1,7 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, MOCK } from './fixtures.js';
 
 // The big screen: the scorer opens its link from the game; a second browser (the TV) follows
 // the game without logging in, and a 180 there is celebrated and called.
-const MOCK = 'http://localhost:3901';
 const post = (path, body) => fetch(`${MOCK}${path}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
 
 test.skip(({ isMobile }) => isMobile, 'the TV is a second browser of its own');

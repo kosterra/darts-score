@@ -1,8 +1,7 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, MOCK } from './fixtures.js';
 
 // For global admins: the all-time count of quick games, the darts evenings with theirs,
 // a quick game opened without its key, and a game of another club opened as its admins see it.
-const MOCK = 'http://localhost:3901';
 const post = (path, body = {}) => fetch(`${MOCK}${path}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
 
 test.skip(({ isMobile }) => isMobile, 'once is enough: the counts and the way to another club\'s game are the same at every width');
@@ -62,9 +61,12 @@ test('a game of another club opens as its admins see it, with the way back', asy
     // the visit lasts a reload, in this tab
     await page.reload();
     await expect(bar).toContainText('Bullseye Bern');
+    // the menu is the club's while looking at it: no administration in it
+    await expect(page.locator('a[href="/admin/backups"]')).toHaveCount(0);
     await bar.getByRole('button', { name: 'Back to the administration' }).click();
     await expect(page).toHaveURL(/\/admin\/games/);
     await expect(bar).toHaveCount(0);
+    await expect(page.locator('a[href="/admin/backups"]').first()).toBeAttached();
 });
 
 test('a player of another club opens as its admins see the profile', async ({ page }) => {

@@ -136,7 +136,8 @@ const setupOf = (sent, before) => {
 /**
  * An admin sets up the boards of a night or changes them: { count, out,
  * players, gone, setup }, each optional. A new night starts with the club's
- * boards, the players who said they come and the usual game. A player taken
+ * boards, the players who said they come and the usual game. A player added
+ * once the night is set up came later: kept with when (came). A player taken
  * out or gone home (gone: the ids of the players who went home, each keeping
  * when) leaves the pairings not started; who went home keeps their games.
  * Boards that go send their pairing back to the queue (first). → the night
@@ -144,6 +145,8 @@ const setupOf = (sent, before) => {
 export const saveNight = async (club, day, body, { by = null, now = new Date() } = {}) => {
     checkDay(club, day, now);
     let night = await loadNight(club, day);
+    // the players before this change: who is new to a night already set up came later
+    const before = night ? new Set(night.players.map(String)) : null;
     if (!night) {
         const coming = body.players === undefined
             ? (await db.attendance.find({ club: club._id, day, answer: 'yes' }, 'player').lean()).map(entry => String(entry.player))
@@ -158,14 +161,20 @@ export const saveNight = async (club, day, body, { by = null, now = new Date() }
         const sent = [...new Set(body.players.map(String))].filter(id => db.mongoose.isValidObjectId(id)).slice(0, NIGHT_MAX_PLAYERS);
         const members = new Set((await db.player.find({ _id: { $in: sent }, clubs: club._id }, '_id').lean()).map(player => String(player._id)));
         night.players = sent.filter(id => members.has(id));
+        if (before) {
+            const came = new Map((night.came ?? []).map(entry => [String(entry.id), entry.at]));
+            for (const id of night.players) if (!before.has(id) && !came.has(id)) came.set(id, now);
+            night.came = [...came].map(([id, at]) => ({ id, at }));
+        }
     }
     if (body.gone !== undefined) {
         const before = new Map((night.left ?? []).map(entry => [String(entry.id), entry.at]));
         night.left = [...new Set(body.gone.map(String))].map(id => ({ id, at: before.get(id) ?? now }));
     }
-    // only players of the night can have gone home
+    // only players of the night can have come later or gone home (taken out and added again: came anew)
     const players = new Set(night.players.map(String));
     night.left = (night.left ?? []).filter(entry => players.has(String(entry.id)));
+    night.came = (night.came ?? []).filter(entry => players.has(String(entry.id)));
     const entries = plainEntries(night);
     const there = new Set(playersThere(night));
     for (const entry of entries) {
@@ -325,7 +334,8 @@ export const nightView = async (night, { playerId = null, isAdmin = false } = {}
         boards,
         setup: { ...NIGHT_SETUP, ...(json.setup ?? {}) },
         players: (json.players ?? []).map(id => found.get(String(id))).filter(Boolean).map(personOf),
-        // who went home, and when
+        // who came later (added once the night was set up) and who went home, and when
+        came: (json.came ?? []).map(entry => ({ id: String(entry.id), at: entry.at ?? null })),
         left: (json.left ?? []).map(entry => ({ id: String(entry.id), at: entry.at ?? null })),
         entries: entries.map(entry => ({
             id: entry.id, players: entry.players, status: entry.status, board: entry.board ?? null, held: Boolean(entry.held),

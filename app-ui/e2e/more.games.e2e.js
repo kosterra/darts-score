@@ -1,8 +1,7 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, MOCK } from './fixtures.js';
 
 // Scram is played by two exactly: the stopper closes, the scorer scores on what is still open.
 // Baseball scores the inning's number and the bullseye as a home run.
-const MOCK = process.env.MOCK_URL ?? 'http://localhost:3901';
 const post = (path, body = {}) => fetch(`${MOCK}${path}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
 
 test.beforeEach(async ({ page }) => {

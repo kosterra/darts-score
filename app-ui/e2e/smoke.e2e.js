@@ -1,9 +1,8 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, MOCK } from './fixtures.js';
 
 // The main pages for each kind of user, at desktop and phone width (see
 // playwright.config.js): each one shows what it is about, throws no error
 // and does not scroll sideways.
-const MOCK = 'http://localhost:3901';
 const post = (path, body) => fetch(`${MOCK}${path}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
 
 const AS = {

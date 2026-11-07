@@ -254,7 +254,7 @@ const TrainingsTable = ({ scope = 'club' }) => {
                 {hasOwn && <FilterPills label={t('Whose')} value={whose} options={WHOSE_OPTIONS} onChange={setWhose} ariaLabel={t('Whose trainings')} />}
                 <TypeFilter groups={TRAINING_TYPE_GROUPS} value={types} onChange={setTypes} allLabel={t('All trainings')} ariaLabel={t('Training')} />
                 {withAtc && <FilterPills label={t('Mode')} value={mode} options={MODE_OPTIONS} onChange={setMode} ariaLabel={t('Mode of Around the Clock')} dropdownOnPhone />}
-                <FilterPills label={t('Level')} value={level} options={LEVEL_OPTIONS} onChange={setLevel} ariaLabel={t('Level played at')} dropdownOnPhone />
+                <FilterPills label={t('Level')} value={level} options={LEVEL_OPTIONS} onChange={setLevel} ariaLabel={t('Level played at')} dropdown />
                 <Dropdown
                     value={playerId}
                     options={playerOptions}
@@ -267,7 +267,7 @@ const TrainingsTable = ({ scope = 'club' }) => {
                     filter
                     showClear
                     aria-label={t('Player')}
-                    style={{ minWidth: '12rem' }}
+                    style={{ minWidth: '11rem' }}
                 />
             </AdminToolbar>
 

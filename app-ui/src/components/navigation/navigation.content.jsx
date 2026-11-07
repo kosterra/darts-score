@@ -105,6 +105,9 @@ const useSections = () => {
     const { activeClub, isGlobalAdmin, isClubAdmin } = useAuth();
     // a global admin without a club of their own only looks after the app
     const hasClub = !!activeClub;
+    // while a global admin looks at a club, the menu is the club's, as its admins see it: the
+    // administration is one tap away in the bar on top ("Back to the administration")
+    const adminMenu = isGlobalAdmin && !activeClub?.visiting;
     const openAlerts = useOpenAlerts(isGlobalAdmin);
     const clubFairPlay = useFairPlay(isClubAdmin && hasClub, false, activeClub?.id);
     const allFairPlay = useFairPlay(isGlobalAdmin, true, null);
@@ -199,7 +202,7 @@ const useSections = () => {
         // what needs watching and the installation; each section open, and folded only when the admin folds it
         {
             id: 'admin',
-            visible: isGlobalAdmin,
+            visible: adminMenu,
             items: [
                 { label: t('Overview'), icon: FaGaugeHigh, to: '/admin/dashboard' },
             ],
@@ -207,7 +210,7 @@ const useSections = () => {
         {
             id: 'admin-accounts',
             title: t('Admin · Accounts'),
-            visible: isGlobalAdmin,
+            visible: adminMenu,
             items: [
                 { label: t('Clubs'), icon: FaPeopleGroup, to: '/admin/clubs' },
                 { label: t('Users'), icon: FaUserGear, to: '/admin/users' },
@@ -218,7 +221,7 @@ const useSections = () => {
         {
             id: 'admin-played',
             title: t('Admin · Played'),
-            visible: isGlobalAdmin,
+            visible: adminMenu,
             items: [
                 { label: t('Games'), icon: GiDart, to: '/admin/games' },
                 { label: t('Trainings'), icon: BsPersonFillCheck, to: '/admin/trainings' },
@@ -229,7 +232,7 @@ const useSections = () => {
         {
             id: 'admin-monitoring',
             title: t('Admin · Monitoring'),
-            visible: isGlobalAdmin,
+            visible: adminMenu,
             items: [
                 {
                     label: t('Fair play'),
@@ -252,7 +255,7 @@ const useSections = () => {
         {
             id: 'admin-system',
             title: t('Admin · System'),
-            visible: isGlobalAdmin,
+            visible: adminMenu,
             items: [
                 { label: t('Backups'), icon: FaDatabase, to: '/admin/backups' },
                 { label: t('System settings'), icon: FaShieldHalved, to: '/system-settings' },

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { afterDart, isCheckout, isValidDart, parseDart } from './darts';
-import { progressOf, replayGame, replayTraining, withGameState } from './engine';
+import { progressOf, replayGame, replayTraining, trainingVisits, withGameState } from './engine';
 import { BASEBALL, GAMES, GOLF, HALVE_IT, KILLER, SCRAM, SHANGHAI, TACTICS } from './games';
 import { BOBS_27, bobsDanger, bobsProgress, BULLS, CATCH_40, CHECKOUT_121, DOUBLES_AROUND, LADDER, RANDOM_CHECKOUTS, SCORING, SHORTEST_LEG, TRAININGS, TREBLES, boardKeyOf, boardLabels, boardOf, defaultBoardKey, placesOf, settingsProblem } from './trainings';
 
@@ -467,5 +467,67 @@ describe('trainings', () => {
         // Bob's 27: 0 points each, the one further on the board first
         expect(placesOf([{ score: 0, reached: 6 }, { score: 0, reached: 4 }, { score: 0, reached: 4 }], better)).toEqual([1, 2, 2]);
         expect(placesOf([], better)).toEqual([]);
+    });
+});
+
+describe('the visits of a training', () => {
+    it('groups the darts by three, or as the training ends a visit', () => {
+        expect(trainingVisits(SCORING, { settings: { darts: 30 }, darts: ['T20', 'T20', 'S20', 'S1', '0'] })).toEqual([['T20', 'T20', 'S20'], ['S1', '0']]);
+        expect(trainingVisits(BOBS_27, { darts: ['M', 'H', 'M', 'H', 'H', 'H'] })).toEqual([['M', 'H', 'M'], ['H', 'H', 'H']]);
+        // a checkout attempt over at its first dart is a visit of its own
+        const targets = Array.from({ length: 10 }, () => 40);
+        expect(trainingVisits(RANDOM_CHECKOUTS, { settings: { attempts: 10, targets }, darts: ['D20', 'S20', 'S10', 'D5'] })).toEqual([['D20'], ['S20', 'S10', 'D5']]);
+    });
+});
+
+describe('the Bull practice scoreboard', () => {
+    it('puts more bullseyes first at the same hit rate, then more points', () => {
+        const entry = (score, bullseyes, outers) => ({ score, result: { score, bullseyes, outers, points: bullseyes * 50 + outers * 25 } });
+        const better = (a, b) => b.score - a.score || BULLS.tiebreak(a, b);
+        const list = [entry(20, 1, 5), entry(20, 2, 4), entry(23, 0, 7), entry(20, 2, 4)];
+        expect([...list].sort(better).map(e => [e.score, e.result.bullseyes])).toEqual([[23, 0], [20, 2], [20, 2], [20, 1]]);
+        expect(placesOf([...list].sort(better), better)).toEqual([1, 2, 2, 4]);
+        // an older attempt without its result: from its darts
+        expect(BULLS.tiebreak({ darts: ['D25', 'S25', '0'] }, { darts: ['S25', 'S25', '0'] })).toBeLessThan(0);
+    });
+});
+
+describe('the same score on a training scoreboard', () => {
+    const entry = (definition, darts, settings = {}) => {
+        const { result } = replayTraining(definition, { settings, darts });
+        return { score: result.score, result, settings, darts };
+    };
+    const order = (definition, list) => {
+        const higher = definition.higherIsBetter !== false;
+        const better = (a, b) => (higher ? b.score - a.score : a.score - b.score) || definition.tiebreak(a, b);
+        return [...list].sort(better);
+    };
+
+    it('Treble practice: more points on the number, then the best visit', () => {
+        const darts = (rest) => [...Array(3).fill('T20'), ...rest, ...Array(27 - rest.length).fill('0')];
+        const singles = entry(TREBLES, darts(['S20', 'S20']), { number: 20, darts: 30 });
+        const doubles = entry(TREBLES, darts(['D20', 'D20']), { number: 20, darts: 30 });
+        expect(singles.score).toBe(doubles.score);
+        expect(order(TREBLES, [singles, doubles])).toEqual([doubles, singles]);
+    });
+
+    it('Scoring: more ton-plus visits at the same average', () => {
+        const tons = entry(SCORING, ['T20', 'T20', 'S20', 'S1', 'S1', 'S1', ...Array(24).fill('0')], { darts: 30 });
+        const even = entry(SCORING, ['T20', 'S20', 'S1', 'T20', 'S1', 'S1', ...Array(24).fill('0')], { darts: 30 });
+        expect(tons.score).toBe(even.score);
+        expect(order(SCORING, [even, tons])).toEqual([tons, even]);
+    });
+
+    it('older attempts without their result are worked out from their darts', () => {
+        // eslint-disable-next-line no-unused-vars
+        const strip = ({ result, ...rest }) => rest;
+        const darts = (rest) => [...Array(3).fill('T20'), ...rest, ...Array(27 - rest.length).fill('0')];
+        const singles = strip(entry(TREBLES, darts(['S20']), { number: 20, darts: 30 }));
+        const doubles = strip(entry(TREBLES, darts(['D20']), { number: 20, darts: 30 }));
+        expect(TREBLES.tiebreak(doubles, singles)).toBeLessThan(0);
+    });
+
+    it('every training has an order for the same score', () => {
+        expect(TRAININGS.filter(definition => !definition.tiebreak).map(definition => definition.id)).toEqual(['doublesaround']);
     });
 });

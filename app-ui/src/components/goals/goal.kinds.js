@@ -1,6 +1,6 @@
 import { addDays, weekdayOf } from '../../rules/calendar';
 import { locale, t } from '../../utils/i18n';
-import { boardOf, trainingOf } from '../../rules/trainings';
+import { boardOf, goalRange, trainingOf } from '../../rules/trainings';
 
 /**
  * What a weekly goal can count, as the API knows it (utils/practice.goals.js
@@ -17,18 +17,18 @@ export const GOAL_KINDS = [
 ];
 export const kindOf = (value) => GOAL_KINDS.find(kind => kind.value === value) ?? GOAL_KINDS[0];
 
-// the trainings with a score, with a number to start from that fits each
+// the trainings with a score (the number to start from and the range of each: goalRange)
 export const SCORE_TRAININGS = [
-    { value: 'bobs27', label: t('Bob\'s 27'), target: 100 },
-    { value: 'checkout121', label: t('121 Checkout'), target: 100 },
-    { value: 'randomcheckouts', label: t('Random checkouts'), target: 30 },
-    { value: 'scoring', label: t('Scoring'), target: 50 },
-    { value: 'doublesaround', label: t('Doubles around the board'), target: 60 },
-    { value: 'catch40', label: t('Catch 40'), target: 40 },
-    { value: 'trebles', label: t('Treble practice'), target: 15 },
-    { value: 'bulls', label: t('Bull practice'), target: 20 },
-    { value: 'ladder', label: t('Checkout ladder'), target: 70 },
-    { value: 'shortleg', label: t('Shortest leg'), target: 24 },
+    { value: 'bobs27', label: t('Bob\'s 27') },
+    { value: 'checkout121', label: t('121 Checkout') },
+    { value: 'randomcheckouts', label: t('Random checkouts') },
+    { value: 'scoring', label: t('Scoring') },
+    { value: 'doublesaround', label: t('Doubles around the board') },
+    { value: 'catch40', label: t('Catch 40') },
+    { value: 'trebles', label: t('Treble practice') },
+    { value: 'bulls', label: t('Bull practice') },
+    { value: 'ladder', label: t('Checkout ladder') },
+    { value: 'shortleg', label: t('Shortest leg') },
 ];
 // the trainings to count: all of them ('all' here, none kept), or one
 export const ALL_TRAININGS = 'all';
@@ -43,22 +43,39 @@ export const COUNT_TRAININGS = [
 // where it has none yet; null for other goals
 export const goalSettings = (kind, training, settings = {}) => (kind === 'trainingScore' && trainingOf(training) ? boardOf(trainingOf(training), settings ?? {}) : null);
 
-// a goal as the editor holds it
-export const draftOf = (goal) => ({ id: goal.id ?? null, kind: goal.kind, target: goal.target, training: goal.training ?? null, withBot: Boolean(goal.withBot), settings: goalSettings(goal.kind, goal.training, goal.settings) });
+// the numbers a goal can ask for: { min, max, start } (a score: what the training on its board allows)
+export const targetRange = (goal) => (goal.kind === 'trainingScore' && trainingOf(goal.training)
+    ? goalRange(trainingOf(goal.training), goal.settings ?? {})
+    : { min: 1, max: kindOf(goal.kind).max, start: kindOf(goal.kind).target });
+
+// a number brought into a goal's range (121 Checkout: 100 is 121, as no result lies between)
+export const fitTarget = (goal) => {
+    const { min, max } = targetRange(goal);
+    return Number.isInteger(goal.target) ? Math.min(max, Math.max(min, goal.target)) : goal.target;
+};
+
+// a goal as the editor holds it (a score kept from before within what the training allows)
+export const draftOf = (goal) => {
+    const draft = { id: goal.id ?? null, kind: goal.kind, target: goal.target, training: goal.training ?? null, withBot: Boolean(goal.withBot), settings: goalSettings(goal.kind, goal.training, goal.settings) };
+    return { ...draft, target: draft.kind === 'trainingScore' ? fitTarget(draft) : draft.target };
+};
 
 // a new goal of a kind, with the number it starts with
 export const newGoal = (kind = 'trainings', training = null) => {
     const definition = kindOf(kind);
     const chosen = definition.training === 'required' ? training ?? SCORE_TRAININGS[0].value : definition.training ? training : null;
-    const target = definition.training === 'required' ? SCORE_TRAININGS.find(entry => entry.value === chosen).target : definition.target;
-    return { id: null, kind, target, training: chosen, withBot: false, settings: goalSettings(kind, chosen) };
+    const goal = { id: null, kind, target: definition.target, training: chosen, withBot: false, settings: goalSettings(kind, chosen) };
+    return { ...goal, target: targetRange(goal).start };
 };
 
-// whether the editor's goals can be saved: each a number within its kind's range, with its training
-export const goalsValid = (goals) => goals.every(goal => {
-    const kind = kindOf(goal.kind);
-    return Number.isInteger(goal.target) && goal.target >= 1 && goal.target <= kind.max && (kind.training !== 'required' || Boolean(goal.training));
-});
+// whether a goal's number is within its range
+export const targetValid = (goal) => {
+    const { min, max } = targetRange(goal);
+    return Number.isInteger(goal.target) && goal.target >= min && goal.target <= max;
+};
+
+// whether the editor's goals can be saved: each a number within its range, with its training
+export const goalsValid = (goals) => goals.every(goal => targetValid(goal) && (kindOf(goal.kind).training !== 'required' || Boolean(goal.training)));
 
 const formatNumber = (value) => new Intl.NumberFormat(locale(), { maximumFractionDigits: 1 }).format(value);
 // how far a goal is, as a figure: "2 / 3", "87 / 100", "– / 100" before the first training

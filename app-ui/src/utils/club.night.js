@@ -30,6 +30,14 @@ export const choosePlayers = (clubId, day, players) => write(PLAYERS_KEY(clubId,
 // who of them went home, and when: { [id]: ISO time }
 export const gonePlayers = (clubId, day) => read(`${PLAYERS_KEY(clubId, day)}.gone`, {});
 export const chooseGone = (clubId, day, gone) => write(`${PLAYERS_KEY(clubId, day)}.gone`, gone);
+// who of them was added later, and when: { [id]: ISO time }
+export const camePlayers = (clubId, day) => read(`${PLAYERS_KEY(clubId, day)}.came`, {});
+export const chooseCame = (clubId, day, came) => write(`${PLAYERS_KEY(clubId, day)}.came`, came);
+
+// who came later after a change of tonight's players: the new ones from now, those taken out forgotten
+export const cameAfter = (came, before, ids, now = new Date()) => Object.fromEntries(ids
+    .filter(id => came[id] || !before.includes(id))
+    .map(id => [id, came[id] ?? now.toISOString()]));
 
 // a game started from a club evening: its night, for the way back (kept two weeks)
 export const noteNightGame = (gameId, day) => {

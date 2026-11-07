@@ -1,8 +1,7 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, MOCK } from './fixtures.js';
 
 // One's own goals for the week: set on the profile (saved as you go), shown with how far
 // each is on one's own Dashboard, and the two notifications they bring in the settings.
-const MOCK = 'http://localhost:3901';
 const post = (path, body = {}) => fetch(`${MOCK}${path}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
 
 const asPlayer = async (page) => {
@@ -16,11 +15,6 @@ const asPlayer = async (page) => {
 };
 
 test.describe('weekly practice goals', () => {
-    test.afterEach(async () => {
-        await post('/__test/goals', {});
-        await post('/__test/role', { admin: true });
-    });
-
     test('a goal set on the profile, its progress on the Dashboard, its notifications', async ({ page, isMobile }) => {
         test.skip(isMobile, 'once is enough: setting a goal works the same at every width');
         await post('/__test/goals', {});
@@ -51,13 +45,13 @@ test.describe('weekly practice goals', () => {
         await expect(editor.locator('.practice-goal-training').nth(1)).toContainText('Bob\'s 27');
         await expect(editor.locator('.practice-goal').nth(1)).toContainText('100 or better in Bob\'s 27');
         await expect(editor.locator('.practice-goal').nth(1)).toContainText('87 / 100');
-        // 121 Checkout: a score counts with the attempts and the darts chosen
+        // 121 Checkout: a score counts with the attempts and the darts chosen, and starts where it can be reached (from 121)
         await editor.locator('.practice-goal-training').nth(1).click();
         await page.getByRole('option', { name: '121 Checkout' }).click();
         const board = editor.locator('.practice-goal-board');
         await expect(board.locator('.p-selectbutton')).toHaveCount(2);
         await board.getByText('20 attempts', { exact: true }).click();
-        await expect(editor.locator('.practice-goal').nth(1)).toContainText('100 or better in 121 Checkout (20 attempts, 9 darts)');
+        await expect(editor.locator('.practice-goal').nth(1)).toContainText('125 or better in 121 Checkout (20 attempts, 9 darts)');
         expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
         await board.scrollIntoViewIfNeeded();
         await page.screenshot({ path: `test-results/practice-goals-board-${test.info().project.name}.png` });

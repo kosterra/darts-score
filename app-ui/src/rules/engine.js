@@ -184,3 +184,28 @@ export const replayTraining = (definition, training) => {
     }
     return { state, settings, done, thrown, result: done ? definition.result(state, { settings }) : null };
 };
+
+/**
+ * The darts of a training in its visits, as thrown: a visit ends after its
+ * third dart, or earlier where the training says so (inVisit back at 0, e.g. a
+ * checkout attempt over before its third dart). → [[dart, …], …]
+ */
+export const trainingVisits = (definition, training) => {
+    const settings = settingsOf(definition, training.settings);
+    let state = definition.init(settings);
+    const visits = [];
+    let visit = [];
+    for (const value of training.darts ?? []) {
+        const dart = definition.input === 'hitmiss' ? (value === 'H' ? 'H' : 'M') : parseDart(value);
+        state = definition.dart(clone(state), dart, { settings });
+        visit.push(value);
+        const over = definition.inVisit ? definition.inVisit(state, { settings }) === 0 : visit.length === 3;
+        if (over || visit.length === 3) {
+            visits.push(visit);
+            visit = [];
+        }
+        if (definition.done(state, { settings })) break;
+    }
+    if (visit.length) visits.push(visit);
+    return visits;
+};

@@ -1,8 +1,7 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, MOCK } from './fixtures.js';
 
 // The trainings with their own buttons (Treble practice, Bull practice) count every dart at
 // once, and Shortest leg says what is left until a finish is in reach.
-const MOCK = process.env.MOCK_URL ?? 'http://localhost:3901';
 const post = (path, body = {}) => fetch(`${MOCK}${path}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
 
 test.beforeEach(async ({ page }) => {
@@ -85,6 +84,9 @@ test('121 Checkout: a scoreboard per attempts and darts, the same score sharing 
     await filters.getByText('30', { exact: true }).click();
     await expect(rows).toHaveCount(1);
     await expect(rows.first()).toContainText('141');
+    // the board picked here is what the next training is set up for
+    if (!(await page.locator('.player-pick-card.is-chosen').count())) await page.locator('.player-pick-card').first().click();
+    await expect(page.locator('.game-setup-summary')).toContainText('30 attempts');
     // nothing with 30 attempts and six darts
     await filters.getByText('6', { exact: true }).click();
     await expect(page.getByText('Nobody has played it with these settings yet.')).toBeVisible();

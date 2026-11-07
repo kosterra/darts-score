@@ -124,3 +124,9 @@ than served stale from a cache.
   global admin, at desktop and phone width, against the mock API
   (`e2e/mock/server.mjs`) which uses the API's own rules. See
   [development.md](development.md) for running the app on the mock without a DB.
+  Specs import `test`, `expect` and `MOCK` from `e2e/fixtures.js`: every test
+  starts on a fresh mock (`e2e/mock/resettable.mjs` swaps in a new `server.mjs`
+  on `POST /__test/reset`), so a test seeds what it needs and never sees what
+  another spec changed. `e2e/global.setup.js` checks that servers left running
+  belong to this checkout and warms the dev server (`e2e/vite.config.mjs`)
+  before the first test. Other ports: `E2E_MOCK_PORT=… E2E_UI_PORT=… npm run e2e`.

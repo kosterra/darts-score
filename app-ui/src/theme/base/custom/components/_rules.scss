@@ -306,7 +306,14 @@
         .rules-visit-mark, .rules-visit-number { color: $accentRed; }
     }
 
-    &.is-thrown .rules-visit-mark { color: $textDefaultColor; }
+    // a dart thrown (Treble, D20, …): a tag as the darts are shown elsewhere
+    &.is-thrown .rules-visit-mark {
+        padding: 0 0.5rem;
+        border-radius: $radius-md;
+        background: ink(0.1);
+        color: $textDefaultColor;
+        font-size: $text-base;
+    }
 
     // the dart to throw now: lighter than the others, no frame
     &.is-next {
@@ -384,8 +391,11 @@
 
 // the doubles from D1 to the bull, by the room the strip itself has (a result, a row of the
 // scoreboard, the training under way): one row of 21 where every cell keeps about 1.9rem, else
-// three even rows of seven (the bull too); while training two rows, so the board stays in sight
+// three even rows of seven (the bull too); while training two rows of eleven where they keep
+// about 2rem each, so the board stays in sight, three rows of seven on a phone
 .rules-doubles {
+    width: 100%;
+    min-width: 0;
     margin: 0;
     container-type: inline-size;
 
@@ -405,7 +415,9 @@
     padding: 0;
     list-style: none;
 
-    .rules-doubles.is-live & { grid-template-columns: repeat(11, minmax(0, 1fr)); }
+    @container (min-width: 25rem) {
+        .rules-doubles.is-live & { grid-template-columns: repeat(11, minmax(0, 1fr)); }
+    }
 
     @container (min-width: 40rem) {
         &, .rules-doubles.is-live & { grid-template-columns: repeat(21, minmax(0, 1fr)); }
@@ -416,6 +428,8 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    // a cell never pushes the strip wider than its room
+    min-width: 0;
     padding: 0.2rem 0;
     border: 2px solid transparent;
     border-radius: $radius-sm;
@@ -498,6 +512,17 @@
 
 .rules-board-doubles {
     padding: $space-2 $space-1 $space-3;
+}
+
+// the darts of an attempt opened on the scoreboard: a group of tags per visit
+.rules-board-visits {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-2 $space-3;
+    margin-top: $space-2;
+
+    .is-hit { color: $accentGreen; }
+    .is-miss { color: $textFaintColor; }
 }
 
 // the rules of a game in its header: a quiet button, the rules opening below it
@@ -754,8 +779,12 @@
     align-items: flex-end;
     line-height: 1.2;
 
+    // how far a failed attempt got ("out at D6"): a quiet tag, as the darts are shown
     .rules-board-note {
-        color: $textFaintColor;
+        @include label-shape;
+        @include label-neutral;
+        margin-top: 0.15rem;
+        color: var(--text-subtle);
         font-size: $text-xs;
         font-weight: $weight-semibold;
         white-space: nowrap;

@@ -1,9 +1,8 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, MOCK } from './fixtures.js';
 
 // Bob's 27: the double to throw at as the big figure with the strip of all doubles, the
 // three darts of the visit as hit or miss, an undo that says where it stands, and at the
 // end what every double took, with the scoreboard brought into view.
-const MOCK = process.env.MOCK_URL ?? 'http://localhost:3901';
 const post = (path, body = {}) => fetch(`${MOCK}${path}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
 
 test.beforeEach(async ({ page }) => {
@@ -14,10 +13,6 @@ test.beforeEach(async ({ page }) => {
         localStorage.setItem('darts-score.activeClub', 'c1');
         localStorage.setItem('darts-score.install-hint', 'dismissed');
     });
-});
-
-test.afterAll(async () => {
-    await post('/__test/rules-trainings', {});
 });
 
 const startTraining = async (page) => {
@@ -108,6 +103,10 @@ test('at the end what every double took, and the new entry on the scoreboard in 
     await expect(latest).toContainText('New');
     await expect(latest).not.toHaveClass(/is-arriving/, { timeout: 8_000 });
     await expect(latest).toBeInViewport();
+    // gold only for a new personal best: a run out early is just new
+    await expect(latest).not.toHaveClass(/is-record/);
+    await expect(latest.locator('.atc-row-new')).toHaveText('New');
+    await page.screenshot({ path: `test-results/bobs27-latest-${test.info().project.name}.png` });
 
     // the latest attempts carry the training's sign; one of them opens to its doubles
     await page.locator('.p-selectbutton').getByText('Newest', { exact: true }).click();

@@ -10,7 +10,7 @@ import { t } from '../../utils/i18n';
 import { formatDate } from '../../utils/dates';
 import { Lines } from '../elements/skeletons';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
-import { replayTraining } from '../../rules/engine';
+import { replayTraining, trainingVisits } from '../../rules/engine';
 import { boardKeyOf, boardOf, placesOf } from '../../rules/trainings';
 import { rulesIcon } from './rules.icons';
 import RulesDoubles from './rules.doubles';
@@ -53,7 +53,7 @@ const pillLabel = (entry) => (String(entry.label).startsWith(String(entry.value)
  * attempt opens to what every double took, for the trainings around the board
  * (from its darts).
  */
-const RulesTrainingBoard = ({ definition, version = 0, highlight = null, settings = {} }) => {
+const RulesTrainingBoard = ({ definition, version = 0, highlight = null, highlightRecord = false, settings = {}, onPick = null }) => {
     const [entries, setEntries] = useState(null);
     // the settings whose attempts are shown, those of the setup until the pills choose others
     const setupKey = boardKeyOf(definition, settings);
@@ -175,8 +175,11 @@ const RulesTrainingBoard = ({ definition, version = 0, highlight = null, setting
         positions.current = now;
     });
 
-    const canOpen = Boolean(definition.doubles);
-    const doublesOf = (entry) => (entry.darts?.length ? definition.doubles(replayTraining(definition, entry).state) : null);
+    // an attempt with its darts opens to them, visit by visit (and Bob's 27's hits per double)
+    const canOpen = true;
+    const doublesOf = (entry) => (entry.darts?.length && definition.doubles ? definition.doubles(replayTraining(definition, entry).state) : null);
+    // a dart as the visits of a game show it: Hit and Miss, a miss of the board as Miss
+    const dartLabel = (dart) => (dart === 'H' ? t('Hit') : dart === 'M' || dart === '0' ? t('Miss') : dart);
     // the level each attempt was played at, as the API keeps it; one saved before it did is judged
     // here from its darts, the same way
     const levelOf = (entry) => {
@@ -204,7 +207,8 @@ const RulesTrainingBoard = ({ definition, version = 0, highlight = null, setting
                             <SelectButton
                                 value={board[option.key]}
                                 options={option.values.map(entry => ({ label: pillLabel(entry), value: entry.value, title: entry.label }))}
-                                onChange={(e) => { if (e.value !== null && e.value !== undefined) { setBoard({ ...board, [option.key]: e.value }); setShown(PAGE); setPhase(null); setOpen(null); } }}
+                                // a board picked here is the one the next training is set up for: what is tapped is what is played
+                                onChange={(e) => { if (e.value !== null && e.value !== undefined) { setBoard({ ...board, [option.key]: e.value }); onPick?.({ [option.key]: e.value }); setShown(PAGE); setPhase(null); setOpen(null); } }}
                                 className="p-selectbutton-pills pills-inline"
                                 aria-label={option.label}
                             />
@@ -224,11 +228,12 @@ const RulesTrainingBoard = ({ definition, version = 0, highlight = null, setting
                             const arriving = entry.id === highlight && phase;
                             const opens = canOpen && entry.darts?.length > 0;
                             const doubles = open === entry.id ? doublesOf(entry) : null;
+                            const visits = open === entry.id ? trainingVisits(definition, entry) : null;
                             return (
                                 <Fragment key={entry.id}>
                                 <li
                                     ref={(element) => { if (element) rowRefs.current.set(entry.id, element); else rowRefs.current.delete(entry.id); }}
-                                    className={`atc-row ${entry.id === highlight ? 'is-latest' : ''} ${arriving ? 'is-arriving' : ''} ${arriving === 'enter' ? 'is-entering' : ''} ${opens ? 'is-openable' : ''}`}
+                                    className={`atc-row ${entry.id === highlight ? 'is-latest' : ''} ${entry.id === highlight && highlightRecord ? 'is-record' : ''} ${arriving ? 'is-arriving' : ''} ${arriving === 'enter' ? 'is-entering' : ''} ${opens ? 'is-openable' : ''}`}
                                     // the doubles of the attempt open under it
                                     {...(opens ? { role: 'button', tabIndex: 0, 'aria-expanded': open === entry.id, onClick: () => toggle(entry), onKeyDown: (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(entry); } } } : {})}
                                 >
@@ -247,11 +252,11 @@ const RulesTrainingBoard = ({ definition, version = 0, highlight = null, setting
                                     <span className="atc-row-player">
                                         <span className="atc-row-name">
                                             {player.nickname ?? t('Unknown player')}
-                                            {entry.id === highlight && <span className="atc-row-new">{t('New')}</span>}
                                         </span>
-                                        {/* the date, and the level the attempt was played at after it */}
+                                        {/* the date ("New" for the attempt just saved, in gold only when it is a new best), and the level played at */}
                                         <span className="atc-row-detail atc-row-detail-level">
                                             <span>{formatDate(entry.createdAt, { year: 'short' })}</span>
+                                            {entry.id === highlight && <span className={`atc-row-new ${highlightRecord ? 'is-record' : ''}`}>{highlightRecord ? t('New best') : t('New')}</span>}
                                             <PlayLevelTag estimate={levelOf(entry)} compact />
                                         </span>
                                     </span>
@@ -262,7 +267,18 @@ const RulesTrainingBoard = ({ definition, version = 0, highlight = null, setting
                                     </span>
                                     {opens && <i className={`pi pi-chevron-${open === entry.id ? 'up' : 'down'} rules-board-chevron`} aria-hidden="true" />}
                                 </li>
-                                {doubles && <li className="rules-board-doubles"><RulesDoubles cells={doubles} label={definition.doublesLabel} /></li>}
+                                {open === entry.id &&
+                                    <li className="rules-board-doubles">
+                                        {doubles && <RulesDoubles cells={doubles} label={definition.doublesLabel} />}
+                                        {/* the darts of the attempt, visit by visit, as tags */}
+                                        <div className="rules-board-visits" aria-label={t('Darts thrown')}>
+                                            {visits.map((visit, index) => (
+                                                <span key={index} className="x01-visit-darts">
+                                                    {visit.map((dart, d) => <span key={d} className={dart === 'H' ? 'is-hit' : dart === 'M' || dart === '0' ? 'is-miss' : ''}>{dartLabel(dart)}</span>)}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </li>}
                                 </Fragment>
                             );
                         })}
