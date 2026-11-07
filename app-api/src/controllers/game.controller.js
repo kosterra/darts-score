@@ -11,6 +11,7 @@ import { withGameState } from '../rules/engine.js';
 import { participatesInTournament, tournamentGameDeleted, tournamentGameFinished } from '../utils/tournaments.js';
 import { leagueGameDeleted, leagueGameFinished } from '../utils/leagues.js';
 import { boardGameDeleted, boardGameFinished } from '../utils/boards.js';
+import { STALE_SAVE, saveConflict, unchangedFinish } from '../utils/game.saves.js';
 
 /**
  * A game of the rules engine with its results worked out here from its visits,
@@ -160,20 +161,32 @@ export const createGameController = (Model, gameName, type = null) => {
             if (!isTournamentGame && !(await playersBelongToClub(req.body.players, req.club._id))) {
                 return res.status(422).json({ errors: ['All players must belong to the selected club.'] });
             }
+            // what the app built on: the "updatedAt" of the state it last had from the server
+            const { basedOn, ...body } = req.body ?? {};
+            const kind = type ?? stored.kind;
+            const before = stored.toObject();
+            // a game keeps what it was set up with, also when the club's rules change meanwhile:
+            // its visits are worked out by its own settings, never by those sent
+            const sent = keepSetUp(kind, before, { ...body });
+            if (isTournamentGame) sent.players = before.players;
             // Use $set explicitly to prevent MongoDB operator injection from req.body;
             // a game never moves to another club, so it keeps the club it was stored with
-            const base = { ...toStore(req.body), club: stored.club };
-            if (isTournamentGame) base.players = stored.toObject().players;
-            // a game keeps what it was set up with, also when the club's rules change meanwhile
-            const changes = withRulesResult(keepSetUp(type ?? stored.kind, stored, base));
+            const changes = withRulesResult(keepSetUp(kind, before, { ...toStore(sent), club: stored.club }));
             // the timestamps are the server's: "last updated" of a finished game is when it was finished
             delete changes.createdAt;
             delete changes.updatedAt;
-            // a finished game sent again (a save retried, another device) stays finished when it was:
+            // an older state (a tab left open, a device that was offline) does not replace a newer one,
+            // and a finished game is not opened again: its tournament, league or board counted it
+            const conflict = saveConflict(before, changes, basedOn);
+            if (conflict) return res.status(409).json({ message: conflict });
+            // a finished game sent again as it is (a save retried, another device) keeps its time:
             // its badges, goals and club tally do not see it as played again
-            const finishedBefore = Boolean(stored.hasWinner) && Boolean(changes.hasWinner);
-            const data = await Model.findOneAndUpdate({ _id: stored._id }, { $set: changes }, { new: true, timestamps: !finishedBefore });
-            if (!data) return res.status(404).json({ message: `${label} game not found (id=${id}).` });
+            // only over the state just checked: a save from elsewhere at the same moment is not overwritten
+            const data = await Model.findOneAndUpdate({ _id: stored._id, updatedAt: before.updatedAt ?? null }, { $set: changes }, { returnDocument: 'after', timestamps: !unchangedFinish(before, changes) });
+            if (!data) {
+                if (await Model.exists({ _id: stored._id })) return res.status(409).json({ message: STALE_SAVE });
+                return res.status(404).json({ message: `${label} game not found (id=${id}).` });
+            }
             // A finished game may have earned its players new badges
             if (data.hasWinner) {
                 // a shared tournament game counts for each participating club's own players;

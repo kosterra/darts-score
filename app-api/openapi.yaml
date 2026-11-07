@@ -6319,12 +6319,23 @@ paths:
       tags:
         - X01
       summary: Update an X01 game
+      description: >-
+        A running game takes more visits; fewer or other ones (an undo) only with basedOn of the state stored last.
+        A finished game takes only itself again. Otherwise 409, e.g. a tab left open or a device that was offline
+        sending an older state, or a finished game sent back unfinished.
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/X01Game'
+              allOf:
+                - $ref: '#/components/schemas/X01Game'
+                - type: object
+                  properties:
+                    basedOn:
+                      type: string
+                      format: date-time
+                      description: The updatedAt of the stored state the app built on. Fewer or other visits than stored (an undo) are only taken from the state stored last.
       responses:
         '200':
           description: Update confirmation
@@ -6338,6 +6349,8 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
       parameters:
         - $ref: '#/components/parameters/ClubId'
       operationId: putGamesX01Byid
@@ -6438,12 +6451,23 @@ paths:
       tags:
         - Cricket
       summary: Update a Cricket game
+      description: >-
+        A running game takes more visits; fewer or other ones (an undo) only with basedOn of the state stored last.
+        A finished game takes only itself again. Otherwise 409, e.g. a tab left open or a device that was offline
+        sending an older state, or a finished game sent back unfinished.
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CricketGame'
+              allOf:
+                - $ref: '#/components/schemas/CricketGame'
+                - type: object
+                  properties:
+                    basedOn:
+                      type: string
+                      format: date-time
+                      description: The updatedAt of the stored state the app built on. Fewer or other visits than stored (an undo) are only taken from the state stored last.
       responses:
         '200':
           description: Update confirmation
@@ -6457,6 +6481,8 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
       parameters:
         - $ref: '#/components/parameters/ClubId'
       operationId: putGamesCricketByid
@@ -6584,12 +6610,23 @@ paths:
       tags:
         - Elimination
       summary: Update an Elimination game
+      description: >-
+        A running game takes more visits; fewer or other ones (an undo) only with basedOn of the state stored last.
+        A finished game takes only itself again. Otherwise 409, e.g. a tab left open or a device that was offline
+        sending an older state, or a finished game sent back unfinished.
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/EliminationGame'
+              allOf:
+                - $ref: '#/components/schemas/EliminationGame'
+                - type: object
+                  properties:
+                    basedOn:
+                      type: string
+                      format: date-time
+                      description: The updatedAt of the stored state the app built on. Fewer or other visits than stored (an undo) are only taken from the state stored last.
       responses:
         '200':
           description: Update confirmation
@@ -6603,6 +6640,8 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
       parameters:
         - $ref: '#/components/parameters/ClubId'
       operationId: putGamesEliminationByid
@@ -6729,12 +6768,23 @@ paths:
       tags:
         - Around the Clock
       summary: Save an Around the Clock game
+      description: >-
+        A running game takes more visits; fewer or other ones (an undo) only with basedOn of the state stored last.
+        A finished game takes only itself again. Otherwise 409, e.g. a tab left open or a device that was offline
+        sending an older state, or a finished game sent back unfinished.
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ClockGameCreate'
+              allOf:
+                - $ref: '#/components/schemas/ClockGameCreate'
+                - type: object
+                  properties:
+                    basedOn:
+                      type: string
+                      format: date-time
+                      description: The updatedAt of the stored state the app built on. Fewer or other visits than stored (an undo) are only taken from the state stored last.
       responses:
         '200':
           description: The game
@@ -6748,6 +6798,8 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
       parameters:
         - $ref: '#/components/parameters/ClubId'
         - $ref: '#/components/parameters/Id'
@@ -6877,12 +6929,23 @@ paths:
       tags:
         - More games
       summary: Save a game after a visit
+      description: >-
+        A running game takes more visits; fewer or other ones (an undo) only with basedOn of the state stored last.
+        A finished game takes only itself again. Otherwise 409, e.g. a tab left open or a device that was offline
+        sending an older state, or a finished game sent back unfinished.
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RulesGameInput'
+              allOf:
+                - $ref: '#/components/schemas/RulesGameInput'
+                - type: object
+                  properties:
+                    basedOn:
+                      type: string
+                      format: date-time
+                      description: The updatedAt of the stored state the app built on. Fewer or other visits than stored (an undo) are only taken from the state stored last.
       responses:
         '200':
           description: The game
@@ -6898,6 +6961,8 @@ paths:
           $ref: '#/components/responses/NotFound'
         '422':
           $ref: '#/components/responses/ValidationError'
+        '409':
+          $ref: '#/components/responses/Conflict'
       parameters:
         - $ref: '#/components/parameters/ClubId'
         - $ref: '#/components/parameters/Id'
