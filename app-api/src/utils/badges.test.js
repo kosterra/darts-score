@@ -112,6 +112,12 @@ describe('replayBadges', () => {
         };
         expect(ids([match(O, O, P, P, P)])).toContain('comeback-1');
         expect(ids([match(O, P, O, P, P)])).not.toContain('comeback-1');
+        // legs decided by the club's round limit count too: the fewest points left wins them
+        const limited = [{ playerId: P, darts: ['S1', 'S1', 'S1'], scoreLeft: 498 }, { playerId: O, darts: ['T20', 'T20', 'T20'], scoreLeft: 321 }];
+        const base = match(O, O, P, P, P);
+        const sets = base.data.allSetsThrows['set-1'];
+        const byLimit = { ...base, data: { ...base.data, roundLimit: 1, startingScore: 501, allSetsThrows: { 'set-1': { ...sets, 'leg-1': limited, 'leg-2': limited } } } };
+        expect(ids([byLimit])).toContain('comeback-1');
     });
 
     it('counts weekly streaks and knows the current one', () => {

@@ -4,7 +4,7 @@ import { isRulesGame } from './rules.kinds.js';
 import { withView } from './game.view.js';
 import { gameOf } from '../rules/games.js';
 import { replayGame } from '../rules/engine.js';
-import { legScores, partnersOf, sideKeysOf } from '../rules/x01.js';
+import { legScores, legWinnerOf, partnersOf, sideKeysOf } from '../rules/x01.js';
 
 /**
  * Badges players collect. Each group counts one thing (a "metric") and has
@@ -620,11 +620,11 @@ export const wonInDecidingLeg = (game, playerId) => {
     const sets = Object.entries(withView('x01', game).allSetsThrows ?? {})
         .sort(([a], [b]) => number(a) - number(b))
         .map(([, set]) => Object.entries(set ?? {}).sort(([a], [b]) => number(a) - number(b)).map(([, leg]) => leg).filter(Array.isArray));
-    // the side that won a leg (in doubles the team, by its first player)
+    // the side that won a leg (in doubles the team, by its first player), also by the round limit
     const keyOf = sideKeysOf(game);
     const winnerOf = (leg) => {
-        const id = leg.find(visit => visit?.scoreLeft === 0)?.playerId;
-        return id === undefined ? undefined : keyOf[id] ?? id;
+        const id = legWinnerOf(game, leg);
+        return id == null ? undefined : keyOf[id] ?? id;
     };
 
     const setsWon = new Map();
@@ -671,11 +671,13 @@ const applyVisits = (metrics, game, playerId, won, lost) => {
         if (busts >= BUSTS_IN_A_LEG) metrics.bustMasters += 1;
         if (atDouble >= DARTS_AT_DOUBLE) metrics.stuckOnDoubles += 1;
 
-        const finish = leg.find(visit => visit?.scoreLeft === 0);
-        if (!finish) continue;
-        legsWon.set(sideOf(finish.playerId), (legsWon.get(sideOf(finish.playerId)) ?? 0) + 1);
+        // the leg's winner, also by the round limit; the checkout figures only for a leg checked out
+        const winner = legWinnerOf(game, leg);
+        if (winner == null) continue;
+        legsWon.set(sideOf(winner), (legsWon.get(sideOf(winner)) ?? 0) + 1);
 
-        if (finish.playerId === playerId) {
+        const finish = leg.find(visit => visit?.scoreLeft === 0);
+        if (finish?.playerId === playerId) {
             const darts = upperDarts(finish.darts);
             if (sameDarts(finish.darts, SHANGHAI)) metrics.shanghaiFinishes += 1;
             if (darts.at(-1) === 'D1') metrics.madhouses += 1;
