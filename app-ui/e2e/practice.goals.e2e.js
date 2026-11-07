@@ -1,8 +1,7 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, MOCK } from './fixtures.js';
 
 // One's own goals for the week: set on the profile (saved as you go), shown with how far
 // each is on one's own Dashboard, and the two notifications they bring in the settings.
-const MOCK = 'http://localhost:3901';
 const post = (path, body = {}) => fetch(`${MOCK}${path}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
 
 const asPlayer = async (page) => {

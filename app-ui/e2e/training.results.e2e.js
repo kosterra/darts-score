@@ -1,9 +1,8 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, MOCK } from './fixtures.js';
 
 // The end of a training on a phone: the result first, then the scoreboard comes into view
 // with the new attempt moving up to its place. And while a training is entered with the
 // board or the keypad, the darts of the visit float above the menu bar, as in X01.
-const MOCK = process.env.MOCK_URL ?? 'http://localhost:3901';
 const post = (path, body = {}) => fetch(`${MOCK}${path}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
 
 test.beforeEach(async ({ page }) => {

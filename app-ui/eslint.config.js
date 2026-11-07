@@ -34,4 +34,9 @@ export default [
     // fields left out of a copy ({ secret, ...rest }) and callbacks with arguments they do not need
     rules: { 'no-unused-vars': ['error', { ignoreRestSiblings: true, args: 'none' }] },
   },
+  // the checks take test and expect from e2e/fixtures.js: the stand-in's address and its reset before each test
+  {
+    files: ['e2e/**/*.e2e.js'],
+    rules: { 'no-restricted-imports': ['error', { paths: [{ name: '@playwright/test', message: "Import test and expect from './fixtures.js'." }] }] },
+  },
 ]

@@ -1,9 +1,8 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, MOCK } from './fixtures.js';
 
 // Boards: a tournament played on two boards (the user's match called to board 1, a game live on
 // board 2, the rest in the queue), the admin's tools, "Your match" for the player, the big screen of
 // the boards, and a club night switched to boards.
-const MOCK = process.env.MOCK_URL ?? 'http://localhost:3901';
 const post = (path, body = {}) => fetch(`${MOCK}${path}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
 const tournamentId = async () => (await (await fetch(`${MOCK}/api/tournaments`)).json()).tournaments[0].id;
 const today = () => {

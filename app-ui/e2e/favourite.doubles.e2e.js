@@ -1,9 +1,8 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, MOCK } from './fixtures.js';
 
 // The favourite, second and third favourite double, set in the player's profile: the second
 // only after a favourite, a double chosen once is not offered again, and the ways out of a
 // checkout training finish on them first, in their order.
-const MOCK = process.env.MOCK_URL ?? 'http://localhost:3901';
 const post = (path, body = {}) => fetch(`${MOCK}${path}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
 const put = (path, body) => fetch(`${MOCK}${path}`, { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
 

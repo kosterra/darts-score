@@ -1,8 +1,7 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, MOCK } from './fixtures.js';
 
 // On a small phone the board, the keypad or the buttons of a game or a training are fully in view
 // above the bars at the bottom, without scrolling: the header gets compact, the input takes the room left.
-const MOCK = process.env.MOCK_URL ?? 'http://localhost:3901';
 const post = (path, body = {}) => fetch(`${MOCK}${path}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
 
 test.skip(({ isMobile }) => !isMobile, 'a phone only: on a desktop the header keeps its size');

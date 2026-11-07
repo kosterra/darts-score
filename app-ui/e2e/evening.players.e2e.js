@@ -1,9 +1,8 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, MOCK } from './fixtures.js';
 
 // A darts evening where someone comes later and someone goes home early: the one
 // coming is added by name, who went home is no longer chosen for a game but keeps
 // their games in the table, and the table can be ordered by win rate.
-const MOCK = 'http://localhost:3901';
 const post = (path, body = {}) => fetch(`${MOCK}${path}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
 
 test('players coming later and going home', async ({ page }) => {

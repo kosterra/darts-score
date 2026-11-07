@@ -1,8 +1,7 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, MOCK } from './fixtures.js';
 
 // Legmate added to the home screen: no start page about Legmate, the login
 // at once, with the games that need no account.
-const MOCK = 'http://localhost:3901';
 
 test('the installed app opens with the login and offers the games without an account', async ({ page }) => {
     await fetch(`${MOCK}/__test/logged-out`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ loggedOut: true }) });
