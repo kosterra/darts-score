@@ -43,7 +43,9 @@ test('the games list shows the level each played at and filters by it', async ({
         await page.locator('.filter-dropdown', { hasText: 'Level:' }).click();
         await page.getByRole('option', { name: 'World class' }).click();
     } else {
-        await page.getByRole('group', { name: 'Level played at' }).getByText('World class', { exact: true }).click();
+        // a compact dropdown on a wide screen too, beside the other filters
+        await page.locator('.filter-dropdown.is-compact').click();
+        await page.getByRole('option', { name: 'World class' }).click();
     }
     await asked;
     await expect(page).toHaveURL(/level=worldClass/);
