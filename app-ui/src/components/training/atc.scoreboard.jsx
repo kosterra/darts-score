@@ -52,13 +52,13 @@ const writeFiltersOpen = (open) => {
 
 const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-const ScoreboardRow = ({ row, rowRef, latest, phase, podium, showDate, withLevels }) => {
+const ScoreboardRow = ({ row, rowRef, latest, record = false, phase, podium, showDate, withLevels }) => {
     const { entry, rank } = row;
     const player = entry.player ?? {};
     return (
         <li
             ref={rowRef}
-            className={`atc-row ${latest ? 'is-latest' : ''} ${phase === 'enter' || phase === 'slide' ? 'is-arriving' : ''} ${phase === 'enter' ? 'is-entering' : ''}`}
+            className={`atc-row ${latest ? 'is-latest' : ''} ${record && (latest || phase) ? 'is-record' : ''} ${phase === 'enter' || phase === 'slide' ? 'is-arriving' : ''} ${phase === 'enter' ? 'is-entering' : ''}`}
         >
             {rank <= 3
                 // the podium as medals, like the badges
@@ -76,11 +76,11 @@ const ScoreboardRow = ({ row, rowRef, latest, phase, podium, showDate, withLevel
             <span className="atc-row-player">
                 <span className="atc-row-name">
                     {player.nickname || t('Unknown player')}
-                    {(latest || phase) && <span className="atc-row-new">{t('New')}</span>}
                 </span>
-                {/* the date, and the level the training was played at after it (fewest darts only) */}
+                {/* the date ("New" for the training just saved, in gold only when it is a new best), and the level played at (fewest darts only) */}
                 <span className="atc-row-detail atc-row-detail-level">
                     <span>{showDate ? formatDate(entry.createdAt, { time: true }) : dayjs(entry.createdAt).format('HH:mm')}</span>
+                    {(latest || phase) && <span className={`atc-row-new ${record ? 'is-record' : ''}`}>{record ? t('New best') : t('New')}</span>}
                     {withLevels && <PlayLevelTag estimate={playLevelOf(entry, player.id)} compact />}
                 </span>
             </span>
@@ -122,6 +122,8 @@ const ATCScoreboard = ({ entries, noun = 'times', arrival, view, onViewChange, d
     const rows = useMemo(() => scoreboardRows(entries, { ...view, myPlayerId }), [entries, view, myPlayerId]);
     const lists = myPlayerId ? LISTS : LISTS.filter(option => option.value !== 'mine');
     const arrivingIds = useMemo(() => new Set(arrival?.ids ?? []), [arrival]);
+    // the trainings just saved that are a new personal best: those alone in gold
+    const recordIds = useMemo(() => new Set((arrival?.entries ?? []).filter(entry => entry?.isRecord).map(entry => entry.id)), [arrival]);
     const arrivingRows = useMemo(() => rows.filter(({ entry }) => arrivingIds.has(entry.id)), [rows, arrivingIds]);
     const latestId = useMemo(() => entries.reduce((latest, entry) => !latest || new Date(entry.createdAt) > new Date(latest.createdAt) ? entry : latest, null)?.id, [entries]);
 
@@ -293,6 +295,7 @@ const ATCScoreboard = ({ entries, noun = 'times', arrival, view, onViewChange, d
                                     row={row}
                                     rowRef={(element) => { if (element) rowRefs.current.set(row.entry.id, element); else rowRefs.current.delete(row.entry.id); }}
                                     latest={row.entry.id === latestId && dayjs(row.entry.createdAt).isSame(dayjs(), 'day')}
+                                    record={recordIds.has(row.entry.id)}
                                     phase={arrivingIds.has(row.entry.id) ? phase : null}
                                     podium={arrivingIds.has(row.entry.id) && phase === 'landed' && row.rank <= 3}
                                     showDate={view.period !== 'today'}

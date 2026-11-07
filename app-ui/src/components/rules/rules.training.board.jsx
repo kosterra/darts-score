@@ -53,7 +53,7 @@ const pillLabel = (entry) => (String(entry.label).startsWith(String(entry.value)
  * attempt opens to what every double took, for the trainings around the board
  * (from its darts).
  */
-const RulesTrainingBoard = ({ definition, version = 0, highlight = null, settings = {} }) => {
+const RulesTrainingBoard = ({ definition, version = 0, highlight = null, highlightRecord = false, settings = {} }) => {
     const [entries, setEntries] = useState(null);
     // the settings whose attempts are shown, those of the setup until the pills choose others
     const setupKey = boardKeyOf(definition, settings);
@@ -228,7 +228,7 @@ const RulesTrainingBoard = ({ definition, version = 0, highlight = null, setting
                                 <Fragment key={entry.id}>
                                 <li
                                     ref={(element) => { if (element) rowRefs.current.set(entry.id, element); else rowRefs.current.delete(entry.id); }}
-                                    className={`atc-row ${entry.id === highlight ? 'is-latest' : ''} ${arriving ? 'is-arriving' : ''} ${arriving === 'enter' ? 'is-entering' : ''} ${opens ? 'is-openable' : ''}`}
+                                    className={`atc-row ${entry.id === highlight ? 'is-latest' : ''} ${entry.id === highlight && highlightRecord ? 'is-record' : ''} ${arriving ? 'is-arriving' : ''} ${arriving === 'enter' ? 'is-entering' : ''} ${opens ? 'is-openable' : ''}`}
                                     // the doubles of the attempt open under it
                                     {...(opens ? { role: 'button', tabIndex: 0, 'aria-expanded': open === entry.id, onClick: () => toggle(entry), onKeyDown: (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(entry); } } } : {})}
                                 >
@@ -247,11 +247,11 @@ const RulesTrainingBoard = ({ definition, version = 0, highlight = null, setting
                                     <span className="atc-row-player">
                                         <span className="atc-row-name">
                                             {player.nickname ?? t('Unknown player')}
-                                            {entry.id === highlight && <span className="atc-row-new">{t('New')}</span>}
                                         </span>
-                                        {/* the date, and the level the attempt was played at after it */}
+                                        {/* the date ("New" for the attempt just saved, in gold only when it is a new best), and the level played at */}
                                         <span className="atc-row-detail atc-row-detail-level">
                                             <span>{formatDate(entry.createdAt, { year: 'short' })}</span>
+                                            {entry.id === highlight && <span className={`atc-row-new ${highlightRecord ? 'is-record' : ''}`}>{highlightRecord ? t('New best') : t('New')}</span>}
                                             <PlayLevelTag estimate={levelOf(entry)} compact />
                                         </span>
                                     </span>

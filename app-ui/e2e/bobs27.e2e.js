@@ -108,6 +108,10 @@ test('at the end what every double took, and the new entry on the scoreboard in 
     await expect(latest).toContainText('New');
     await expect(latest).not.toHaveClass(/is-arriving/, { timeout: 8_000 });
     await expect(latest).toBeInViewport();
+    // gold only for a new personal best: a run out early is just new
+    await expect(latest).not.toHaveClass(/is-record/);
+    await expect(latest.locator('.atc-row-new')).toHaveText('New');
+    await page.screenshot({ path: `test-results/bobs27-latest-${test.info().project.name}.png` });
 
     // the latest attempts carry the training's sign; one of them opens to its doubles
     await page.locator('.p-selectbutton').getByText('Newest', { exact: true }).click();

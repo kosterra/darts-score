@@ -9,6 +9,12 @@ import { t } from '../../utils/i18n';
  */
 const CHANGELOG = [
     {
+        version: 'Next release',
+        changes: [
+            t('Scoreboards of the trainings: the attempt just saved is marked in green with New, and in gold with New best only when it is a new personal best; the level after a long result no longer gets cut off on a phone.'),
+        ],
+    },
+    {
         version: '2026.11.6',
         changes: [
             t('On a phone the board, the keypad and the buttons of every game and training are fully in view without scrolling: where space is short the header gets compact and the marks or standings move below the board.'),

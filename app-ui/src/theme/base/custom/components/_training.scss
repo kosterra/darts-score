@@ -176,11 +176,15 @@
   border-radius: $radius-md;
   background: var(--surface-raised);
 
-  // the latest time of today
-  // the training just saved: a soft gold tint with a gold edge on the left and a
-  // "New" label, no border
+  // the training just saved: a soft green tint with a green edge on the left and a
+  // "New" label; gold only for a new personal best (gold is for records in the app)
   &.is-latest,
   &.is-arriving {
+    background: linear-gradient(90deg, soft($accentGreen, 0.16), soft($accentGreen, 0.04) 70%), var(--surface-raised);
+    box-shadow: inset 3px 0 0 $accentGreen;
+  }
+
+  &.is-record {
     background: linear-gradient(90deg, rgba(233, 172, 47, 0.16), rgba(233, 172, 47, 0.04) 70%), var(--surface-raised);
     box-shadow: inset 3px 0 0 $accentAmber;
   }
@@ -188,8 +192,10 @@
   // on its way up: floating above the rows it passes
   &.is-arriving {
     z-index: 1;
-    box-shadow: inset 3px 0 0 $accentAmber, 0 0.6rem 1.6rem shadow(0.5);
+    box-shadow: inset 3px 0 0 $accentGreen, 0 0.6rem 1.6rem shadow(0.5);
   }
+
+  &.is-arriving.is-record { box-shadow: inset 3px 0 0 $accentAmber, 0 0.6rem 1.6rem shadow(0.5); }
 
   &.is-entering { animation: atc-row-enter 0.45s ease-out both; }
 }
@@ -246,10 +252,9 @@
   white-space: normal;
 
   > span:first-child { white-space: nowrap; }
-  // the long label beside a long result on a phone: on two lines rather than cut off;
-  // the short one ("World class") fits the column and stays on one line
-  .play-level-tag { max-width: 100%; white-space: normal; text-align: left; }
-  .play-level-tag.is-compact { white-space: nowrap; }
+  // a long label ("World class") beside a long result on a phone: on two lines rather than cut off
+  .play-level-tag,
+  .play-level-tag.is-compact { max-width: 100%; white-space: normal; text-align: left; }
 }
 
 .atc-row-name,
@@ -726,7 +731,10 @@
 // the label of the training just saved
 .atc-row-new {
   @include label-shape;
-  @include label-tone($accentAmber);
+  @include label-tone($accentGreen);
+
+  &.is-record { @include label-tone($accentAmber); }
+
   margin-left: $space-2;
   padding: 0.05rem 0.45rem;
   font-size: $text-xs;
