@@ -39,3 +39,15 @@ test('the win of a tournament to share', async ({ page }) => {
     await page.locator('.tournament-champion').getByRole('button', { name: 'Share' }).click();
     await (await download).saveAs(`test-results/share-win-${test.info().project.name}.png`);
 });
+
+test('the win of a league season to share', async ({ page }) => {
+    await post('/__test/logged-out', { loggedOut: false });
+    await post('/__test/role', { admin: true });
+    await post('/__test/leagues', { scenario: 'finished' });
+    const { leagues } = await (await fetch(`${MOCK}/api/leagues`)).json();
+    await page.addInitScript(() => localStorage.setItem('darts-score.activeClub', 'c1'));
+    await page.goto(`/leagues/${leagues[0].id}`);
+    const download = page.waitForEvent('download');
+    await page.locator('.tournament-champion').getByRole('button', { name: 'Share' }).click();
+    await (await download).saveAs(`test-results/share-league-${test.info().project.name}.png`);
+});

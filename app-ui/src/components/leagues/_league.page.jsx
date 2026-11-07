@@ -13,6 +13,7 @@ import { Toast } from 'primereact/toast';
 
 import LeagueService from '../../services/league.service';
 import { useAuth } from '../../utils/auth.context';
+import { shareCard } from '../../utils/share.card';
 import { calendarFormat, formatDate, formatDateTime } from '../../utils/dates';
 import { t } from '../../utils/i18n';
 import { dueOf, leagueTable } from '../../rules/leagues';
@@ -165,7 +166,7 @@ const LeaguePage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const toast = useRef(null);
-    const { isClubAdmin } = useAuth();
+    const { isClubAdmin, activeClub } = useAuth();
     const [league, setLeague] = useState(null);
     const [error, setError] = useState('');
     const [busy, setBusy] = useState('');
@@ -196,6 +197,22 @@ const LeaguePage = () => {
     const started = ['running', 'finished'].includes(league.status);
     const over = ['finished', 'cancelled'].includes(league.status);
     const played = league.matches.filter(isDecided).length;
+    // the win of the season as a picture to share, as a tournament's: the points, the matches and legs won
+    const shareWin = () => {
+        const champion = league.winner;
+        const row = leagueTable(league.players, league.matches).find(entry => entry.player === champion);
+        shareCard({
+            eyebrow: t('League winner'),
+            title: leagueName(league, champion),
+            subtitle: [league.name, activeClub?.name].filter(Boolean).join(' · '),
+            hero: { value: String(row?.points ?? 0), label: t('points') },
+            figures: [
+                { value: String(league.players.length), label: t('players') },
+                { value: String(row?.won ?? 0), label: t('matches won') },
+                ...(row?.legsFor ? [{ value: String(row.legsFor), label: t('legs won') }] : []),
+            ],
+        }, { gold: true, filename: `legmate-${league.name}.png`, text: t('{{name}} wins {{league}}!', { name: leagueName(league, champion), league: league.name }) });
+    };
     const matchday = league.matchdays?.find(entry => entry.day === day);
     const mine = running && league.myPlayer ? league.matches.filter(match => match.players.includes(league.myPlayer) && !isDecided(match)).sort((a, b) => new Date(dueOf(league, a)) - new Date(dueOf(league, b))) : [];
 
@@ -259,7 +276,8 @@ const LeaguePage = () => {
                     {league.status === 'finished' &&
                         <div className="tournament-champion">
                             <FaTrophy className="tournament-champion-icon" aria-hidden="true" />
-                            <span>{t('{{name}} wins {{league}}!', { name: leagueName(league, league.winner), league: league.name })}</span>
+                            <span className="flex-grow-1">{t('{{name}} wins {{league}}!', { name: leagueName(league, league.winner), league: league.name })}</span>
+                            <Button label={t('Share')} icon="pi pi-share-alt" size="small" severity="secondary" onClick={shareWin} />
                         </div>}
 
                     {isClubAdmin && !over &&
