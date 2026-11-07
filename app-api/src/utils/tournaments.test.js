@@ -191,6 +191,21 @@ describe('the registration', () => {
         expect(service.entriesIn(tournament)).toHaveLength(2);
     });
 
+    it('keeps room for everyone who entered: fewer places are refused, and so is a draw with more players than places', async () => {
+        const rounds = roundsOfPreset('clubNight', 16);
+        players = Array.from({ length: 10 }, (_, index) => ({ _id: id(index + 1), nickname: `P${index + 1}` }));
+        const tournament = tournamentDoc({ status: 'registration', maxPlayers: 16, rounds });
+        tournament.entries = players.map(player => ({ player: player._id, status: 'in' }));
+        const smaller = service.checkSetup({ maxPlayers: 8, rounds: roundsOfPreset('clubNight', 8) }, tournament);
+        expect(smaller.error).toBe('10 players have entered already: choose at least that many places.');
+        expect(service.checkSetup({ maxPlayers: 16, rounds }, tournament).setup.maxPlayers).toBe(16);
+        // set too small before this was checked: no bracket bigger than its rounds
+        Object.assign(tournament, { status: 'closed', maxPlayers: 8, rounds: roundsOfPreset('clubNight', 8) });
+        await expect(service.holdDraw(tournament, { random: () => 0.5 })).rejects.toMatchObject({ status: 409, message: expect.stringMatching(/8 places/) });
+        expect(tournament.status).toBe('closed');
+        expect(tournament.save).not.toHaveBeenCalled();
+    });
+
     it('answers with one-click links that cannot be forged', () => {
         const token = service.replyToken(id(900), id(4));
         expect(service.readReplyToken(token)).toEqual({ tournament: id(900), player: id(4) });
@@ -422,6 +437,36 @@ describe('groups + knockout', () => {
         await expect(service.setResult(tournament, first.id, b)).rejects.toMatchObject({ status: 409 });
     });
 
+    it('fills the bracket even when its save loses a race, and the hourly job fills one left empty', async () => {
+        const db = (await import('../models/db.model.js')).default;
+        const tournament = closedGroups(8);
+        // what is stored: the tournament as its last save left it
+        let stored = tournament;
+        // the hourly job finds it running; the ratings of the draw find no games
+        const find = (query) => Object.assign(Promise.resolve(query.status?.$in ? [stored] : []), { lean: async () => [] });
+        db.tournament = { findById: async () => stored, find };
+        await service.holdDraw(tournament, { groupSize: 4, advance: 2, random: () => 0.5 });
+        const open = () => tournament.matches.filter(entry => entry.group != null && entry.status === 'ready');
+        for (const match of open().slice(1)) await service.setResult(tournament, match.id, match.players[0]);
+        const copy = (doc) => tournamentDoc({ ...doc, draw: { ...doc.draw }, matches: doc.matches.map(match => ({ ...match, players: [...match.players] })) });
+        // the last group result is saved; filling the bracket then loses a race against another save
+        tournament.save.mockImplementationOnce(async () => { stored = copy(tournament); return tournament; })
+            .mockImplementationOnce(async () => { throw Object.assign(new Error('No matching document'), { name: 'VersionError' }); });
+        await service.setResult(tournament, open()[0].id, open()[0].players[0]);
+        expect(stored).not.toBe(tournament);
+        expect(stored.draw.knockoutAt).toBeTruthy();
+        expect(stored.matches.filter(match => match.size === 4).flatMap(match => match.players).filter(Boolean)).toHaveLength(4);
+
+        // left empty (the server stopped between the two saves): the hourly job fills it
+        const empty = copy(stored);
+        empty.draw.knockoutAt = null;
+        empty.matches = empty.matches.map(match => (match.group != null ? match : { ...match, players: [null, null], status: 'waiting', winner: null, bye: false }));
+        stored = empty;
+        await service.runTournamentJobs(later(1));
+        expect(empty.draw.knockoutAt).toBeTruthy();
+        expect(empty.matches.filter(match => match.size === 4).every(match => match.status === 'ready')).toBe(true);
+    });
+
     it('refuses groups that cannot be played', async () => {
         const tournament = closedGroups(8);
         await expect(service.holdDraw(tournament, { groupSize: 4, advance: 4 })).rejects.toMatchObject({ status: 422 });
@@ -493,6 +538,25 @@ describe('on boards', () => {
         expect(stale.save).toHaveBeenCalled();
         expect(reads).toHaveLength(0);
         expect(tournament.matches.find(match => match.id === first.id)).toMatchObject({ status: 'done', winner: first.players[1] });
+    });
+
+    it('reads the matches again as often as it takes when several games finish at the same moment', async () => {
+        const tournament = await closedWithEight();
+        await service.holdDraw(tournament, { random: () => 0.5 });
+        const first = onBoard(tournament, 1);
+        const game = await service.startMatch(tournament, first.id);
+        // three games were saved between each read and its save
+        const stale = () => {
+            const doc = tournamentDoc({ ...tournament, matches: tournament.matches.map(match => ({ ...match, players: [...match.players] })) });
+            doc.save.mockImplementation(async () => { throw Object.assign(new Error('No matching document'), { name: 'VersionError' }); });
+            return doc;
+        };
+        const reads = [stale(), stale(), stale(), tournament];
+        const db = (await import('../models/db.model.js')).default;
+        db.tournament = { findById: async () => reads.shift(), find: () => lean([]) };
+        await win(game, first, first.players[0]);
+        expect(reads).toHaveLength(0);
+        expect(tournament.matches.find(match => match.id === first.id)).toMatchObject({ status: 'done', winner: first.players[0] });
     });
 
     it('tells the players once: a move or a swap sends no notice, a match held back makes room', async () => {

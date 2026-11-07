@@ -4,6 +4,7 @@ import { dueOf, leagueMatches, leagueSetupError, leagueTable, matchdayCount, mat
 import { cleanRules, isDecided } from '../rules/tournaments.js';
 import { storedOf } from './game.view.js';
 import { deliverQuietly } from './notify.js';
+import { untilSaved } from './retry.js';
 import { shirtOf } from './shirts.js';
 
 /**
@@ -180,14 +181,17 @@ const decide = async (league, matches, match, winner, extra = {}) => {
  */
 export const leagueGameFinished = async (game, view) => {
     try {
-        const league = await db.league.findById(game.league.id);
-        if (!league || league.status !== 'running') return;
-        const matches = plainMatches(league);
-        const match = matches.find(entry => entry.id === game.league.match);
-        if (!match || isDecided(match) || String(match.game) !== String(game._id)) return;
-        const winner = match.players.find(id => view?.playerModels?.[id]?.hasWonGame);
-        if (!winner) return;
-        await decide(league, matches, match, winner, { status: 'done', score: scoreOf(view, match, league.rules) });
+        // games finishing at once all save the matches: those that lost the race read them again
+        await untilSaved(async () => {
+            const league = await db.league.findById(game.league.id);
+            if (!league || league.status !== 'running') return;
+            const matches = plainMatches(league);
+            const match = matches.find(entry => entry.id === game.league.match);
+            if (!match || isDecided(match) || String(match.game) !== String(game._id)) return;
+            const winner = match.players.find(id => view?.playerModels?.[id]?.hasWonGame);
+            if (!winner) return;
+            await decide(league, matches, match, winner, { status: 'done', score: scoreOf(view, match, league.rules) });
+        });
     } catch (err) {
         logger.error(err, `Failed to count the league game ${game._id}`);
     }
@@ -199,15 +203,17 @@ export const leagueGameFinished = async (game, view) => {
  */
 export const leagueGameDeleted = async (game) => {
     try {
-        const league = await db.league.findById(game.league.id);
-        if (!league) return;
-        const matches = plainMatches(league);
-        const match = matches.find(entry => entry.id === game.league.match && String(entry.game) === String(game._id));
-        if (!match) return;
-        if (match.status === 'running') match.status = 'ready';
-        match.game = null;
-        league.matches = matches;
-        await league.save();
+        await untilSaved(async () => {
+            const league = await db.league.findById(game.league.id);
+            if (!league) return;
+            const matches = plainMatches(league);
+            const match = matches.find(entry => entry.id === game.league.match && String(entry.game) === String(game._id));
+            if (!match) return;
+            if (match.status === 'running') match.status = 'ready';
+            match.game = null;
+            league.matches = matches;
+            await league.save();
+        });
     } catch (err) {
         logger.error(err, `Failed to take the deleted game ${game._id} out of its league`);
     }

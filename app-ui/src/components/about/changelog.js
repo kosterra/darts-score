@@ -12,6 +12,7 @@ const CHANGELOG = [
         version: 'Next release',
         changes: [
             t('Darts evenings and club nights: someone arriving later joins a darts evening by name, and whoever goes home is no longer suggested or paired for a game (their games keep counting) and can come back; the table says when they came or left, and it can also be ordered by win rate.'),
+            t('Fix: tournaments and leagues count every match when several games end at the same moment – a quarter-final or a league match could stay running for good, and the knockout stage after the groups stay empty; players level in a group or league are ranked by their matches against each other, then by the draw; a tournament can no longer be set to fewer places than players have entered.'),
         ],
     },
     {

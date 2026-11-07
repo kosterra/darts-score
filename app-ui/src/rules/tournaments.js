@@ -318,17 +318,10 @@ export const groupMatches = (groups) => groups.flatMap((players, group) => {
     }));
 });
 
-/**
- * The table of a group: played, won, lost, legs for and against, points;
- * ranked by points, then leg difference, then legs won, then the match
- * between two still level, then the order of the draw.
- * players: the group's players in the order of the draw.
- * → [{ player, played, won, lost, legsFor, legsAgainst, points }]
- */
-export const groupTable = (players, matches) => {
+// played, won, lost, legs and points of each player from the decided matches among them
+const tallyOf = (players, matches) => {
     const rows = new Map(players.map(player => [player, { player, played: 0, won: 0, lost: 0, legsFor: 0, legsAgainst: 0, points: 0 }]));
-    const decided = matches.filter(match => isDecided(match) && match.winner && match.players.every(player => rows.has(player)));
-    for (const match of decided) {
+    for (const match of matches.filter(entry => isDecided(entry) && entry.winner && entry.players.every(player => rows.has(player)))) {
         match.players.forEach((player, side) => {
             const row = rows.get(player);
             row.played += 1;
@@ -345,12 +338,47 @@ export const groupTable = (players, matches) => {
             }
         });
     }
-    const beat = (a, b) => decided.find(match => match.players.includes(a) && match.players.includes(b))?.winner;
-    return [...rows.values()].sort((a, b) => b.points - a.points
-        || (b.legsFor - b.legsAgainst) - (a.legsFor - a.legsAgainst)
-        || b.legsFor - a.legsFor
-        || (beat(a.player, b.player) === a.player ? -1 : beat(a.player, b.player) === b.player ? 1 : 0)
-        || players.indexOf(a.player) - players.indexOf(b.player));
+    return rows;
+};
+
+// points, then leg difference, then legs won
+const byResults = (a, b) => b.points - a.points || (b.legsFor - b.legsAgainst) - (a.legsFor - a.legsAgainst) || b.legsFor - a.legsFor;
+
+// a ranked list cut into the runs of players level by compare
+const levelRuns = (ranked, compare) => ranked.reduce((runs, player, index) => {
+    if (index && compare(ranked[index - 1], player) === 0) runs[runs.length - 1].push(player);
+    else runs.push([player]);
+    return runs;
+}, []);
+
+/**
+ * Players level on the table ranked by a table of only their matches against
+ * each other (again for those still level among them); level there too,
+ * the order of the draw.
+ */
+const headToHead = (level, matches, drawn) => {
+    if (level.length < 2) return level;
+    const mini = tallyOf(level, matches);
+    const compare = (a, b) => byResults(mini.get(a), mini.get(b));
+    const ranked = [...level].sort((a, b) => compare(a, b) || drawn(a) - drawn(b));
+    const runs = levelRuns(ranked, compare);
+    if (runs.length === 1) return ranked;
+    return runs.flatMap(run => headToHead(run, matches, drawn));
+};
+
+/**
+ * The table of a group: played, won, lost, legs for and against, points;
+ * ranked by points, then leg difference, then legs won; players still level
+ * by the same among their matches against each other, then by the order of
+ * the draw. players: the group's players in the order of the draw.
+ * → [{ player, played, won, lost, legsFor, legsAgainst, points }]
+ */
+export const groupTable = (players, matches) => {
+    const rows = tallyOf(players, matches);
+    const drawn = (player) => players.indexOf(player);
+    const compare = (a, b) => byResults(rows.get(a), rows.get(b));
+    const ranked = [...players].sort((a, b) => compare(a, b) || drawn(a) - drawn(b));
+    return levelRuns(ranked, compare).flatMap(run => headToHead(run, matches, drawn)).map(player => rows.get(player));
 };
 
 // the group stage is over: every group match decided

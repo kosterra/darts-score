@@ -86,6 +86,26 @@ describe('leagues', () => {
         expect(notices.some(notice => notice.kind === 'leagueWon')).toBe(true);
     });
 
+    it('reads the matches again (as often as it takes) when other games were saved at the same moment', async () => {
+        const league = leagueDoc();
+        await service.startLeague(league);
+        const first = league.matches[0];
+        const game = await service.startMatch(league, first.id);
+        // the first two reads are out of date by the time they are saved
+        const stale = () => {
+            const doc = leagueDoc({ ...league, matches: league.matches.map(match => ({ ...match, players: [...match.players] })) });
+            doc.save.mockImplementation(async () => { throw Object.assign(new Error('No matching document'), { name: 'VersionError' }); });
+            return doc;
+        };
+        const reads = [stale(), stale(), league];
+        const db = (await import('../models/db.model.js')).default;
+        db.league = { findById: async () => reads.shift() };
+        const [a, b] = first.players;
+        await service.leagueGameFinished(game, { playerModels: { [a]: { hasWonGame: false, legsWon: { game: 1 } }, [b]: { hasWonGame: true, legsWon: { game: 2 } } } });
+        expect(reads).toHaveLength(0);
+        expect(league.matches.find(match => match.id === first.id)).toMatchObject({ status: 'done', winner: b, score: { legs: [1, 2] } });
+    });
+
     it('moves a matchday and a single match, and tells their players', async () => {
         const league = leagueDoc();
         await service.startLeague(league);

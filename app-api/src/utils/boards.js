@@ -6,6 +6,7 @@ import { addDays, dayKey, isClubNight, isDayKey } from '../rules/calendar.js';
 import { lockedOn, ruleViolations } from '../rules/club.rules.js';
 import { answerOf, storedOf } from './game.view.js';
 import { deliverQuietly } from './notify.js';
+import { untilSaved } from './retry.js';
 import { clubShirtOf } from './shirts.js';
 import { boardCalledTitle, roundName } from './tournaments.js';
 
@@ -113,16 +114,6 @@ const tellCalled = async (night, called) => {
         title: boardCalledTitle(entry.board, byId.get(entry.players.find(id => id !== String(player._id)))?.nickname ?? '?'),
         body: 'Club night',
     }))));
-};
-
-// two games finishing at once both save the entries: the one that lost the race reads them again
-const withRetry = async (work) => {
-    try {
-        return await work();
-    } catch (err) {
-        if (err.name !== 'VersionError') throw err;
-        return work();
-    }
 };
 
 // ---------------------------------------------------------------------------
@@ -274,7 +265,8 @@ export const startEntry = async (club, night, entryId, { first = null, playerId 
  */
 export const boardGameFinished = async (game, view) => {
     try {
-        await withRetry(async () => {
+        // games finishing at once all save the entries: those that lost the race read them again
+        await untilSaved(async () => {
             const night = await db.boardNight.findOne({ 'entries.game.id': game._id });
             if (!night) return;
             const entries = plainEntries(night);
@@ -294,7 +286,7 @@ export const boardGameFinished = async (game, view) => {
 // a game of a pairing was deleted: the pairing stays on its board, called again
 export const boardGameDeleted = async (game) => {
     try {
-        await withRetry(async () => {
+        await untilSaved(async () => {
             const night = await db.boardNight.findOne({ 'entries.game.id': game._id });
             if (!night) return;
             const entries = plainEntries(night);
