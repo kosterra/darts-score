@@ -19,6 +19,9 @@ test('the club evening of tonight\'s club night', async ({ page }) => {
     await page.locator('.club-night-add').click();
     await page.locator('.p-dropdown-item').first().click();
     await expect(page.locator('.club-night-chip')).toHaveCount(4);
+    // added later: when they came, on the club's clock
+    await expect(page.locator('.club-night-chip').last()).toContainText(/came at \d{2}:\d{2}/);
+    await expect(page.locator('.club-night-chip').first()).not.toContainText('came at');
     await expect(page.getByText('A club game: it counts for the statistics, badges and levels of the club.')).toBeVisible();
 
     // someone goes home: still on the list, no longer in the next game; then back

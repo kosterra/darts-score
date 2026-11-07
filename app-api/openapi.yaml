@@ -8779,7 +8779,7 @@ paths:
       summary: A club night played on boards, or null when it is not (yet)
       responses:
         '200':
-          description: '{ id, day, boards: { count, out }, setup: { kind, startingScore, legOutMode, numberOfLegs, variant, targetScore, gameOutMode }, players: [{ id, nickname, firstname, lastname, profileImg }], left: [{ id, at }], entries: [{ id, players, status (queued, called, playing, done, cancelled), board, held, game: { kind, id } | null, winner, readyAt, calledAt, doneAt }], boardView: { count, out, boards: [{ number, out, key, status }], queue: [entry id], held: [entry id] }, myPlayer, canRun } or null'
+          description: '{ id, day, boards: { count, out }, setup: { kind, startingScore, legOutMode, numberOfLegs, variant, targetScore, gameOutMode }, players: [{ id, nickname, firstname, lastname, profileImg }], came: [{ id, at }] (players added once the night was set up, and when), left: [{ id, at }] (who went home, and when), entries: [{ id, players, status (queued, called, playing, done, cancelled), board, held, game: { kind, id } | null, winner, readyAt, calledAt, doneAt }], boardView: { count, out, boards: [{ number, out, key, status }], queue: [entry id], held: [entry id] }, myPlayer, canRun } or null'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -8819,7 +8819,7 @@ paths:
                 players:
                   type: array
                   maxItems: 40
-                  description: The players there (members of the club); those who said they come when left out of a new night
+                  description: The players there (members of the club); those who said they come when left out of a new night. A player added to a night already set up is kept in came with the time
                   items:
                     type: string
                 gone:
