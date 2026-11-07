@@ -18,7 +18,8 @@ vi.mock('../models/db.model.js', () => ({
             findById: (id) => lean(id === 'p2' ? { nickname: 'Ben' } : { nickname: 'Anna', badges: [{ badge: 'max180-1', earnedAt: new Date('2026-03-10T19:30:00Z') }, { badge: 'old', earnedAt: new Date('2025-05-01T00:00:00Z') }] }),
         },
         atc: { countDocuments: async () => 2 },
-        x01Training: { countDocuments: async () => 1 },
+        // one finished game against the bot, one left unfinished
+        x01Training: { countDocuments: async (where) => (where.hasWinner === true ? 1 : 2) },
         rulesTraining: { countDocuments: async () => 0 },
     },
 }));

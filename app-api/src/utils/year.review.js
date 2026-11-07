@@ -93,7 +93,8 @@ export const yearReview = async (playerId, year) => {
     const trainingWhere = { createdAt: { $gte: from, $lt: to } };
     const [atc, bot, rules, player] = await Promise.all([
         db.atc.countDocuments({ ...trainingWhere, 'player.id': id }),
-        db.x01Training.countDocuments({ ...trainingWhere, players: id }),
+        // only the finished ones against the bot are trainings
+        db.x01Training.countDocuments({ ...trainingWhere, players: id, hasWinner: true }),
         db.rulesTraining.countDocuments({ ...trainingWhere, 'player.id': id }),
         db.player.findById(id, 'nickname badges').lean(),
     ]);

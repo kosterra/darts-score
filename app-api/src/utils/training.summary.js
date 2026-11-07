@@ -1,4 +1,5 @@
 import { rulesTrainingBests } from './rules.stats.js';
+import { dayKeyIn } from '../rules/zones.js';
 
 const DAY = 24 * 60 * 60 * 1000;
 const average = (values) => (values.length ? Math.round(values.reduce((sum, value) => sum + value, 0) / values.length * 10) / 10 : null);
@@ -6,19 +7,22 @@ const TON_PLUS = ['100-119', '120-139', '140-159', '160-179', '180'];
 // a double counts as the best one from this many tries on
 export const DOUBLE_TRIES = 5;
 
-// the day of a date, as a number of days (UTC), to count days in a row
-const dayOf = (time) => Math.floor(time / DAY);
+// the day before a day: "2026-03-30" → "2026-03-29" (counted at noon UTC, without zones)
+const dayBefore = (key) => {
+    const [year, month, day] = key.split('-').map(Number);
+    return new Date(Date.UTC(year, month - 1, day - 1, 12)).toISOString().slice(0, 10);
+};
 
 /**
  * The days in a row up to today (or yesterday, when today has no training
- * yet) with at least one training.
+ * yet) with at least one training; the days as in Zurich, as the weekly goals.
  */
 export const trainingStreak = (times, now = new Date()) => {
-    const days = new Set(times.map(dayOf));
-    let day = dayOf(now.getTime());
-    if (!days.has(day)) day -= 1;
+    const days = new Set(times.map(time => dayKeyIn(time)));
+    let day = dayKeyIn(now);
+    if (!days.has(day)) day = dayBefore(day);
     let streak = 0;
-    while (days.has(day)) { streak += 1; day -= 1; }
+    while (days.has(day)) { streak += 1; day = dayBefore(day); }
     return streak;
 };
 
@@ -70,14 +74,17 @@ const botFigures = (bots, finished, playerId) => {
  * All the trainings of a player in one: how many, how many in the last 30
  * days, and per kind the bests.
  * atc: Around the Clock entries; bots: X01 trainings against the bot (finished
- * or not); rules: the trainings of the rules engine (Bob's 27, …).
+ * or not: only the finished ones count as trainings); rules: the trainings of
+ * the rules engine (Bob's 27, …).
  * → { total, last30Days, lastAt, streak, atc: { count, fastest: { timeMs, mode }, fewestDarts: { darts, mode } },
  *     bot: { count, finished, wins, average, bestAverage, recent: [average], checkout: { hit, total, rate },
  *            bestDouble: { section, hit, total, rate }, oneEighties, tonPlus, highestCheckout, scoring, finishing },
  *     rules: { [kind]: { count, best, latest } } }
  */
 export const trainingSummary = ({ atc = [], bots = [], rules = [], playerId, now = new Date() }) => {
-    const dates = [...atc.map(entry => entry.createdAt), ...bots.map(entry => entry.createdAt), ...rules.map(entry => entry.createdAt)]
+    const finished = bots.filter(training => training.hasWinner);
+    // a game against the bot left unfinished is no training, as for the weekly goals and the badges
+    const dates = [...atc.map(entry => entry.createdAt), ...finished.map(entry => entry.createdAt), ...rules.map(entry => entry.createdAt)]
         .filter(Boolean).map(date => new Date(date).getTime());
     const since = now.getTime() - 30 * DAY;
 
@@ -86,7 +93,6 @@ export const trainingSummary = ({ atc = [], bots = [], rules = [], playerId, now
     const fastest = timed.reduce((best, entry) => (!best || entry.timeMs < best.timeMs ? entry : best), null);
     const fewest = darted.reduce((best, entry) => (!best || entry.darts < best.darts ? entry : best), null);
 
-    const finished = bots.filter(training => training.hasWinner);
     const averageOf = (training) => Number(training.playerModels?.[playerId]?.averages?.game?.overall ?? 0);
     const averages = finished.map(averageOf).filter(value => value > 0);
 

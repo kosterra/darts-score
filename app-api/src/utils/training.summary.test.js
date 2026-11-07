@@ -21,7 +21,8 @@ describe('trainingSummary', () => {
             ],
             rules: [{ kind: 'bobs27', score: 300, createdAt: daysAgo(60) }],
         });
-        expect(summary).toMatchObject({ total: 7, last30Days: 5 });
+        // the game against the bot left unfinished is no training
+        expect(summary).toMatchObject({ total: 6, last30Days: 4, lastAt: daysAgo(1), streak: 3 });
         expect(summary.atc.fastest).toEqual({ timeMs: 7500, mode: 'Double' });
         expect(summary.atc.fewestDarts).toEqual({ darts: 30, mode: 'All' });
         expect(summary.bot).toMatchObject({ count: 3, finished: 2, wins: 1, average: 46.2, bestAverage: 52.3 });
@@ -48,6 +49,18 @@ describe('trainingSummary', () => {
         expect(trainingStreak([daysAgo(0), daysAgo(1), daysAgo(1), daysAgo(2), daysAgo(4)].map(date => date.getTime()), now)).toBe(3);
         expect(trainingStreak([daysAgo(1), daysAgo(2)].map(date => date.getTime()), now)).toBe(2);
         expect(trainingStreak([daysAgo(2)].map(date => date.getTime()), now)).toBe(0);
+    });
+
+    it('counts the days as in Zurich, not in UTC', () => {
+        // 00:30 on the 23rd in Zurich (22:30 UTC the day before) and 23:30 on the 21st: no day in a row
+        expect(trainingStreak([new Date('2026-10-22T22:30:00Z'), new Date('2026-10-21T21:30:00Z')].map(date => date.getTime()), now)).toBe(1);
+        // 23:30 on the 22nd and 00:30 on the 22nd in Zurich: yesterday, two days in a row with the 21st
+        expect(trainingStreak([new Date('2026-10-22T21:30:00Z'), new Date('2026-10-20T22:30:00Z')].map(date => date.getTime()), now)).toBe(2);
+    });
+
+    it('leaves the unfinished games against the bot out of the count and the streak', () => {
+        const summary = trainingSummary({ now, playerId: 'p', bots: [{ hasWinner: false, createdAt: daysAgo(0), playerModels: {} }] });
+        expect(summary).toMatchObject({ total: 0, last30Days: 0, lastAt: null, streak: 0, bot: { count: 1, finished: 0 } });
     });
 
     it('is empty without trainings', () => {
