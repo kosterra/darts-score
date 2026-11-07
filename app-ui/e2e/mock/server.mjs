@@ -407,11 +407,14 @@ http.createServer((req, res) => {
                     ['gl1', ['p1', 'p2'], ['T20', 'S20', 'S20'], ['S5', 'S5', 'S5'], 1],
                     ['gl2', ['p3', 'p1'], ['T20', 'S20', 'S1'], ['S20', 'S20', 'S20'], 2],
                     ['gl3', ['p2', 'p4'], ['S20', 'S20', 'S20'], ['S5', 'S5', 'S5'], 3],
-                ].forEach(([id, ids, a, b, days]) => {
+                ].forEach(([id, ids, a, b, order]) => {
                     const stored = withPlayLevels('x01', storedOf('x01', { ...X01, players: ids, visits: turns(ids, a, b) }));
                     // as if finished: the first player won
                     Object.assign(stored.playerModels[ids[0]], { hasWonGame: true, setsWon: 1 });
-                    games.set(id, { ...stored, id, gameIsRunning: false, hasWinner: true, createdAt: ago(days), updatedAt: ago(days) });
+                    // a few seconds old, gl1 the newest: on the first page of the list even after the games
+                    // other checks played in the same run
+                    const at = new Date(Date.now() - order * 1000);
+                    games.set(id, { ...stored, id, gameIsRunning: false, hasWinner: true, createdAt: at, updatedAt: at });
                 });
                 return send(res, 200, { ids: ['gl1', 'gl2', 'gl3'] });
             }
