@@ -20,13 +20,14 @@ import BoardService from '../../services/board.service';
 import { MAX_BOARDS } from '../../rules/boards';
 import SetupBox from '../elements/setup.box';
 import { locale, t } from '../../utils/i18n';
-import { MAX_CLUB_NIGHTS, NOTE_MAX, REASON_MAX, addDays, dayKey, monthGrid, nightsError } from '../../rules/calendar';
+import { MAX_CLUB_NIGHTS, NOTE_MAX, REASON_MAX, addDays, monthGrid, nightsError } from '../../rules/calendar';
 import { roundName } from '../tournaments/tournament.words';
 import { Lines } from '../elements/skeletons';
 import SaveStatus from '../elements/save.status';
 import CalendarMonth from './calendar.month';
 import TimeField from '../elements/time.field';
 import { dayKeyIn, zoneOf } from '../../rules/zones';
+import { calendarItems } from '../../utils/calendar.items';
 
 const WEEKS = 8;
 // the view chosen last on this device: the coming weeks as a list, or a month
@@ -44,7 +45,6 @@ const weekdayName = (weekday, style = 'long') => new Intl.DateTimeFormat(locale(
 // a day "YYYY-MM-DD" as a date at noon UTC, to name it without time zones
 const noonOf = (day) => new Date(`${day}T12:00:00Z`);
 const monthName = (day) => new Intl.DateTimeFormat(locale(), { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(noonOf(day));
-const timeOf = (date) => new Intl.DateTimeFormat(locale(), { hour: '2-digit', minute: '2-digit' }).format(new Date(date));
 const hours = (night) => (night.end ? `${night.start}–${night.end}` : night.start);
 // Monday first
 const WEEKDAYS = [1, 2, 3, 4, 5, 6, 0];
@@ -117,8 +117,8 @@ const ClubNight = ({ night, today, canAnswer, isAdmin, busy, onAnswer, onCancel,
     );
 };
 
-// a tournament or league day in the list, to its page
-const EventItem = ({ event }) => {
+// a tournament or league day in the list, to its page; time: on the club's clock
+const EventItem = ({ event, time }) => {
     const words = eventWords(event);
     const Icon = words.icon;
     return (
@@ -127,7 +127,7 @@ const EventItem = ({ event }) => {
             <span className="calendar-item-body">
                 <span className="calendar-item-head">
                     <span className="calendar-item-title text-truncate">{event.name}</span>
-                    <span className="calendar-item-time">{timeOf(event.at)}</span>
+                    <span className="calendar-item-time">{time}</span>
                 </span>
                 <span className="text-subtle fs-8">{words.what}</span>
             </span>
@@ -283,22 +283,14 @@ const CalendarPage = () => {
     // everything shown, by day
     const byDay = useMemo(() => {
         const map = new Map();
-        if (!calendar) return map;
-        const items = [
-            ...calendar.clubNights.map(night => ({ key: `night-${night.day}`, day: night.day, sort: night.start, night })),
-            ...calendar.events.map(event => ({ key: event.id, day: dayKey(event.at), sort: timeOf(event.at), event })),
-        ].sort((a, b) => a.day.localeCompare(b.day) || a.sort.localeCompare(b.sort));
-        for (const item of items) map.set(item.day, [...(map.get(item.day) ?? []), item]);
+        for (const item of calendarItems(calendar, zone)) map.set(item.day, [...(map.get(item.day) ?? []), item]);
         return map;
-    }, [calendar]);
+    }, [calendar, zone]);
 
     // the days with something on, month by month
     const months = useMemo(() => {
         if (!calendar) return [];
-        const items = [
-            ...calendar.clubNights.map(night => ({ key: `night-${night.day}`, day: night.day, sort: night.start, night })),
-            ...calendar.events.map(event => ({ key: event.id, day: dayKey(event.at), sort: timeOf(event.at), event })),
-        ].filter(item => item.day >= today && item.day <= to).sort((a, b) => a.day.localeCompare(b.day) || a.sort.localeCompare(b.sort));
+        const items = calendarItems(calendar, zone).filter(item => item.day >= today && item.day <= to);
         const byMonth = [];
         for (const item of items) {
             const month = item.day.slice(0, 7);
@@ -309,7 +301,7 @@ const CalendarPage = () => {
             day.items.push(item);
         }
         return byMonth;
-    }, [calendar, today, to]);
+    }, [calendar, zone, today, to]);
 
     if (!calendar) return <div className="container-fluid p-4">{error ? <Message severity="error" text={error} /> : <Lines count={8} />}</div>;
 
@@ -321,7 +313,7 @@ const CalendarPage = () => {
     // a club night or a tournament or league day; past: no more answers or changes
     const renderItem = (item, past) => (item.night
         ? <ClubNight key={item.key} night={item.night} today={today} past={past} canAnswer={canAnswer} isAdmin={isClubAdmin} busy={busy} onAnswer={answer} onCancel={(night) => { setReason(''); setCancelling(night); }} onRestore={(night) => run(`restore-${night.day}`, () => CalendarService.restoreNight(night.day, range), t('The members are told.'))} />
-        : <EventItem key={item.key} event={item.event} />);
+        : <EventItem key={item.key} event={item.event} time={item.time} />);
 
     return (
         <div className="container-fluid p-4">
