@@ -11,8 +11,12 @@ import { formatDate } from '../../utils/dates';
 import { Lines } from '../elements/skeletons';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
 import { replayTraining } from '../../rules/engine';
+import { boardKeyOf, boardOf, placesOf } from '../../rules/trainings';
 import { rulesIcon } from './rules.icons';
 import RulesDoubles from './rules.doubles';
+import PlayLevelTag from '../elements/play.level.tag';
+import { playLevelOf } from '../../utils/play.levels';
+import { judgeLevel } from '../../rules/levels.play';
 
 const MEDALS = ['gold', 'silver', 'bronze'];
 
@@ -36,16 +40,30 @@ const VIEWS = [
     { label: t('Newest'), value: 'recent' },
 ];
 
+// a value of a setting on a filter pill: the number alone where the label is "20 attempts", else the label ("T20")
+const pillLabel = (entry) => (String(entry.label).startsWith(String(entry.value)) ? String(entry.value) : entry.label);
+
 /**
  * The scoreboard of a training in the club: the best attempts whoever played
  * them (the first view), every player's best, or the latest attempts; ten at
- * first, ten more at a time. "highlight" marks the attempt just saved: it shows a few
- * rows below its place and moves up to it, in view (on a phone the board is
- * scrolled to first). An attempt opens to what every double took, for the
- * trainings around the board (from its darts).
+ * first, ten more at a time. Only attempts with the same settings are compared
+ * (see boardOf): pills choose them, at first those of the setup ("settings").
+ * "highlight" marks the attempt just saved: it shows a few rows below its place
+ * and moves up to it, in view (on a phone the board is scrolled to first). An
+ * attempt opens to what every double took, for the trainings around the board
+ * (from its darts).
  */
-const RulesTrainingBoard = ({ definition, version = 0, highlight = null }) => {
+const RulesTrainingBoard = ({ definition, version = 0, highlight = null, settings = {} }) => {
     const [entries, setEntries] = useState(null);
+    // the settings whose attempts are shown, those of the setup until the pills choose others
+    const setupKey = boardKeyOf(definition, settings);
+    const [board, setBoard] = useState(() => boardOf(definition, settings));
+    useEffect(() => setBoard(boardOf(definition, settings)),
+        // a change of the setup (or another training) shows its board
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [definition.id, setupKey]);
+    const boardKey = boardKeyOf(definition, board);
+    const boardOptions = (definition.boards ?? []).map(key => definition.options.find(option => option.key === key));
     const [view, setView] = useState('top');
     const [shown, setShown] = useState(PAGE);
     // the attempt just saved: 'enter' below its place, then 'slide' up to it
@@ -73,27 +91,37 @@ const RulesTrainingBoard = ({ definition, version = 0, highlight = null }) => {
     const better = (a, b) => (higher ? b.score - a.score : a.score - b.score) || (definition.tiebreak?.(a, b) ?? 0);
     const lists = useMemo(() => {
         const best = new Map();
-        (entries ?? []).forEach(entry => {
+        const shown = (entries ?? []).filter(entry => boardKeyOf(definition, entry.settings) === boardKey);
+        shown.forEach(entry => {
             const known = best.get(entry.player?.id);
             if (!known || better(entry, known) < 0) best.set(entry.player?.id, entry);
         });
         // the same score: the earlier attempt first
         return {
-            top: [...(entries ?? [])].sort((a, b) => better(a, b) || new Date(a.createdAt) - new Date(b.createdAt)),
+            top: [...shown].sort((a, b) => better(a, b) || new Date(a.createdAt) - new Date(b.createdAt)),
             best: [...best.values()].sort(better),
-            recent: entries ?? [],
+            recent: shown,
         };
     // better follows from the definition
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [entries, higher, definition]);
+    }, [entries, higher, definition, boardKey]);
     const all = lists[view];
     const rows = all.slice(0, shown);
     const ranked = view !== 'recent';
+    // the same score shares a place (as on the Around the Clock board)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const places = useMemo(() => (ranked ? placesOf(all, better) : []), [all, ranked]);
 
     // the attempt just saved, once it is loaded: in a list that has it (Best only when it
     // is the player's best), first a few rows below its place, then up to it
     useLayoutEffect(() => {
-        if (!highlight || arrived.current === highlight || !entries?.some(entry => entry.id === highlight)) return;
+        const saved = highlight && entries?.find(entry => entry.id === highlight);
+        if (!saved || arrived.current === highlight) return;
+        // on the board of its settings first
+        if (boardKeyOf(definition, saved.settings) !== boardKey) {
+            setBoard(boardOf(definition, saved.settings));
+            return;
+        }
         arrived.current = highlight;
         // in the list shown when it made it there, else among the latest
         if (view !== 'recent' && !lists[view].slice(0, shown).some(entry => entry.id === highlight)) setView('recent');
@@ -108,9 +136,9 @@ const RulesTrainingBoard = ({ definition, version = 0, highlight = null }) => {
             animateNext.current = true;
             setPhase('slide');
         }, ENTER_MS + (away ? SCROLL_MS : 0));
-    // only when an attempt arrives (view and the best follow from the entries)
+    // only when an attempt arrives (view and the best follow from the entries), on its board
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [entries, highlight]);
+    }, [entries, highlight, boardKey]);
 
     const visible = useMemo(() => {
         if (phase !== 'enter') return rows;
@@ -149,6 +177,14 @@ const RulesTrainingBoard = ({ definition, version = 0, highlight = null }) => {
 
     const canOpen = Boolean(definition.doubles);
     const doublesOf = (entry) => (entry.darts?.length ? definition.doubles(replayTraining(definition, entry).state) : null);
+    // the level each attempt was played at, as the API keeps it; one saved before it did is judged
+    // here from its darts, the same way
+    const levelOf = (entry) => {
+        const kept = playLevelOf(entry, entry.player?.id);
+        if (kept || entry.playLevels || !entry.darts?.length || !definition.level) return kept;
+        const done = replayTraining(definition, entry);
+        return done.done ? judgeLevel(definition.level, done.result, done.settings) : null;
+    };
     const toggle = (entry) => canOpen && entry.darts?.length && setOpen(open === entry.id ? null : entry.id);
     const Icon = rulesIcon(definition.id);
 
@@ -159,15 +195,31 @@ const RulesTrainingBoard = ({ definition, version = 0, highlight = null }) => {
             <div className="d-flex justify-content-center mb-3">
                 <SelectButton value={view} options={VIEWS} onChange={(e) => { if (e.value) { setView(e.value); setShown(PAGE); setPhase(null); } }} className="p-selectbutton-pills rules-board-views" aria-label={t('Scoreboard')} />
             </div>
+            {/* the settings that change what a score means: a board each, as the modes of Around the Clock */}
+            {boardOptions.length > 0 &&
+                <div className="atc-filters rules-board-filters">
+                    {boardOptions.map(option => (
+                        <div key={option.key} className="atc-filter-group">
+                            <span className="atc-filter-label">{option.label}</span>
+                            <SelectButton
+                                value={board[option.key]}
+                                options={option.values.map(entry => ({ label: pillLabel(entry), value: entry.value, title: entry.label }))}
+                                onChange={(e) => { if (e.value !== null && e.value !== undefined) { setBoard({ ...board, [option.key]: e.value }); setShown(PAGE); setPhase(null); setOpen(null); } }}
+                                className="p-selectbutton-pills pills-inline"
+                                aria-label={option.label}
+                            />
+                        </div>
+                    ))}
+                </div>}
             {entries === null
                 ? <Lines count={4} />
                 : rows.length === 0
-                    ? <span className="text-faint fs-8">{t('Nobody has played this training yet.')}</span>
+                    ? <span className="text-faint fs-8">{entries.length && boardOptions.length ? t('Nobody has played it with these settings yet.') : t('Nobody has played this training yet.')}</span>
                     // as the scoreboard of Around the Clock: the podium as medals, the player with the date, the result
                     : <ol className="atc-rows">
                         {visible.map((entry) => {
                             const player = entry.player ?? {};
-                            const rank = rows.indexOf(entry) + 1;
+                            const rank = places[rows.indexOf(entry)];
                             const podium = ranked && rank <= 3;
                             const arriving = entry.id === highlight && phase;
                             const opens = canOpen && entry.darts?.length > 0;
@@ -197,7 +249,11 @@ const RulesTrainingBoard = ({ definition, version = 0, highlight = null }) => {
                                             {player.nickname ?? t('Unknown player')}
                                             {entry.id === highlight && <span className="atc-row-new">{t('New')}</span>}
                                         </span>
-                                        <span className="atc-row-detail">{formatDate(entry.createdAt, { year: 'short' })}</span>
+                                        {/* the date, and the level the attempt was played at after it */}
+                                        <span className="atc-row-detail atc-row-detail-level">
+                                            <span>{formatDate(entry.createdAt, { year: 'short' })}</span>
+                                            <PlayLevelTag estimate={levelOf(entry)} compact />
+                                        </span>
                                     </span>
                                     <span className="atc-row-time rules-board-score">
                                         {definition.format(entry.score)}

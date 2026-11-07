@@ -53,7 +53,8 @@ export const throwDart = (round, hit) => {
 
     // the visit is over after three darts, or when the player is done
     if (done || finished || visit.length >= DARTS_PER_VISIT) {
-        const next = { ...round, players, finished: finishedIds, done, visit: [] };
+        // the visit just over stays in view, to check its last dart
+        const next = { ...round, players, finished: finishedIds, done, visit: [], lastVisit: { player: id, darts: visit } };
         return done ? next : { ...next, current: nextPlayer(next, round.current) };
     }
     return { ...round, players, visit };

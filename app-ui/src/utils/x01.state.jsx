@@ -20,11 +20,9 @@ import SaveStatus from '../components/games/common/save.status';
 
 import {
     normalizeDart,
-    validateDartValue,
-    dartIsDouble,
-    dartIsTriple
+    validateDartValue
 } from './game.utils';
-import { inModeOf, isBust, outModeOf, startingScoreOf } from './x01.rules';
+import { inModeOf, isBust, outModeOf, startingScoreOf, withInMode } from './x01.rules';
 
 import { FETCH_GAME_SUCCESS, FETCH_PLAYERS_SUCCESS, SET_GAME, SET_LOADING, UPDATE_CURRENT_THROW } from './constants';
 import { t } from './i18n';
@@ -66,9 +64,13 @@ const X01State = props => {
     const saveKey = `${quick ? 'quick' : training ? 'x01training' : 'x01'}:${id}`;
     // the won game is on the server: its result can open
     const [winnerSaved, setWinnerSaved] = useState(false);
-    const { save, unsent } = useGameSaves(saveKey, async (game) => {
-        if (!(await Service.updateX01Game(game))) throw new Error(t('not saved'));
-    }, (game) => { if (game.hasWinner) setWinnerSaved(true); });
+    // bumped when the server refused a save for good: its state is loaded again
+    const [reload, setReload] = useState(0);
+    const { save, unsent } = useGameSaves(saveKey, (game, options) => Service.updateX01Game(game, options), (game) => { if (game.hasWinner) setWinnerSaved(true); }, (error) => {
+        // a game gone says so when it is loaded again
+        if (error.status !== 404) showError(t('Not saved'), error.message);
+        setReload(count => count + 1);
+    });
     // { key, name } while the 180 celebration plays
     const [oneEighty, setOneEighty] = useState(null);
     const endOneEighty = useCallback(() => setOneEighty(null), []);
@@ -89,7 +91,8 @@ const X01State = props => {
             return Promise.all(game.players.map(playerId => playerId === BOT_ID ? botPlayer(game.bot) : PlayerService.getPlayer(playerId)));
         };
 
-        loadWithUnsent(saveKey, () => Service.loadX01GameById(id), playersOf).then(({ game, players, kept }) => {
+        loadWithUnsent(saveKey, () => Service.loadX01GameById(id), playersOf).then(({ game, players, kept, dropped }) => {
+            if (dropped) showError(t('Not saved'), t('This device kept an older state of the game than the server has: the server\'s is shown.'));
             dispatch({ type: FETCH_GAME_SUCCESS, payload: game });
             // a game already over on the server shows its result at once
             if (game.hasWinner && !kept) setWinnerSaved(true);
@@ -110,7 +113,7 @@ const X01State = props => {
             navigate(quick ? '/quick' : '/', { replace: true });
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [id, navigate]);
+    }, [id, navigate, reload]);
 
     // the rules of the player at the oche: with a handicap they differ per player
     const currentInMode = () => inModeOf(state.game, state.game.currentPlayerTurn);
@@ -118,64 +121,24 @@ const X01State = props => {
     // nothing scored in this leg yet: the in mode decides whether a dart counts
     const hasNotStarted = (score) => Number(score) === startingScoreOf(state.game, state.game.currentPlayerTurn);
 
+    // the leg was opened in an earlier visit: the in mode no longer applies
+    const startedBefore = () => !hasNotStarted(state.game.playerModels?.[state.game.currentPlayerTurn]?.score);
+    // the darts of the visit with the in mode, each by the darts before it
+    const inModeApplied = (darts) => withInMode(darts, currentInMode(), startedBefore());
+
+    // score: what is left after the darts so far (the in mode goes by the darts themselves)
     const updateCurrentThrowManual = (score, value, index) => {
         value = normalizeDart(value);
-        if (hasNotStarted(score) && value !== '' && validateDartValue(value)) {
-            if (currentInMode() === 'Double In') {
-                let startedInDouble = dartIsDouble(value);
-                if (!startedInDouble) {
-                    value = '0'
-                }
-            } else if (currentInMode() === 'Master In') {
-                let startedInMaster = dartIsDouble(value) || dartIsTriple(value);
-                if (!startedInMaster) {
-                    value = '0';
-                }
-            }
-        }
-
-        const newCurrentThrow = state.game.currentThrow.map((dart, i) => {
-            if (i === index) {
-                dart = value;
-            }
-            return dart
-        });
-
-        dispatch({
-            type: UPDATE_CURRENT_THROW,
-            payload: newCurrentThrow
-        })
+        const newCurrentThrow = state.game.currentThrow.map((dart, i) => (i === index ? value : dart));
+        dispatch({ type: UPDATE_CURRENT_THROW, payload: inModeApplied(newCurrentThrow) });
     }
 
     const updateCurrentThrowDartBoard = (score, value) => {
         const newCurrentThrow = [...state.game.currentThrow];
-
-        for (let index = 0; index < newCurrentThrow.length; index++) {
-            if (hasNotStarted(score) && validateDartValue(value)) {
-                if (currentInMode() === 'Double In') {
-                    let startedInDouble = dartIsDouble(value);
-                    if (!startedInDouble) {
-                        value = '0'
-                    }
-                } else if (currentInMode() === 'Master In') {
-                    let startedInMaster = dartIsDouble(value) || dartIsTriple(value);
-                    if (!startedInMaster) {
-                        value = '0';
-                    }
-                }
-            }
-
-            if (newCurrentThrow[index] === '') {
-                newCurrentThrow[index] = value;
-                break;
-            }
-        }
-
-        dispatch({
-            type: UPDATE_CURRENT_THROW,
-            payload: newCurrentThrow
-        })
-
+        const index = newCurrentThrow.indexOf('');
+        if (index < 0) return;
+        newCurrentThrow[index] = value;
+        dispatch({ type: UPDATE_CURRENT_THROW, payload: inModeApplied(newCurrentThrow) });
     }
 
     const onClickValidateThrow = currentScore => {

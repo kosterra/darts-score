@@ -1,4 +1,6 @@
 import { Avatar } from 'primereact/avatar';
+import { SelectButton } from 'primereact/selectbutton';
+import dayjs from 'dayjs';
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { FaChartLine, FaCrosshairs, FaFire, FaSpoon, FaTrophy } from 'react-icons/fa6';
 
@@ -7,6 +9,7 @@ import { AXIS, GRID, LEGEND, TOOLTIP } from '../stats/charts/chart.theme';
 import useHiddenSeries from '../stats/charts/use.hidden.series';
 import { ACCENT, PODIUM } from '../../utils/palette';
 import { colourOf } from '../../utils/evening.colours';
+import { orderTable } from '../../utils/evening.table';
 import { resolvePlayerInitials } from '../../utils/image.utils';
 import { t, tn } from '../../utils/i18n';
 
@@ -31,15 +34,31 @@ const AWARDS = {
     woodenSpoon: { icon: FaSpoon, title: t('Wooden spoon'), value: (value) => tn(value, '{{count}} win', '{{count}} wins') },
 };
 
+// how the table is ordered, in the header of its panel: by wins (the default) or by win rate
+export const TableOrder = ({ value, onChange }) => (
+    <SelectButton
+        value={value}
+        options={[{ label: t('Wins'), value: 'wins' }, { label: t('Win rate'), value: 'rate' }]}
+        onChange={(event) => event.value && onChange(event.value)}
+        className="p-selectbutton-pills pills-inline evening-table-order"
+        aria-label={t('Order of the table')}
+    />
+);
+
+// when a player came later or went home, beside their games (empty for the others)
+const comeAndGone = (player) => (player.leftAt
+    ? t('went home at {{time}}', { time: dayjs(player.leftAt).format('HH:mm') })
+    : player.joinedAt ? t('came at {{time}}', { time: dayjs(player.joinedAt).format('HH:mm') }) : '');
+
 /**
  * The table of the evening, as the rankings of the app: the best first, a
  * trophy for the first three with a win, each player in their colour with
  * the wins of their games as a bar, and their figures beside (in X01 the
- * average, 180s and best checkout).
+ * average, 180s and best checkout). order: 'wins' (as sent) or 'rate'.
  */
-export const EveningTable = ({ report, players }) => (
+export const EveningTable = ({ report, players, order = 'wins' }) => (
     <ol className="badge-ranking evening-standings list-unstyled m-0">
-        {report.table.map((row, index) => {
+        {orderTable(report.table, order).map((row, index) => {
             const podium = row.wins > 0 && index < 3 ? PODIUM[index] : null;
             const player = players.find(entry => entry.id === row.id) ?? { id: row.id, name: row.name };
             return (
@@ -54,6 +73,7 @@ export const EveningTable = ({ report, players }) => (
                             <span className="text-subtle fs-8 text-nowrap">{t('{{wins}} of {{games}} won', { wins: row.wins, games: row.games })}</span>
                         </span>
                         <span className="badge-ranking-bar is-green" aria-hidden="true"><span style={{ width: `${row.games ? row.wins / row.games * 100 : 0}%` }} /></span>
+                        {comeAndGone(player) && <span className="text-faint fs-9">{comeAndGone(player)}</span>}
                     </span>
                     <dl className="evening-standing-figures">
                         <div><dt>{t('Win rate')}</dt><dd>{row.games ? `${row.winRate} %` : '–'}</dd></div>

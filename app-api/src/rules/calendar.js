@@ -115,7 +115,7 @@ export const isClubNight = (nights = [], key) => nights.some(night => night.week
  * [{ id, type, at, name, link, round | day }]; the texts are made where they are shown.
  * Only tournaments and leagues others can see (no drafts, nothing cancelled).
  */
-export const competitionEvents = ({ tournaments = [], leagues = [] }) => {
+export const competitionEvents = ({ tournaments = [], leagues = [], zoneOfClub = () => undefined }) => {
     const events = [];
     for (const tournament of tournaments) {
         if (['draft', 'cancelled'].includes(tournament.status)) continue;
@@ -132,7 +132,7 @@ export const competitionEvents = ({ tournaments = [], leagues = [] }) => {
         // a league not started yet: its matchdays as planned from the first day (marked so)
         const planned = league.status === 'draft';
         const matchdays = planned
-            ? matchdayDates(league.firstDay, league.everyDays ?? 7, matchdayCount((league.players ?? []).length, league.meetings ?? 1)).map((date, index) => ({ day: index + 1, date }))
+            ? matchdayDates(league.firstDay, league.everyDays ?? 7, matchdayCount((league.players ?? []).length, league.meetings ?? 1), zoneOfClub(league.club)).map((date, index) => ({ day: index + 1, date }))
             : league.matchdays ?? [];
         for (const matchday of matchdays) {
             if (!matchday.date) continue;

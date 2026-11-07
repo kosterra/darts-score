@@ -281,6 +281,8 @@ export const removeFromClub = async (player, clubId) => {
     player.clubs = player.clubs.filter(id => !id.equals(clubId));
     if (!player.formerClubs.some(id => id.equals(clubId))) player.formerClubs.push(clubId);
     await player.save();
+    // the claim links made in that club no longer work
+    await db.playerClaim.deleteMany({ player: player._id, club: clubId });
     // games among players who all left for the same club go along with them
     await relocateHistory([player._id]);
 };

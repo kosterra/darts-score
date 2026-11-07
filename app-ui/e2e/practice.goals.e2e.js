@@ -51,6 +51,20 @@ test.describe('weekly practice goals', () => {
         await expect(editor.locator('.practice-goal-training').nth(1)).toContainText('Bob\'s 27');
         await expect(editor.locator('.practice-goal').nth(1)).toContainText('100 or better in Bob\'s 27');
         await expect(editor.locator('.practice-goal').nth(1)).toContainText('87 / 100');
+        // 121 Checkout: a score counts with the attempts and the darts chosen
+        await editor.locator('.practice-goal-training').nth(1).click();
+        await page.getByRole('option', { name: '121 Checkout' }).click();
+        const board = editor.locator('.practice-goal-board');
+        await expect(board.locator('.p-selectbutton')).toHaveCount(2);
+        await board.getByText('20 attempts', { exact: true }).click();
+        await expect(editor.locator('.practice-goal').nth(1)).toContainText('100 or better in 121 Checkout (20 attempts, 9 darts)');
+        expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+        await board.scrollIntoViewIfNeeded();
+        await page.screenshot({ path: `test-results/practice-goals-board-${test.info().project.name}.png` });
+        // back to Bob's 27: no settings to choose
+        await editor.locator('.practice-goal-training').nth(1).click();
+        await page.getByRole('option', { name: 'Bob\'s 27' }).click();
+        await expect(board).toHaveCount(0);
 
         // the Dashboard shows them with how far each is
         await page.goto('/');

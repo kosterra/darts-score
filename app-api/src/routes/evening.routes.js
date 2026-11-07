@@ -24,6 +24,9 @@ export default (app) => {
     router.post('/:id/screen', games, id, validate, EveningController.screenLink);
     router.post('/:id/screen/send', sendLimiter, id, tvCode, validate, EveningController.screenSend);
     router.post('/:id/end', games, id, validate, EveningController.end);
+    // someone arrives later, or goes home (and comes back)
+    router.post('/:id/players', games, id, body('name').isString().withMessage('A name has 1 to 20 letters or digits.'), validate, EveningController.addPlayer);
+    router.put('/:id/players/:player', games, id, param('player').matches(/^q[1-8]$/).withMessage('There is no such player in this evening.'), body('left').isBoolean().withMessage('Say whether the player went home.'), validate, EveningController.setPlayerLeft);
     router.post('/:id/games', games, id, body('kind').isIn(['x01', 'cricket', 'elimination']).withMessage('A game of the evening is X01, Cricket or Elimination.'), validate, EveningController.addGame);
 
     app.use('/api/public/evenings', router);

@@ -5,6 +5,7 @@ import { createGameFilterQuery, findFilteredGames } from '../utils/game.utils.js
 import { averageTrend, scoringVsFinishing, dartsPerLegDistribution, DARTS_PER_LEG_BUCKETS, threeDartAverage } from '../utils/chart.data.js';
 import { playersX01StatsModel, checkoutItemModel, avgItemModel } from '../models/players.x01.stats.models.js';
 import { viewOf } from '../utils/game.view.js';
+import { x01PointsScored } from '../utils/kpi.data.js';
 
 const X01 = db.x01;
 
@@ -38,7 +39,7 @@ export async function calculateX01PlayersStats(body) {
         playersX01Stats.avg.perGame['player' + (idx + 1)] = calculatePerGameX01Avg(x01Games, playerId)
 
         playersX01Stats.throwedDarts['player' + (idx + 1)] = getTotalDartsThrownX01(x01Games, playerId)
-        playersX01Stats.throwedPoints['player' + (idx + 1)] = getTotalPointsThrownX01(x01Games, playerId)
+        playersX01Stats.throwedPoints['player' + (idx + 1)] = x01PointsScored(x01Games, playerId)
 
         playersX01Stats.num180s['player' + (idx + 1)] = getNumberOf180sX01(x01Games, playerId)
         playersX01Stats.num160plus['player' + (idx + 1)] = getNumberOf160plusX01(x01Games, playerId)
@@ -135,26 +136,6 @@ const getTotalDartsThrownX01 = (x01Games, playerId) => {
             return null;
         }
         return ((((game.playerModels[playerId] || {}).totalThrow || {}).game || {}).darts || 0);
-    }).filter(stat => stat !== null).reduce((accumulator, value) => {
-        return accumulator + value;
-    }, 0);
-}
-
-const getTotalPointsThrownX01 = (x01Games, playerId) => {
-    return x01Games.map(stored => viewOf('x01', stored)).map(game => {
-        for (let i = 1; i <= game.setsPlayed || 0; i++) {
-            for (let x = 1; x <= game.legsPlayed || 0; x++) {
-                const rounds = (((game.allSetsThrows || {})['set-' + i] || {})['leg-' + x] || {});
-                return rounds.map(round => {
-                    if (round.playerId !== playerId) {
-                        return null;
-                    }
-                    return round.roundScore;
-                }).filter(stat => stat !== null).reduce((accumulator, value) => {
-                    return accumulator + value;
-                }, 0);
-            }
-        }
     }).filter(stat => stat !== null).reduce((accumulator, value) => {
         return accumulator + value;
     }, 0);

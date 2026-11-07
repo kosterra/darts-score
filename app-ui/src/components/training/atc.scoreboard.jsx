@@ -12,6 +12,8 @@ import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils
 import { LISTS, PERIODS, formatScore, ordinal, scoreboardRows } from '../../utils/atc.scoreboard';
 import { t } from '../../utils/i18n';
 import { formatDate } from '../../utils/dates';
+import PlayLevelTag from '../elements/play.level.tag';
+import { playLevelOf } from '../../utils/play.levels';
 
 // rows shown before "Show all"
 const SHOWN_ROWS = 10;
@@ -50,7 +52,7 @@ const writeFiltersOpen = (open) => {
 
 const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-const ScoreboardRow = ({ row, rowRef, latest, phase, podium, showDate }) => {
+const ScoreboardRow = ({ row, rowRef, latest, phase, podium, showDate, withLevels }) => {
     const { entry, rank } = row;
     const player = entry.player ?? {};
     return (
@@ -76,7 +78,11 @@ const ScoreboardRow = ({ row, rowRef, latest, phase, podium, showDate }) => {
                     {player.nickname || t('Unknown player')}
                     {(latest || phase) && <span className="atc-row-new">{t('New')}</span>}
                 </span>
-                <span className="atc-row-detail">{showDate ? formatDate(entry.createdAt, { time: true }) : dayjs(entry.createdAt).format('HH:mm')}</span>
+                {/* the date, and the level the training was played at after it (fewest darts only) */}
+                <span className="atc-row-detail atc-row-detail-level">
+                    <span>{showDate ? formatDate(entry.createdAt, { time: true }) : dayjs(entry.createdAt).format('HH:mm')}</span>
+                    {withLevels && <PlayLevelTag estimate={playLevelOf(entry, player.id)} compact />}
+                </span>
             </span>
             <span className="atc-row-time">{formatScore(entry)}</span>
         </li>
@@ -290,6 +296,7 @@ const ATCScoreboard = ({ entries, noun = 'times', arrival, view, onViewChange, d
                                     phase={arrivingIds.has(row.entry.id) ? phase : null}
                                     podium={arrivingIds.has(row.entry.id) && phase === 'landed' && row.rank <= 3}
                                     showDate={view.period !== 'today'}
+                                    withLevels={view.scoring === 'Darts'}
                                 />
                             </Fragment>
                         ))}

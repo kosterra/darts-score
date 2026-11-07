@@ -53,7 +53,8 @@ describe('training bot', () => {
             expect(average).toBeGreaterThan(target * 0.9);
             expect(average).toBeLessThan(target * 1.1);
         }
-    });
+    // thousands of simulated legs: more time than the default when the whole suite runs
+    }, 20000);
 
     it('finishes on a double and gets better with a better player', () => {
         const weak = averageOver(40, 0.15);

@@ -60,7 +60,14 @@ const CricketState = props => {
     const [winnerSaved, setWinnerSaved] = useState(false);
 
     // without a connection the game is kept on this device and sent once it is back
-    const { save, unsent } = useGameSaves(`${quick ? 'quick' : 'cricket'}:${id}`, (game) => CricketService.updateCricketGame(game), (game) => { if (game.hasWinner) setWinnerSaved(true); });
+    // bumped when the server refused a save for good: its state is loaded again
+    const [reload, setReload] = useState(0);
+    const notSaved = (detail) => toast.current?.show({ severity: 'error', summary: t('Not saved'), detail, life: 4000 });
+    const { save, unsent } = useGameSaves(`${quick ? 'quick' : 'cricket'}:${id}`, (game, options) => CricketService.updateCricketGame(game, options), (game) => { if (game.hasWinner) setWinnerSaved(true); }, (error) => {
+        // a game gone says so when it is loaded again
+        if (error.status !== 404) notSaved(error.message);
+        setReload(count => count + 1);
+    });
 
     useEffect(() => {
         if (!saveRequest) return;
@@ -73,7 +80,10 @@ const CricketState = props => {
         setLoading('initGameLoading', true);
         const playersOf = async (game) => quick ? quickPlayersOf(game) : Promise.all(game.players.map(playerId => PlayerService.getPlayer(playerId)));
 
-        loadWithUnsent(`${quick ? 'quick' : 'cricket'}:${id}`, () => CricketService.loadCricketGameById(id), playersOf).then(({ game, players }) => {
+        loadWithUnsent(`${quick ? 'quick' : 'cricket'}:${id}`, () => CricketService.loadCricketGameById(id), playersOf).then(({ game, players, kept, dropped }) => {
+            if (dropped) notSaved(t('This device kept an older state of the game than the server has: the server\'s is shown.'));
+            // a game already over on the server shows its result
+            if (game.hasWinner && !kept) setWinnerSaved(true);
             dispatch({ type: FETCH_GAME_SUCCESS, payload: game });
             dispatch({ type: FETCH_PLAYERS_SUCCESS, payload: players });
             setLoading('initGameLoading', false);
@@ -90,7 +100,7 @@ const CricketState = props => {
         });
         // the service follows "quick", which a page never changes
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [id, navigate]);
+    }, [id, navigate, reload]);
 
     const updateCurrentThrowManual = (value, index) => {
         const newCurrentThrow = state.game.currentThrow.map((dart, i) => {

@@ -3,6 +3,7 @@ import { requireGlobalAdmin } from '../middleware/auth.middleware.js';
 import { body, param, query } from 'express-validator';
 import { validate } from '../utils/validation.js';
 import * as AdminController from '../controllers/admin.controller.js';
+import { validateLevelQuery } from '../validators/game.validators.js';
 import * as QuickGameController from '../controllers/quick.game.controller.js';
 import * as EveningController from '../controllers/evening.controller.js';
 import * as MailTemplateController from '../controllers/mail.template.controller.js';
@@ -65,10 +66,11 @@ export default (app) => {
     router.post('/players/:id/clubs', param('id').isMongoId(), body('club').isMongoId().withMessage('Choose a club.'), validate, AdminController.addPlayerToClub);
     router.delete('/players/:id/clubs/:clubId', param('id').isMongoId(), param('clubId').isMongoId(), validate, AdminController.removePlayerFromClub);
     router.delete('/players/:id', param('id').isMongoId(), validate, AdminController.deletePlayer);
-    router.get('/games', AdminController.games);
-    router.get('/trainings', AdminController.trainings);
-    router.get('/x01-trainings', AdminController.x01Trainings);
-    router.get('/rules-trainings', AdminController.rulesTrainings);
+    // ?level (and ?player): only those played at that level, by that player or anyone
+    router.get('/games', validateLevelQuery, validate, AdminController.games);
+    router.get('/trainings', validateLevelQuery, validate, AdminController.trainings);
+    router.get('/x01-trainings', validateLevelQuery, validate, AdminController.x01Trainings);
+    router.get('/rules-trainings', validateLevelQuery, validate, AdminController.rulesTrainings);
     // the quick games of the public start page
     router.get('/quick-games', QuickGameController.list);
     router.delete('/quick-games',

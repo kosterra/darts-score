@@ -33,6 +33,7 @@ import { nightOfGame } from '../../../utils/club.night';
 import { describeRules, hasHandicap, rulesOf } from '../../../utils/x01.rules';
 import { teamsOf } from '../../../rules/x01';
 import { t } from '../../../utils/i18n';
+import { X01_LEVEL, judgeLevel } from '../../../rules/levels.play';
 import { ACCENT } from '../../../utils/palette';
 import { useAuth } from '../../../utils/auth.context';
 import { formatDate } from '../../../utils/dates';
@@ -248,6 +249,7 @@ const X01GameStats = ({ training = false, quick = false }) => {
                         : plural(figures[player.id]?.legsWon ?? 0, 'leg')}
                     rows={FIGURES}
                     figures={figures}
+                    levelOf={(player) => judgeLevel(X01_LEVEL, figures[player.id])}
                     actions={actions}
                 />
 

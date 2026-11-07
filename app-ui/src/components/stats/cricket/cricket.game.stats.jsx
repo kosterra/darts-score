@@ -21,6 +21,7 @@ import { cricketRematch } from '../../../utils/cricket.rematch';
 import UpLink from '../../elements/up.link';
 import { variantOf } from '../../../utils/cricket.variants';
 import { t } from '../../../utils/i18n';
+import { CRICKET_LEVEL, judgeLevel } from '../../../rules/levels.play';
 import { GAME_COLORS } from '../../../utils/palette';
 
 // the key figures of every player in the header
@@ -116,6 +117,7 @@ const CricketGameStats = ({ quick = false }) => {
                     // the points are the score; under them how much of the board the player closed
                     scoreDetailOf={(player) => t('{{length}} of 7 numbers closed', { length: CRICKET_NUMBERS.filter(n => replay.board[n].marks[player.id] >= 3).length })}
                     rows={FIGURES}
+                    levelOf={(player) => judgeLevel(CRICKET_LEVEL, figures[player.id])}
                     figures={figures}
                     actions={actions}
                 />

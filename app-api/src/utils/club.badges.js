@@ -1,5 +1,6 @@
 import { gameFeats } from './badges.js';
 import { teamsOf } from '../rules/x01.js';
+import { DEFAULT_TIME_ZONE, wallClock } from '../rules/zones.js';
 
 /**
  * Badges a club earns together: every game and training of its members adds
@@ -188,7 +189,7 @@ const dayOf = (time) => Math.floor(time / DAY_MS);
  *          { kind: 'tournament' | 'league', type: 'tournament' | 'league', id, at, player (the winner) }]
  * members: the number of members now; createdAt: when the club began; now
  */
-export const replayClubBadges = (events, { members = 0, createdAt = null, now = new Date() } = {}) => {
+export const replayClubBadges = (events, { members = 0, createdAt = null, now = new Date(), zone = DEFAULT_TIME_ZONE } = {}) => {
     const metrics = {
         games: 0, trainings: 0, darts: 0, num180s: 0, tonPlus: 0, highFinishes: 0, tournaments: 0, leagues: 0,
         bestNight: 0, weekStreak: 0, bestWeekStreak: 0, members, years: 0,
@@ -209,7 +210,8 @@ export const replayClubBadges = (events, { members = 0, createdAt = null, now = 
     };
 
     for (const event of [...events].sort((a, b) => new Date(a.at) - new Date(b.at))) {
-        const time = new Date(event.at).getTime();
+        // the day and the week on the club's clock
+        const time = wallClock(event.at, zone);
         const players = event.kind === 'game' ? event.players ?? [] : [event.player].filter(Boolean);
         // a tournament or a league season played to its end: tipped by its winner
         if (event.kind === 'tournament' || event.kind === 'league') {

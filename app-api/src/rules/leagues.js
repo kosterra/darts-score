@@ -1,3 +1,4 @@
+import { DEFAULT_TIME_ZONE, dayKeyIn, instantIn, timeIn } from './zones.js';
 /**
  * Leagues of a club: a season where everyone plays everyone (once, or twice
  * with the order swapped), in matchdays with dates. A match is an X01 game
@@ -56,12 +57,18 @@ export const leagueMatches = (players, meetings = 1) => {
     })));
 };
 
-// the days of the matchdays: the first one, then every so many days
-export const matchdayDates = (first, everyDays, count) => Array.from({ length: count }, (_, index) => {
-    const date = new Date(first);
-    date.setDate(date.getDate() + index * everyDays);
-    return date;
-});
+// the days of the matchdays: the first one, then every so many days, at the same time on the
+// club's clock (zone), so a change of the clocks does not move them by an hour
+export const matchdayDates = (first, everyDays, count, zone = DEFAULT_TIME_ZONE) => {
+    const day = dayKeyIn(first, zone);
+    const time = timeIn(first, zone);
+    return Array.from({ length: count }, (_, index) => instantIn(addDaysTo(day, index * everyDays), time, zone));
+};
+// a day moved by some days ("2026-03-28" + 7), counted at noon UTC
+const addDaysTo = (key, days) => {
+    const [year, month, date] = key.split('-').map(Number);
+    return new Date(Date.UTC(year, month - 1, date + days, 12)).toISOString().slice(0, 10);
+};
 
 // how many matchdays a season has
 export const matchdayCount = (players, meetings = 1) => (players % 2 ? players : players - 1) * meetings;

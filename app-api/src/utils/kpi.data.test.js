@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { x01Kpis, cricketKpis, eliminationKpis, clockKpis } from './kpi.data.js';
+import { x01Kpis, x01PointsScored, cricketKpis, eliminationKpis, clockKpis } from './kpi.data.js';
 
 const visit = (playerId, scoreLeft, darts = ['S1', 'S1', 'S1']) => ({ playerId, scoreLeft, darts });
 
@@ -70,6 +70,49 @@ describe('x01Kpis', () => {
         expect(x01Kpis([game, longer], 'a').bestLeg).toBe(9);
         expect(x01Kpis([longer, game], 'a').bestLeg).toBe(9);
         expect(x01Kpis([longer, game], 'a').legsWon).toBe(2);
+    });
+});
+
+describe('x01Kpis in doubles and with a round limit', () => {
+    // a1 and a2 against b1 and b2: a1 checks out the team's leg
+    const doubles = {
+        startingScore: 501,
+        doubles: true,
+        players: ['a1', 'b1', 'a2', 'b2'],
+        allSetsThrows: { 'set-1': { 'leg-1': [visit('a1', 321), visit('b1', 441), visit('a2', 141), visit('b2', 381), visit('a1', 0)] } },
+    };
+
+    it('counts the leg the partner checked out as won, but as no best leg', () => {
+        expect(x01Kpis([doubles], 'a2')).toMatchObject({ legsWon: 1, bestLeg: null });
+        // the darts of the leg were the team's: no best leg of a1's own either
+        expect(x01Kpis([doubles], 'a1')).toMatchObject({ legsWon: 1, bestLeg: null });
+        expect(x01Kpis([doubles], 'b1').legsWon).toBe(0);
+    });
+
+    it('gives a leg decided by the round limit to the one with the fewest points left', () => {
+        const limited = {
+            startingScore: 501,
+            roundLimit: 2,
+            players: ['a', 'b'],
+            allSetsThrows: { 'set-1': { 'leg-1': [visit('a', 441), visit('b', 401), visit('a', 381), visit('b', 341)] } },
+        };
+        expect(x01Kpis([limited], 'b')).toMatchObject({ legsWon: 1, bestLeg: null });
+        expect(x01Kpis([limited], 'a').legsWon).toBe(0);
+    });
+});
+
+describe('x01PointsScored', () => {
+    it('adds up every leg of every set, without busts', () => {
+        const games = [{
+            startingScore: 501,
+            allSetsThrows: {
+                // 501 in leg 1; leg 2: 100, then a bust that stays on 401; set 2: 40
+                'set-1': { 'leg-1': [visit('a', 321), visit('b', 441), visit('a', 141), visit('b', 381), visit('a', 0)], 'leg-2': [visit('a', 401), visit('b', 0), visit('a', 401)] },
+                'set-2': { 'leg-1': [visit('a', 461), visit('b', 0)] },
+            },
+        }];
+        expect(x01PointsScored(games, 'a')).toBe(501 + 100 + 40);
+        expect(x01PointsScored([], 'a')).toBe(0);
     });
 });
 

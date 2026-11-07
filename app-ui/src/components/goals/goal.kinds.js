@@ -1,5 +1,6 @@
 import { addDays, weekdayOf } from '../../rules/calendar';
 import { locale, t } from '../../utils/i18n';
+import { boardOf, trainingOf } from '../../rules/trainings';
 
 /**
  * What a weekly goal can count, as the API knows it (utils/practice.goals.js
@@ -38,15 +39,19 @@ export const COUNT_TRAININGS = [
     ...SCORE_TRAININGS.map(({ value, label }) => ({ value, label })),
 ];
 
+// the settings a goal on a score counts with (those that split the training's scoreboard), the defaults
+// where it has none yet; null for other goals
+export const goalSettings = (kind, training, settings = {}) => (kind === 'trainingScore' && trainingOf(training) ? boardOf(trainingOf(training), settings ?? {}) : null);
+
 // a goal as the editor holds it
-export const draftOf = (goal) => ({ id: goal.id ?? null, kind: goal.kind, target: goal.target, training: goal.training ?? null, withBot: Boolean(goal.withBot) });
+export const draftOf = (goal) => ({ id: goal.id ?? null, kind: goal.kind, target: goal.target, training: goal.training ?? null, withBot: Boolean(goal.withBot), settings: goalSettings(goal.kind, goal.training, goal.settings) });
 
 // a new goal of a kind, with the number it starts with
 export const newGoal = (kind = 'trainings', training = null) => {
     const definition = kindOf(kind);
     const chosen = definition.training === 'required' ? training ?? SCORE_TRAININGS[0].value : definition.training ? training : null;
     const target = definition.training === 'required' ? SCORE_TRAININGS.find(entry => entry.value === chosen).target : definition.target;
-    return { id: null, kind, target, training: chosen, withBot: false };
+    return { id: null, kind, target, training: chosen, withBot: false, settings: goalSettings(kind, chosen) };
 };
 
 // whether the editor's goals can be saved: each a number within its kind's range, with its training

@@ -13,13 +13,15 @@ import { Toast } from 'primereact/toast';
 
 import LeagueService from '../../services/league.service';
 import { useAuth } from '../../utils/auth.context';
+import { shareCard } from '../../utils/share.card';
 import { calendarFormat, formatDate, formatDateTime } from '../../utils/dates';
 import { t } from '../../utils/i18n';
 import { dueOf, leagueTable } from '../../rules/leagues';
 import { isDecided } from '../../rules/tournaments';
-import { MatchCard } from '../tournaments/tournament.bracket';
+import { MatchCard, MatchResult } from '../tournaments/tournament.bracket';
 import { rulesText } from '../tournaments/tournament.words';
 import WalkOn from '../tournaments/tournament.walkon';
+import { leagueMatchActions } from '../tournaments/match.actions';
 import { LEAGUE_STATUS_WORDS, asTournament, leagueName } from './league.words';
 import { Lines } from '../elements/skeletons';
 import DateTimeField from '../elements/date.time.field';
@@ -75,7 +77,9 @@ const LeagueMatch = ({ league, match, onSelect, withDay = false }) => (
 /**
  * What can be done with a match of a league: start it (its players or an
  * admin), go on with or watch a running one, see the statistics of a played
- * one; the admins decide it without a game or move it to another day.
+ * one; the admins decide it without a game or move it to another day. Once
+ * the season is over (finished or cancelled) only what happened: the result,
+ * the score and the levels played at, the statistics.
  */
 const MatchDialog = ({ league, match, isAdmin, onHide, onStart, onResult, onMove, busy }) => {
     const { activeClub } = useAuth();
@@ -85,20 +89,21 @@ const MatchDialog = ({ league, match, isAdmin, onHide, onStart, onResult, onMove
     useEffect(() => { setFirst(match?.players?.[0] ?? null); setWinner(null); setDate(match ? new Date(dueOf(league, match)) : null); }, [match, league]);
     if (!match) return null;
     const mine = match.players.includes(league.myPlayer);
-    const running = league.status === 'running';
-    const canStart = running && (isAdmin || mine) && match.status === 'ready';
+    // nothing is started, moved or decided once the season is over (the server refuses it)
+    const { walkOn, canStart, startHint, canMove, canDecide } = leagueMatchActions({ league, match, isAdmin });
     const options = match.players.map(id => ({ label: leagueName(league, id), value: id }));
     const view = asTournament(league);
 
     return (
         <Dialog header={`${t('Matchday {{day}}', { day: match.day })} · ${options.map(option => option.label).join(' – ')}`} visible onHide={onHide} className="tournament-dialog" dismissableMask>
             <div className="d-flex flex-column gap-3">
-                {['ready', 'running'].includes(match.status) && <WalkOn tournament={view} match={match} club={activeClub} />}
-                <span className="text-subtle fs-7">{rulesText(league.rules)}{!isDecided(match) ? ` · ${t('by {{date}}', { date: formatDate(dueOf(league, match)) })}` : ''}</span>
+                {walkOn && <WalkOn tournament={view} match={match} club={activeClub} />}
+                <span className="text-subtle fs-7">{rulesText(league.rules)}{league.status === 'running' && !isDecided(match) ? ` · ${t('by {{date}}', { date: formatDate(dueOf(league, match)) })}` : ''}</span>
                 {isDecided(match) &&
                     <Message severity="success" className="w-100 justify-content-start" text={match.status === 'walkover'
                         ? t('{{name}} wins (decided by an admin).', { name: leagueName(league, match.winner) })
                         : t('{{name}} won.', { name: leagueName(league, match.winner) })} />}
+                <MatchResult tournament={view} match={match} />
                 {canStart &&
                     <div className="d-flex flex-column gap-2">
                         <span className="text-default fw-semibold fs-7">{t('Who throws first?')}</span>
@@ -110,8 +115,8 @@ const MatchDialog = ({ league, match, isAdmin, onHide, onStart, onResult, onMove
                     <Link to={`/x01/${match.game}`} className="p-button p-button-sm text-decoration-none justify-content-center"><i className="pi pi-play me-2" />{mine || isAdmin ? t('Go on with the match') : t('Watch the match')}</Link>}
                 {match.status === 'done' && match.game &&
                     <Link to={`/stats/games/x01/${match.game}`} className="p-button p-button-sm p-button-secondary text-decoration-none justify-content-center"><i className="pi pi-chart-bar me-2" />{t('Statistics of the match')}</Link>}
-                {running && !canStart && match.status === 'ready' && <span className="text-faint fs-8">{t('The players of the match or a club admin start it.')}</span>}
-                {isAdmin && running && !isDecided(match) &&
+                {startHint && <span className="text-faint fs-8">{t('The players of the match or a club admin start it.')}</span>}
+                {canMove &&
                     <div className="d-flex flex-column gap-2 border-top pt-3">
                         <span className="text-default fw-semibold fs-7">{t('Move the match')}</span>
                         <span className="text-faint fs-8">{t('E.g. when it is postponed: it is then due on its own day; the players hear of it.')}</span>
@@ -121,7 +126,7 @@ const MatchDialog = ({ league, match, isAdmin, onHide, onStart, onResult, onMove
                             {match.date && <Button label={t('Back to its matchday')} size="small" text loading={busy === 'move'} onClick={() => onMove(match, null)} />}
                         </div>
                     </div>}
-                {isAdmin && running && match.status !== 'done' &&
+                {canDecide &&
                     <div className="d-flex flex-column gap-2 border-top pt-3 tournament-decide">
                         <span className="text-default fw-semibold fs-7">{t('Decide without a game')}</span>
                         <span className="text-faint fs-8">{t('A walkover, or a result played elsewhere. A running game no longer counts for the league.')}</span>
@@ -161,7 +166,7 @@ const LeaguePage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const toast = useRef(null);
-    const { isClubAdmin } = useAuth();
+    const { isClubAdmin, activeClub } = useAuth();
     const [league, setLeague] = useState(null);
     const [error, setError] = useState('');
     const [busy, setBusy] = useState('');
@@ -192,6 +197,22 @@ const LeaguePage = () => {
     const started = ['running', 'finished'].includes(league.status);
     const over = ['finished', 'cancelled'].includes(league.status);
     const played = league.matches.filter(isDecided).length;
+    // the win of the season as a picture to share, as a tournament's: the points, the matches and legs won
+    const shareWin = () => {
+        const champion = league.winner;
+        const row = leagueTable(league.players, league.matches).find(entry => entry.player === champion);
+        shareCard({
+            eyebrow: t('League winner'),
+            title: leagueName(league, champion),
+            subtitle: [league.name, activeClub?.name].filter(Boolean).join(' · '),
+            hero: { value: String(row?.points ?? 0), label: t('points') },
+            figures: [
+                { value: String(league.players.length), label: t('players') },
+                { value: String(row?.won ?? 0), label: t('matches won') },
+                ...(row?.legsFor ? [{ value: String(row.legsFor), label: t('legs won') }] : []),
+            ],
+        }, { gold: true, filename: `legmate-${league.name}.png`, text: t('{{name}} wins {{league}}!', { name: leagueName(league, champion), league: league.name }) });
+    };
     const matchday = league.matchdays?.find(entry => entry.day === day);
     const mine = running && league.myPlayer ? league.matches.filter(match => match.players.includes(league.myPlayer) && !isDecided(match)).sort((a, b) => new Date(dueOf(league, a)) - new Date(dueOf(league, b))) : [];
 
@@ -255,7 +276,8 @@ const LeaguePage = () => {
                     {league.status === 'finished' &&
                         <div className="tournament-champion">
                             <FaTrophy className="tournament-champion-icon" aria-hidden="true" />
-                            <span>{t('{{name}} wins {{league}}!', { name: leagueName(league, league.winner), league: league.name })}</span>
+                            <span className="flex-grow-1">{t('{{name}} wins {{league}}!', { name: leagueName(league, league.winner), league: league.name })}</span>
+                            <Button label={t('Share')} icon="pi pi-share-alt" size="small" severity="secondary" onClick={shareWin} />
                         </div>}
 
                     {isClubAdmin && !over &&
@@ -317,7 +339,7 @@ const LeaguePage = () => {
                                         <Button label={t('Move the matchday')} icon="pi pi-calendar" size="small" text onClick={() => setMoving(matchday)} />
                                     </div>}
                             </div>}
-                        <p className="text-faint fs-8 mt-3 mb-0">{t('Tap a match to start it, follow it or see its statistics. Each is played any time up to its matchday.')}</p>
+                        <p className="text-faint fs-8 mt-3 mb-0">{over ? t('Tap a played match for its statistics.') : t('Tap a match to start it, follow it or see its statistics. Each is played any time up to its matchday.')}</p>
                     </Panel>
                 </div>}
 

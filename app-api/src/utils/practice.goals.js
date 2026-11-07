@@ -3,7 +3,9 @@ import db from '../models/db.model.js';
 import { RULES_TRAININGS, TRAINING_KINDS } from './rules.kinds.js';
 import { viewOf } from './game.view.js';
 import { deliverQuietly } from './notify.js';
-import { addDays, dayKey, weekRange } from '../rules/calendar.js';
+import { addDays } from '../rules/calendar.js';
+import { dayKeyIn, weekRangeIn } from '../rules/zones.js';
+import { boardKeyOf, boardLabels, boardOf, trainingOf } from '../rules/trainings.js';
 
 /**
  * The weekly practice goals of a user: up to three of their own, e.g. three
@@ -28,6 +30,14 @@ export const GOAL_TRAININGS = ['atc', 'bot', ...TRAINING_KINDS];
 const TRAINING_TITLES = { atc: 'Around the Clock', bot: 'X01 against the bot' };
 export const trainingTitle = (training) => TRAINING_TITLES[training] ?? RULES_TRAININGS[training]?.title ?? training;
 
+// the board of a goal on a score: the settings it counts with (a goal saved before them: the defaults), see boardOf
+const goalBoard = (goal) => boardOf(trainingOf(goal.training), goal.settings ?? {});
+// how a goal's board reads: " (20 attempts)", " (10 attempts, 9 darts)", '' for a training with one board
+const boardWords = (goal) => {
+    const labels = boardLabels(trainingOf(goal.training), goal.settings ?? {});
+    return labels.length ? ` (${labels.join(', ')})` : '';
+};
+
 /**
  * What a goal can count. Each kind with its largest target, the training it
  * needs (or may have), and how it reads (English; the app translates it).
@@ -45,7 +55,8 @@ export const GOAL_KINDS = {
         max: 10000,
         training: 'required',
         trainings: TRAINING_KINDS,
-        describe: ({ target, training }) => `${target} or better in ${trainingTitle(training)}`,
+        // with the settings it counts with: 140 in 20 attempts of 121 Checkout is not 140 in 10
+        describe: (goal) => `${goal.target} or better in ${trainingTitle(goal.training)}${trainingOf(goal.training) ? boardWords(goal) : ''}`,
     },
     x01Average: {
         max: 180,
@@ -78,6 +89,15 @@ export const goalError = (goal) => {
     if (!Number.isInteger(target) || target < 1 || target > kind.max) return `A goal of this kind needs a number from 1 to ${kind.max}.`;
     if (kind.training === 'required' && !(kind.trainings ?? GOAL_TRAININGS).includes(goal.training)) return 'Choose the training of the goal.';
     if (kind.training === 'optional' && goal.training && !GOAL_TRAININGS.includes(goal.training)) return 'Choose the training of the goal.';
+    if (goal.kind === 'trainingScore' && goal.settings != null) {
+        // only the settings that split the training's scoreboard, each one it offers
+        const definition = trainingOf(goal.training);
+        if (typeof goal.settings !== 'object' || Array.isArray(goal.settings)) return 'Choose the settings of the training.';
+        for (const [key, value] of Object.entries(goal.settings)) {
+            const option = (definition.boards ?? []).includes(key) && definition.options.find(entry => entry.key === key);
+            if (!option || !option.values.some(entry => entry.value === value)) return 'Choose the settings of the training.';
+        }
+    }
     return null;
 };
 
@@ -95,9 +115,12 @@ export const normalizeGoals = (goals, before = [], newId = () => new db.mongoose
             target: Number(goal.target),
             training: kind.training ? goal.training || null : null,
             withBot: goal.kind === 'x01Average' ? Boolean(goal.withBot) : false,
+            // a score counts with the same settings only (those missing: the defaults)
+            ...(goal.kind === 'trainingScore' && { settings: goalBoard(goal) }),
         };
         const old = goal.id ? kept.get(goal.id) : null;
-        const same = old && old.kind === clean.kind && old.target === clean.target && (old.training ?? null) === clean.training && Boolean(old.withBot) === clean.withBot;
+        const sameBoard = goal.kind !== 'trainingScore' || boardKeyOf(trainingOf(clean.training), old?.settings ?? {}) === boardKeyOf(trainingOf(clean.training), clean.settings);
+        const same = old && old.kind === clean.kind && old.target === clean.target && (old.training ?? null) === clean.training && Boolean(old.withBot) === clean.withBot && sameBoard;
         return { id: same ? old.id : newId(), ...clean };
     });
 };
@@ -127,13 +150,13 @@ export const loadWeek = async (playerIds, { from, until }) => {
         Promise.all(GAME_MODELS.map(async ([type, model]) => (await model().find({ players: { $in: ids }, hasWinner: true, updatedAt: finishedIn }).lean())
             .map(game => ({ type: type === 'rules' ? game.kind : type, at: game.updatedAt, view: type === 'x01' ? viewOf('x01', game) : game })))),
         db.atc.find({ 'player.id': { $in: ids }, createdAt: finishedIn }, 'player createdAt').lean(),
-        db.rulesTraining.find({ 'player.id': { $in: ids }, createdAt: finishedIn }, 'player kind score createdAt').lean(),
+        db.rulesTraining.find({ 'player.id': { $in: ids }, createdAt: finishedIn }, 'player kind score settings createdAt').lean(),
         db.x01Training.find({ players: { $in: ids }, hasWinner: true, updatedAt: finishedIn }).lean(),
     ]);
     return {
         games: games.flat(),
         atc: atc.map(entry => ({ at: entry.createdAt, player: entry.player?.id })),
-        rules: rules.map(entry => ({ at: entry.createdAt, player: entry.player?.id, kind: entry.kind, score: entry.score })),
+        rules: rules.map(entry => ({ at: entry.createdAt, player: entry.player?.id, kind: entry.kind, score: entry.score, settings: entry.settings ?? {} })),
         bot: bot.map(training => ({ at: training.updatedAt, view: viewOf('x01training', training) })),
     };
 };
@@ -158,7 +181,11 @@ export const measure = (goal, week, playerIds) => {
             return week.atc.length + week.rules.length + week.bot.length;
         }
         case 'trainingScore': {
-            const scores = week.rules.filter(entry => entry.kind === goal.training).map(entry => Number(entry.score)).filter(Number.isFinite);
+            // the trainings with the goal's settings (those that split the scoreboard)
+            const definition = trainingOf(goal.training);
+            const board = definition ? boardKeyOf(definition, goal.settings ?? {}) : '';
+            const scores = week.rules.filter(entry => entry.kind === goal.training && (!definition || boardKeyOf(definition, entry.settings ?? {}) === board))
+                .map(entry => Number(entry.score)).filter(Number.isFinite);
             if (!scores.length) return null;
             return higherIsBetter(goal.training) ? Math.max(...scores) : Math.min(...scores);
         }
@@ -169,7 +196,7 @@ export const measure = (goal, week, playerIds) => {
         }
         case 'games': return week.games.length;
         case 'num180s': return [...week.games.map(game => game.view), ...week.bot.map(entry => entry.view)].reduce((sum, view) => sum + count180s(view, ids), 0);
-        case 'playDays': return new Set([...week.games, ...week.atc, ...week.rules, ...week.bot].map(entry => dayKey(entry.at))).size;
+        case 'playDays': return new Set([...week.games, ...week.atc, ...week.rules, ...week.bot].map(entry => dayKeyIn(entry.at))).size;
         default: return 0;
     }
 };
@@ -195,6 +222,8 @@ export const goalView = (goal, progress, reachedAt = null) => ({
     target: goal.target,
     training: goal.training ?? null,
     withBot: Boolean(goal.withBot),
+    // a goal on a score: the settings it counts with ({} for a training with one board)
+    settings: goal.kind === 'trainingScore' && trainingOf(goal.training) ? goalBoard(goal) : null,
     description: describeGoal(goal),
     progress,
     share: shareOf(goal, progress),
@@ -210,7 +239,7 @@ const playerIdsOf = async (userId) => (await db.player.find({ user: userId, gues
  * { week: { from, until, key }, goals: [goalView], playerIds }.
  */
 export const weekProgress = async (user, now = new Date(), { goals = user.practiceGoals ?? [] } = {}) => {
-    const week = weekRange(now);
+    const week = weekRangeIn(now);
     const playerIds = await playerIdsOf(user._id);
     const held = goals.length ? await loadWeek(playerIds, week) : null;
     const record = goals.length ? await db.practiceGoalWeek.findOne({ user: user._id, week: week.key }, 'goals').lean() : null;
@@ -236,7 +265,7 @@ const weekView = (record) => {
  * The past weeks of the user, newest first: [{ week, goals, allReached }].
  */
 export const pastWeeks = async (userId, weeks = 12, now = new Date()) => {
-    const current = weekRange(now).key;
+    const current = weekRangeIn(now).key;
     const records = await db.practiceGoalWeek.find({ user: userId, week: { $lt: current }, closedAt: { $ne: null } }).sort({ week: -1 }).limit(weeks).lean();
     return records.map(weekView);
 };
@@ -361,8 +390,9 @@ export const checkGoalsAfterGame = async (game) => {
 
 // the week before the one of `now`
 const weekBefore = (now) => {
-    const { from } = weekRange(now);
-    return weekRange(new Date(from.getFullYear(), from.getMonth(), from.getDate() - 7));
+    const { from } = weekRangeIn(now);
+    // half a week before its Monday: in the week before, whatever the clocks did
+    return weekRangeIn(new Date(from.getTime() - 3.5 * 24 * 60 * 60 * 1000));
 };
 
 /**

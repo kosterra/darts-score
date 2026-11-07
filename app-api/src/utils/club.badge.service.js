@@ -6,6 +6,7 @@ import { checkLater, noteClubBadges } from './spam.guard.js';
 import { noteRatingChanges } from './player.notices.js';
 import { CLUB_BADGES, GOAL_METRICS, TALLY_VERSION, getClubBadge, goalProgress, publicClubBadge, replayClubBadges, tallyOf } from './club.badges.js';
 import { deliver } from './notify.js';
+import { zoneOf } from '../rules/zones.js';
 
 const GAME_COLLECTIONS = {
     x01: () => db.x01,
@@ -23,15 +24,19 @@ const GAME_COLLECTIONS = {
 export const saveTally = async (clubId, type, game, { onlyPlayers = null } = {}) => {
     if (!clubId || !game?.hasWinner) return false;
     const sourceId = String(game._id ?? game.id);
-    const at = game.updatedAt ?? new Date();
+    const updatedAt = game.updatedAt ?? new Date();
     // the tally is kept per club and game: a shared tournament game has one per club
-    const known = await db.clubTally.findOne({ club: clubId, sourceId }, 'at version').lean();
-    if (known && known.version === TALLY_VERSION && new Date(known.at).getTime() === new Date(at).getTime()) return false;
+    const known = await db.clubTally.findOne({ club: clubId, sourceId }, 'at gameUpdatedAt version').lean();
+    const workedOutFrom = known?.gameUpdatedAt ?? known?.at;
+    if (known && known.version === TALLY_VERSION && new Date(workedOutFrom).getTime() === new Date(updatedAt).getTime()) return false;
     const data = viewOf(isRulesGame(type) ? 'rules' : type, game);
     const tally = tallyOf(type, data, { onlyPlayers });
+    // worked out again, it keeps the time the game was first finished: a game saved
+    // again later does not count as played then (for the goals of that week)
+    const at = known?.at ?? updatedAt;
     await db.clubTally.updateOne(
         { club: clubId, sourceId },
-        { $set: { club: clubId, sourceType: type, sourceId, at, ...tally } },
+        { $set: { club: clubId, sourceType: type, sourceId, at, gameUpdatedAt: updatedAt, ...tally } },
         { upsert: true }
     );
     // true for a game finished just now
@@ -118,7 +123,7 @@ export const syncClubBadges = async (clubOrId, { notify = true } = {}) => {
     const club = await clubOf(clubOrId);
     if (!club) return { fresh: [], metrics: {}, progress: {} };
     const [{ games, trainings, ends, tallies }, members] = await Promise.all([loadClubEvents(club._id), memberCount(club._id)]);
-    const { earned, metrics } = replayClubBadges([...games, ...trainings, ...ends], { members, createdAt: club.createdAt });
+    const { earned, metrics } = replayClubBadges([...games, ...trainings, ...ends], { members, createdAt: club.createdAt, zone: zoneOf(club) });
 
     const known = new Set((club.badges ?? []).map(entry => entry.badge));
     const fresh = earned.filter(entry => !known.has(entry.badge));

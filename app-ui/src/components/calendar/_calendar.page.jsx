@@ -26,6 +26,7 @@ import { Lines } from '../elements/skeletons';
 import SaveStatus from '../elements/save.status';
 import CalendarMonth from './calendar.month';
 import TimeField from '../elements/time.field';
+import { dayKeyIn, zoneOf } from '../../rules/zones';
 
 const WEEKS = 8;
 // the view chosen last on this device: the coming weeks as a list, or a month
@@ -59,7 +60,7 @@ const eventWords = (event) => ({
  * A club night in the list: when, whether it is cancelled, and who comes;
  * the member answers, the admins cancel it or take that back.
  */
-const ClubNight = ({ night, canAnswer, isAdmin, busy, onAnswer, onCancel, onRestore, past = false }) => {
+const ClubNight = ({ night, today, canAnswer, isAdmin, busy, onAnswer, onCancel, onRestore, past = false }) => {
     const [open, setOpen] = useState(false);
     const others = night.notComingCount;
     return (
@@ -107,7 +108,7 @@ const ClubNight = ({ night, canAnswer, isAdmin, busy, onAnswer, onCancel, onRest
                         </>
                     )}
                 {/* tonight: the club evening; a past night: its table */}
-                {!night.cancelled && (night.day === dayKey(new Date()) || past) &&
+                {!night.cancelled && (night.day === today || past) &&
                     <Link to={`/club-night/${night.day}`} className={`p-button p-button-sm text-decoration-none align-self-start ${past ? 'p-button-secondary p-button-text' : ''}`}>
                         <i className={`pi ${past ? 'pi-list' : 'pi-users'} me-2`} aria-hidden="true" />{past ? t('Table of the night') : t('Club evening')}
                     </Link>}
@@ -226,9 +227,11 @@ const Subscribe = ({ toast }) => {
  * the calendar of the phone.
  */
 const CalendarPage = () => {
-    const { isClubAdmin } = useAuth();
+    const { activeClub, isClubAdmin } = useAuth();
     const toast = useRef(null);
-    const today = useMemo(() => dayKey(new Date()), []);
+    // today on the club's clock, the clock of its club nights
+    const zone = zoneOf(activeClub);
+    const today = useMemo(() => dayKeyIn(new Date(), zone), [zone]);
     const [weeks, setWeeks] = useState(WEEKS);
     const [calendar, setCalendar] = useState(null);
     const [error, setError] = useState('');
@@ -317,7 +320,7 @@ const CalendarPage = () => {
     const canAnswer = Boolean(calendar.myPlayer);
     // a club night or a tournament or league day; past: no more answers or changes
     const renderItem = (item, past) => (item.night
-        ? <ClubNight key={item.key} night={item.night} past={past} canAnswer={canAnswer} isAdmin={isClubAdmin} busy={busy} onAnswer={answer} onCancel={(night) => { setReason(''); setCancelling(night); }} onRestore={(night) => run(`restore-${night.day}`, () => CalendarService.restoreNight(night.day, range), t('The members are told.'))} />
+        ? <ClubNight key={item.key} night={item.night} today={today} past={past} canAnswer={canAnswer} isAdmin={isClubAdmin} busy={busy} onAnswer={answer} onCancel={(night) => { setReason(''); setCancelling(night); }} onRestore={(night) => run(`restore-${night.day}`, () => CalendarService.restoreNight(night.day, range), t('The members are told.'))} />
         : <EventItem key={item.key} event={item.event} />);
 
     return (

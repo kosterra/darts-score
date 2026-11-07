@@ -15,7 +15,10 @@ import { getAppUrl, isMailConfigured } from './mail.utils.js';
 import { sendTemplateMail } from './mail.service.js';
 import { dateIn, deliverQuietly, languageOf, unsubscribeToken } from './notify.js';
 import { tr } from './translate.js';
+import { untilSaved } from './retry.js';
 import { shirtOf } from './shirts.js';
+import { withMatchGames } from './match.games.js';
+import { dayKeyIn, zoneOf } from '../rules/zones.js';
 
 /**
  * The tournaments of a club (knockout, see rules/tournaments.js): the
@@ -108,11 +111,6 @@ export const participatesInTournament = async (clubId, tournamentId) => {
 // Setting up
 // ---------------------------------------------------------------------------
 
-const dayOf = (date) => {
-    const at = new Date(date);
-    return new Date(at.getFullYear(), at.getMonth(), at.getDate()).getTime();
-};
-
 /**
  * What an admin sent to set up a tournament, checked: { setup } or { error }.
  * stored: the tournament as it is (null for a new one); what may change
@@ -128,6 +126,9 @@ export const checkSetup = (body, stored = null) => {
     if (description.length > DESCRIPTION_MAX) return { error: `The description is at most ${DESCRIPTION_MAX} characters.` };
     const maxPlayers = early ? Number(body.maxPlayers ?? stored?.maxPlayers ?? 16) : stored.maxPlayers;
     if (!MAX_PLAYERS_CHOICES.includes(maxPlayers)) return { error: 'Choose how many players can play at most.' };
+    // the bracket has room for everyone who entered already
+    const entered = early && stored ? entriesIn(stored).length : 0;
+    if (maxPlayers < entered) return { error: `${entered} players have entered already: choose at least that many places.` };
     const closesAt = early && body.closesAt ? new Date(body.closesAt) : new Date(stored?.closesAt ?? body.closesAt);
     if (Number.isNaN(closesAt.getTime())) return { error: 'Choose until when the members can enter.' };
     const format = early ? body.format ?? stored?.format ?? 'knockout' : stored.format ?? 'knockout';
@@ -191,11 +192,14 @@ const accountsOf = async (playerIds) => {
     return new Map(players.map(player => [String(player._id), player]));
 };
 
-// notifications to the players (with a login) of a tournament
+// the club a player plays for in a tournament: the host, or their connected club in a shared one
+const clubOfEntry = (tournament, playerId) => (tournament.entries ?? []).find(entry => String(entry.player) === String(playerId))?.club ?? tournament.club;
+
+// notifications to the players (with a login) of a tournament, each in the club they play for
 const tellPlayers = async (tournament, playerIds, notice) => {
     const players = await accountsOf(playerIds);
     await deliverQuietly([...players.values()].filter(player => player.user).map(player => ({
-        user: player.user, club: tournament.club, link: `/tournaments/${tournament._id}`, ...(typeof notice === 'function' ? notice(player) : notice),
+        user: player.user, club: clubOfEntry(tournament, player._id), link: `/tournaments/${tournament._id}`, ...(typeof notice === 'function' ? notice(player) : notice),
     })));
 };
 
@@ -236,7 +240,7 @@ export const invite = async (tournament, entries, kind = 'invite') => {
             const user = player.user ? users.get(String(player.user)) : null;
             if (user) {
                 const preference = preferenceOf(user.notifications, 'tournamentInvites');
-                if (preference.inApp) await db.notification.create({ user: user._id, club: tournament.club, link: `/tournaments/${tournament._id}`, ...notice, inApp: true, mail: 'off' });
+                if (preference.inApp) await db.notification.create({ user: user._id, club: clubOfEntry(tournament, player._id), link: `/tournaments/${tournament._id}`, ...notice, inApp: true, mail: 'off' });
                 if (preference.mail !== 'off' && mailing) {
                     const language = languageOf(user);
                     await sendTemplateMail(template, user.email, { firstname: user.firstname, ...vars(language), manageUrl: `${getAppUrl()}/profile#notifications` }, language);
@@ -261,13 +265,16 @@ export const invite = async (tournament, entries, kind = 'invite') => {
 // ---------------------------------------------------------------------------
 
 /**
- * Opens the registration: every member who can play is invited.
+ * Opens the registration: every member who can play is invited. When it
+ * ends within REMINDER_HOURS, the invitation is the reminder too.
  */
-export const openRegistration = async (tournament) => {
+export const openRegistration = async (tournament, now = new Date()) => {
     const members = await eligibleMembers(tournament.club);
     const known = new Map((tournament.entries ?? []).map(entry => [String(entry.player), entry]));
     tournament.entries = members.map(member => known.get(String(member._id)) ?? { player: member._id, club: tournament.club, status: 'invited' });
     tournament.status = 'registration';
+    const reminded = tournament.reminded ?? [];
+    if (new Date(tournament.closesAt) - now <= REMINDER_HOURS * 60 * 60 * 1000 && !reminded.includes('registration')) tournament.reminded = [...reminded, 'registration'];
     await tournament.save();
     const told = await invite(tournament, tournament.entries.filter(entry => entry.status === 'invited'));
     logger.info(`Registration of the tournament ${tournament._id} opened, ${told} members invited`);
@@ -338,6 +345,8 @@ export const holdDraw = async (tournament, { seeding = 'seeded', by = null, rand
     if (!SEEDINGS.includes(seeding)) throw Object.assign(new Error('Choose how the draw is held.'), { status: 422 });
     const players = entriesIn(tournament).map(entry => String(entry.player));
     if (players.length < MIN_PLAYERS) throw Object.assign(new Error(`A tournament needs at least ${MIN_PLAYERS} players.`), { status: 409 });
+    // a bracket bigger than the rounds set up has rounds without rules
+    if (players.length > tournament.maxPlayers) throw Object.assign(new Error(`The tournament has ${tournament.maxPlayers} places, more players have entered: take some out before the draw.`), { status: 409 });
     // the strongest first by the club rating (in a shared tournament, across every
     // club taking part); players without games in random order behind them
     const ratingClubs = [tournament.club, ...(tournament.invitedClubs ?? [])];
@@ -446,6 +455,27 @@ const fillKnockout = async (tournament, matches) => {
     });
 };
 
+// every group match is decided and the bracket is not filled yet
+const knockoutDue = (tournament) => tournament.format === 'groups' && ['drawn', 'running'].includes(tournament.status)
+    && (tournament.draw?.groups ?? []).length > 0 && !tournament.draw?.knockoutAt && groupsDone(tournament.matches ?? []);
+
+/**
+ * Fills the bracket once the group stage is over, and only once: a save
+ * that lost a race reads the tournament again and finds it filled, or fills
+ * it then. Whatever fails is logged (the hourly job tries again).
+ */
+const fillKnockoutWhenDue = async (tournament) => {
+    try {
+        await untilSaved(async (attempt) => {
+            const current = attempt ? await db.tournament.findById(tournament._id) : tournament;
+            if (!current || !knockoutDue(current)) return;
+            await fillKnockout(current, plainMatches(current));
+        });
+    } catch (err) {
+        logger.error(err, `Failed to fill the bracket of the tournament ${tournament._id} from its groups`);
+    }
+};
+
 // ---------------------------------------------------------------------------
 // The matches
 // ---------------------------------------------------------------------------
@@ -510,7 +540,7 @@ const decide = async (tournament, matches, match, winner, extra = {}) => {
         const called = settleBoards(tournament, matches);
         await tournament.save();
         await tellCalled(tournament, called);
-        if (groupsDone(matches) && !tournament.draw?.knockoutAt) await fillKnockout(tournament, matches);
+        await fillKnockoutWhenDue(tournament);
         return;
     }
     const next = advance(byId, match);
@@ -557,23 +587,22 @@ const finished = async (tournament) => {
  * view: the game with its results worked out (answerOf).
  */
 export const tournamentGameFinished = async (game, view) => {
-    // two games finishing at once both save the matches: the one that lost the race reads them again
-    for (let attempt = 0; attempt < 2; attempt += 1) {
-        try {
+    try {
+        // games finishing at once all save the matches: those that lost the race read them again
+        await untilSaved(async () => {
             const tournament = await db.tournament.findById(game.tournament.id);
             if (!tournament || !['drawn', 'running'].includes(tournament.status)) return;
             const matches = plainMatches(tournament);
             const match = matches.find(entry => entry.id === game.tournament.match);
-            if (!match || isDecided(match) || String(match.game) !== String(game._id)) return;
+            if (!match || String(match.game) !== String(game._id)) return;
+            // decided already: the bracket after the groups may still have to be filled
+            if (isDecided(match)) return fillKnockoutWhenDue(tournament);
             const winner = match.players.find(id => view?.playerModels?.[id]?.hasWonGame);
             if (!winner) return;
             await decide(tournament, matches, match, winner, { status: 'done', score: scoreOf(view, match, roundOf(tournament, match.size).rules) });
-            return;
-        } catch (err) {
-            if (err.name === 'VersionError' && attempt === 0) continue;
-            logger.error(err, `Failed to move on the winner of the tournament game ${game._id}`);
-            return;
-        }
+        });
+    } catch (err) {
+        logger.error(err, `Failed to move on the winner of the tournament game ${game._id}`);
     }
 };
 
@@ -583,16 +612,18 @@ export const tournamentGameFinished = async (game, view) => {
  */
 export const tournamentGameDeleted = async (game) => {
     try {
-        const tournament = await db.tournament.findById(game.tournament.id);
-        if (!tournament) return;
-        const matches = plainMatches(tournament);
-        const match = matches.find(entry => entry.id === game.tournament.match && String(entry.game) === String(game._id));
-        if (!match) return;
-        // on boards it stays on its board, called again
-        if (match.status === 'running') match.status = 'ready';
-        match.game = null;
-        settleBoards(tournament, matches);
-        await tournament.save();
+        await untilSaved(async () => {
+            const tournament = await db.tournament.findById(game.tournament.id);
+            if (!tournament) return;
+            const matches = plainMatches(tournament);
+            const match = matches.find(entry => entry.id === game.tournament.match && String(entry.game) === String(game._id));
+            if (!match) return;
+            // on boards it stays on its board, called again
+            if (match.status === 'running') match.status = 'ready';
+            match.game = null;
+            settleBoards(tournament, matches);
+            await tournament.save();
+        });
     } catch (err) {
         logger.error(err, `Failed to take the deleted game ${game._id} out of its tournament`);
     }
@@ -748,10 +779,13 @@ export const holdMatch = (tournament, matchKey, held) => boardAction(tournament,
 
 /**
  * A tournament as the app shows it: with the names of its players, the
- * entry of the player asking, and the counts of the registration.
+ * entry of the player asking, and the counts of the registration. games:
+ * each match with what its game says (the levels played at, the score of
+ * one going on; see match.games.js), for the page of one tournament.
  */
-export const tournamentView = async (tournament, { playerId = null } = {}) => {
-    const json = typeof tournament.toJSON === 'function' ? tournament.toJSON() : tournament;
+export const tournamentView = async (tournament, { playerId = null, games = false } = {}) => {
+    const plainJson = typeof tournament.toJSON === 'function' ? tournament.toJSON() : tournament;
+    const json = games ? { ...plainJson, matches: await withMatchGames(plainJson.matches ?? []) } : plainJson;
     const ids = [...new Set([
         ...(json.entries ?? []).map(entry => String(entry.player)),
         ...(json.matches ?? []).flatMap(match => match.players).filter(Boolean),
@@ -819,11 +853,16 @@ export const runTournamentJobs = async (now = new Date()) => {
     const running = await db.tournament.find({ status: { $in: ['drawn', 'running'] } });
     for (const tournament of running) {
         try {
+            // a bracket after the groups that was not filled (its save failed)
+            if (knockoutDue(tournament)) await fillKnockoutWhenDue(tournament);
             const playing = tournament.rounds.filter(round => !round.skipped && round.date);
+            // the days on the host club's clock
+            const zone = zoneOf(await db.club.findById(tournament.club, 'timeZone').lean());
+            const today = dayKeyIn(now, zone);
             for (let index = 1; index < playing.length; index += 1) {
                 const round = playing[index];
                 const key = `overdue:${round.size}`;
-                if (dayOf(round.date) > dayOf(now) || tournament.reminded.includes(key)) continue;
+                if (dayKeyIn(round.date, zone) > today || tournament.reminded.includes(key)) continue;
                 const before = playing[index - 1].size;
                 const open = tournament.matches.filter(match => match.size === before && !isDecided(match)).length;
                 if (!open) continue;

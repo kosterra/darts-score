@@ -7,10 +7,46 @@ import { useCallback, useEffect, useRef, useState } from 'react';
  * save sends the whole game, so only its newest state is kept. A reload
  * without a connection opens the kept game; elsewhere in the app a note
  * leads back to games not sent yet.
+ *
+ * Each save says which stored state it builds on (basedOn: its "updatedAt"):
+ * the server refuses an older state over a newer one (another device scored
+ * meanwhile) and a finished game sent back unfinished. Such a refusal, a game
+ * gone (deleted meanwhile) or a save refused for good is not tried again: the
+ * kept state goes and the page loads the server's.
  */
 const KEY = 'darts-score.unsent-games';
 export const UNSENT_CHANGED = 'darts-score:unsent-changed';
 const RETRY_MS = 10000;
+
+// the answers no retry changes: the game gone (404), a newer state or a finished game (409), refused (422)
+const REFUSED = [404, 409, 422];
+export const isRefused = (error) => REFUSED.includes(error?.status);
+
+// the stored state each game of this page builds on, by key: its "updatedAt" on the server
+const serverAt = new Map();
+
+// the darts of a visit as stored: no empty ones
+const dartsOf = (visit) => (visit?.darts ?? []).filter(dart => dart !== '' && dart != null).map(String);
+const sameVisit = (a, b) => String(a?.player) === String(b?.player) && dartsOf(a).join() === dartsOf(b).join();
+
+// "after" has every visit of "before", in order, and maybe more
+export const extendsVisits = (before = [], after = []) => after.length >= before.length && before.every((visit, index) => sameVisit(visit, after[index]));
+
+const timeOf = (value) => (value ? new Date(value).getTime() : NaN);
+
+/**
+ * A kept state the server would refuse, by the game it has now: the game is
+ * finished there (and the kept state is not the same), or the kept state
+ * takes visits back or differs while the server's moved on since it was kept.
+ */
+export const outdatedBy = (server, kept) => {
+    if (!server || !kept?.game) return false;
+    const before = server.visits ?? [];
+    const after = kept.game.visits ?? [];
+    if (server.hasWinner) return !(after.length === before.length && extendsVisits(before, after));
+    if (extendsVisits(before, after)) return false;
+    return timeOf(kept.basedOn) !== timeOf(server.updatedAt);
+};
 
 const readAll = () => {
     try {
@@ -49,19 +85,30 @@ const drop = (key, at) => {
 // given up on (e.g. the game was deleted meanwhile)
 export const discardUnsent = (key) => drop(key);
 
+// a state kept meanwhile builds on what the server has now
+const rebase = (key, basedOn) => {
+    const all = readAll();
+    if (!all[key]) return;
+    all[key] = { ...all[key], basedOn };
+    writeAll(all);
+};
+
 /**
  * The saves of a running game. key: the game's own key ('x01:<id>');
- * send(game): the save of the API, rejecting when it did not get through;
- * onSent(game): after a state is on the server (e.g. a won game opens its
- * result then). save(game, { players, link, kind }) keeps the state and sends
- * it; unsent is true while one is waiting for the connection.
+ * send(game, { basedOn }): the save of the API, resolving with the game as
+ * stored and rejecting when it did not get through (with the status when the
+ * server answered); onSent(game): after a state is on the server and is still
+ * the newest (e.g. a won game opens its result then); onRefused(error): the
+ * server refused the save for good (isRefused): the kept state is gone, the
+ * page loads the server's. save(game, { players, link, kind }) keeps the state
+ * and sends it; unsent is true while one is waiting for the connection.
  */
-export const useGameSaves = (key, send, onSent) => {
+export const useGameSaves = (key, send, onSent, onRefused) => {
     const [unsent, setUnsent] = useState(() => Boolean(key && unsentGame(key)));
     // the saves run one after the other, so they arrive in order
     const chain = useRef(Promise.resolve());
-    const latest = useRef({ send, onSent });
-    latest.current = { send, onSent };
+    const latest = useRef({ send, onSent, onRefused });
+    latest.current = { send, onSent, onRefused };
 
     // sends what is kept for the game, if it is still the newest state
     const flush = useCallback(() => {
@@ -69,12 +116,26 @@ export const useGameSaves = (key, send, onSent) => {
             const entry = key && unsentGame(key);
             if (!entry) return;
             try {
-                await latest.current.send(entry.game);
+                const stored = await latest.current.send(entry.game, { basedOn: serverAt.has(key) ? serverAt.get(key) : entry.basedOn });
+                if (stored?.updatedAt) {
+                    serverAt.set(key, stored.updatedAt);
+                    rebase(key, stored.updatedAt);
+                }
                 drop(key, entry.at);
-                setUnsent(Boolean(unsentGame(key)));
-                latest.current.onSent?.(entry.game);
-            } catch {
-                setUnsent(true);
+                const newer = unsentGame(key);
+                setUnsent(Boolean(newer));
+                // a state replaced since (e.g. by an undo) opens nothing
+                if (!newer) latest.current.onSent?.(entry.game);
+            } catch (error) {
+                if (!isRefused(error)) {
+                    setUnsent(true);
+                    return;
+                }
+                // not tried again: the newer states kept meanwhile build on the same refused one
+                drop(key);
+                serverAt.delete(key);
+                setUnsent(false);
+                latest.current.onRefused?.(error, entry.game);
             }
         });
         return chain.current;
@@ -82,9 +143,11 @@ export const useGameSaves = (key, send, onSent) => {
 
     const save = useCallback((game, { players, link, kind } = {}) => {
         if (!key) return Promise.resolve();
+        const kept = unsentGame(key);
         // a little later than the last one, even within the same millisecond
-        const at = Math.max(Date.now(), (unsentGame(key)?.at ?? 0) + 1);
-        keep(key, { game, players, link: link ?? window.location.pathname, kind, at });
+        const at = Math.max(Date.now(), (kept?.at ?? 0) + 1);
+        const basedOn = serverAt.has(key) ? serverAt.get(key) : kept?.basedOn;
+        keep(key, { game, players, link: link ?? window.location.pathname, kind, at, ...(basedOn && { basedOn }) });
         return flush();
     }, [key, flush]);
 
@@ -109,16 +172,31 @@ export const useGameSaves = (key, send, onSent) => {
 /**
  * Loads a game and its players for its page: a state kept on this device
  * (not sent yet) wins over the server's, and without a connection the kept
- * one is used alone. load(): the game from the API; players(game): its players.
+ * one is used alone. A kept state the server would refuse (outdatedBy) goes,
+ * and so does that of a game gone from the server (the load rejects then).
+ * load(): the game from the API; players(game): its players. → { game,
+ * players, kept, dropped: a kept state went for the server's }
  */
 export const loadWithUnsent = async (key, load, players) => {
-    const kept = unsentGame(key);
+    let kept = unsentGame(key);
     let game;
+    let dropped = false;
     try {
         game = await load();
     } catch (error) {
-        if (!kept) throw error;
+        // deleted meanwhile: nothing to send it to
+        if (kept && error?.status === 404) discardUnsent(key);
+        if (!kept || error?.status === 404) throw error;
     }
+    if (kept && outdatedBy(game, kept)) {
+        discardUnsent(key);
+        kept = null;
+        dropped = true;
+    }
+    // what the saves of this page build on; a save that got through while this loaded knows a newer one
+    const basedOn = kept ? kept.basedOn : game?.updatedAt;
+    const known = serverAt.get(key);
+    if (basedOn && !(timeOf(known) > timeOf(basedOn))) serverAt.set(key, basedOn);
     const chosen = kept?.game ?? game;
     let found;
     try {
@@ -127,7 +205,7 @@ export const loadWithUnsent = async (key, load, players) => {
         if (!kept?.players) throw error;
         found = kept.players;
     }
-    return { game: chosen, players: found, kept: Boolean(kept) };
+    return { game: chosen, players: found, kept: Boolean(kept), dropped };
 };
 
 // the browser knows it has no network

@@ -101,4 +101,71 @@ test('a club night switched to boards calls the pairings', async ({ page, isMobi
     const boards = page.locator('.board-card');
     await expect(boards).toHaveCount(2);
     await expect(boards.first()).toContainText('Called');
+
+    // someone goes home: saved on the night, not called again, back on a tap
+    const chip = page.locator('.club-night-chip').last();
+    const name = (await chip.locator('span span').first().textContent()).trim();
+    await chip.getByRole('button', { name: `${name} went home` }).click();
+    await expect(chip).toContainText('went home at');
+    await expect.poll(async () => (await (await fetch(`${MOCK}/api/calendar/nights/${today()}/boards`)).json()).left.length).toBe(1);
+    await page.reload();
+    await expect(page.locator('.club-night-chip.is-gone')).toHaveCount(1);
+    await page.locator('.club-night-chip.is-gone').getByRole('button', { name: `${name} is back` }).click();
+    await expect(page.locator('.club-night-chip.is-gone')).toHaveCount(0);
+});
+
+const NIGHT_BOARDS = () => `${MOCK}/api/calendar/nights/${today()}/boards`;
+
+test('on a club night on boards only the admins send someone home, the others see it', async ({ page, isMobile }) => {
+    test.skip(isMobile, 'the logic once, at desktop width');
+    await post('/__test/calendar', { scenario: 'tonight' });
+    await post('/__test/boards', { scenario: 'night', day: today() });
+    // an admin sent the last one home
+    await post('/__test/role', { admin: true });
+    const night = await (await fetch(NIGHT_BOARDS())).json();
+    await fetch(NIGHT_BOARDS(), { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ gone: [night.players.at(-1).id] }) });
+
+    // a player sees who went home, without the buttons that would change the night only on their phone
+    await post('/__test/role', { admin: false });
+    await page.goto(`/club-night/${today()}`);
+    await expect(page.locator('.club-night-chip')).toHaveCount(night.players.length);
+    await expect(page.locator('.club-night-chip.is-gone')).toHaveCount(1);
+    await expect(page.locator('.club-night-chip.is-gone')).toContainText('went home at');
+    await expect(page.locator('.club-night-chip button')).toHaveCount(0);
+    await expect(page.locator('.club-night-add')).toHaveCount(0);
+    await post('/__test/role', { admin: true });
+});
+
+test('an admin\'s "gone home" stays while its save is on its way, whatever a refresh brings', async ({ page, isMobile }) => {
+    test.skip(isMobile, 'the logic once, at desktop width');
+    await post('/__test/role', { admin: true });
+    await post('/__test/calendar', { scenario: 'tonight' });
+    await post('/__test/boards', { scenario: 'night', day: today() });
+    await page.clock.install({ time: new Date() });
+    await page.goto(`/club-night/${today()}`);
+    const chip = page.locator('.club-night-chip').last();
+    const name = (await chip.locator('span span').first().textContent()).trim();
+
+    // the save held back until the refresh has answered
+    let release;
+    const held = new Promise(resolve => { release = resolve; });
+    await page.route(`**/api/calendar/nights/${today()}/boards`, async (route) => {
+        if (route.request().method() === 'PUT') await held;
+        return route.continue();
+    });
+    const isNight = (method) => (response) => response.url().endsWith(`/nights/${today()}/boards`) && response.request().method() === method;
+    await chip.getByRole('button', { name: `${name} went home` }).click();
+    await expect(chip).toHaveClass(/is-gone/);
+    const refreshed = page.waitForResponse(isNight('GET'));
+    await page.clock.fastForward(21_000);
+    await refreshed;
+    await page.waitForTimeout(300);
+    await expect(chip).toHaveClass(/is-gone/);
+
+    // the save answers: still gone, and saved on the night
+    const saved = page.waitForResponse(isNight('PUT'));
+    release();
+    await saved;
+    await expect(chip).toHaveClass(/is-gone/);
+    await expect.poll(async () => (await (await fetch(NIGHT_BOARDS())).json()).left.length).toBe(1);
 });

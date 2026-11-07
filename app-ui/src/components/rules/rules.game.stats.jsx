@@ -16,6 +16,7 @@ import { PLAYER_COLORS } from '../stats/charts/chart.theme';
 import { gameOf } from '../../rules/games';
 import { progressOf, replayGame, withGameState } from '../../rules/engine';
 import { t } from '../../utils/i18n';
+import { judgeLevel } from '../../rules/levels.play';
 
 const shuffled = (list) => {
     const copy = [...list];
@@ -111,6 +112,7 @@ const RulesGameStats = () => {
                     scoreOf={(player) => main.value(replay.state.players[player.id], replay.state, { settings: replay.settings, round: replay.round })}
                     scoreDetailOf={(player) => `${main.label} · ${t('place {{place}}', { place: placeOf[player.id] })}`}
                     rows={figureRows}
+                    levelOf={(player) => judgeLevel(definition.level, replay.state.players[player.id], replay.state, replay.settings)}
                     figures={figures}
                     actions={actions}
                 />

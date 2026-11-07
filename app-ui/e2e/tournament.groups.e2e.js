@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 // A tournament with groups first: the admin chooses the groups at the draw, the groups are
 // played round robin, and the best of each fill the knockout bracket.
-const MOCK = 'http://localhost:3901';
+const MOCK = process.env.MOCK_URL ?? 'http://localhost:3901';
 const post = (path, body = {}) => fetch(`${MOCK}${path}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
 
 test.skip(({ isMobile }) => isMobile, 'once is enough: the groups and the bracket are worked out the same at every width');

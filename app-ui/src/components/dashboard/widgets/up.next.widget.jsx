@@ -10,7 +10,7 @@ import CalendarService from '../../../services/calendar.service';
 import BoardService from '../../../services/board.service';
 import useMyBoards from '../../../utils/use.my.boards';
 import { noteNightGame } from '../../../utils/club.night';
-import { dayKey } from '../../../rules/calendar';
+import { dayKeyIn, zoneOf } from '../../../rules/zones';
 import { useAuth } from '../../../utils/auth.context';
 import { playerInClub, useMyPlayers } from '../../../utils/use.my.players';
 import { playPath } from '../../../utils/game.paths';
@@ -38,7 +38,8 @@ const UpNextWidget = ({ widget, runningGames = [], players }) => {
     const [fairPlay, setFairPlay] = useState(null);
     const [busy, setBusy] = useState('');
     const [tonight, setTonight] = useState(null);
-    const today = dayKey(new Date());
+    // today on the club's clock: its club night
+    const today = dayKeyIn(new Date(), zoneOf(activeClub));
     const myBoards = useMyBoards();
 
     useEffect(() => {

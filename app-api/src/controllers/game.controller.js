@@ -11,6 +11,8 @@ import { withGameState } from '../rules/engine.js';
 import { participatesInTournament, tournamentGameDeleted, tournamentGameFinished } from '../utils/tournaments.js';
 import { leagueGameDeleted, leagueGameFinished } from '../utils/leagues.js';
 import { boardGameDeleted, boardGameFinished } from '../utils/boards.js';
+import { STALE_SAVE, saveConflict, unchangedFinish } from '../utils/game.saves.js';
+import { levelFilterOf, levelKindOf, withPlayLevels } from '../utils/play.levels.js';
 
 /**
  * A game of the rules engine with its results worked out here from its visits,
@@ -68,6 +70,8 @@ export const createGameController = (Model, gameName, type = null) => {
     const toStore = (body) => (type && hasRules(type) ? storedOf(type, body) : body);
     // one game is answered with its legs and visits worked out; lists only with what is stored
     const answer = (doc) => (type && hasRules(type) ? answerOf(type, doc) : doc);
+    // the level each player played at, worked out here (the rules games by their kind)
+    const withLevels = (changes) => withPlayLevels(levelKindOf(type), changes);
 
     // Games are only ever read and changed within the request's club
     const inClub = (req) => ({ _id: req.params.id, club: req.club._id });
@@ -100,7 +104,7 @@ export const createGameController = (Model, gameName, type = null) => {
             // a tournament match is only ever started by the tournament (see utils/tournaments.js)
             // eslint-disable-next-line no-unused-vars
             const { tournament, ...sent } = req.body;
-            const doc = new Model(withRulesResult({ ...toStore(sent), club: req.club._id }));
+            const doc = new Model(withLevels(withRulesResult({ ...toStore(sent), club: req.club._id })));
             const data = await doc.save();
             checkLater(() => noteCreated(req, 'game', { id: data._id, name: label, names: [] }));
             res.status(201).json(answer(data));
@@ -127,7 +131,8 @@ export const createGameController = (Model, gameName, type = null) => {
         const limit = Math.min(parseInt(req.query.limit) || DEFAULT_LIMIT, DEFAULT_LIMIT);
         const skip  = Math.max(parseInt(req.query.skip)  || 0, 0);
         try {
-            const data = await Model.find({ club: req.club._id }).sort({ createdAt: -1 }).skip(skip).limit(limit);
+            // ?level (and ?player): only the games played at that level, by that player or anyone
+            const data = await Model.find({ ...levelFilterOf(req.query), club: req.club._id }).sort({ createdAt: -1 }).skip(skip).limit(limit);
             res.json(data);
         } catch (err) {
             logger.error(err, `Failed to load all ${label} games`);
@@ -160,14 +165,32 @@ export const createGameController = (Model, gameName, type = null) => {
             if (!isTournamentGame && !(await playersBelongToClub(req.body.players, req.club._id))) {
                 return res.status(422).json({ errors: ['All players must belong to the selected club.'] });
             }
+            // what the app built on: the "updatedAt" of the state it last had from the server
+            const { basedOn, ...body } = req.body ?? {};
+            const kind = type ?? stored.kind;
+            const before = stored.toObject();
+            // a game keeps what it was set up with, also when the club's rules change meanwhile:
+            // its visits are worked out by its own settings, never by those sent
+            const sent = keepSetUp(kind, before, { ...body });
+            if (isTournamentGame) sent.players = before.players;
             // Use $set explicitly to prevent MongoDB operator injection from req.body;
             // a game never moves to another club, so it keeps the club it was stored with
-            const base = { ...toStore(req.body), club: stored.club };
-            if (isTournamentGame) base.players = stored.toObject().players;
-            // a game keeps what it was set up with, also when the club's rules change meanwhile
-            const changes = withRulesResult(keepSetUp(type ?? stored.kind, stored, base));
-            const data = await Model.findOneAndUpdate({ _id: stored._id }, { $set: changes }, { new: true });
-            if (!data) return res.status(404).json({ message: `${label} game not found (id=${id}).` });
+            const changes = withLevels(withRulesResult(keepSetUp(kind, before, { ...toStore(sent), club: stored.club })));
+            // the timestamps are the server's: "last updated" of a finished game is when it was finished
+            delete changes.createdAt;
+            delete changes.updatedAt;
+            // an older state (a tab left open, a device that was offline) does not replace a newer one,
+            // and a finished game is not opened again: its tournament, league or board counted it
+            const conflict = saveConflict(before, changes, basedOn);
+            if (conflict) return res.status(409).json({ message: conflict });
+            // a finished game sent again as it is (a save retried, another device) keeps its time:
+            // its badges, goals and club tally do not see it as played again
+            // only over the state just checked: a save from elsewhere at the same moment is not overwritten
+            const data = await Model.findOneAndUpdate({ _id: stored._id, updatedAt: before.updatedAt ?? null }, { $set: changes }, { returnDocument: 'after', timestamps: !unchangedFinish(before, changes) });
+            if (!data) {
+                if (await Model.exists({ _id: stored._id })) return res.status(409).json({ message: STALE_SAVE });
+                return res.status(404).json({ message: `${label} game not found (id=${id}).` });
+            }
             // A finished game may have earned its players new badges
             if (data.hasWinner) {
                 // a shared tournament game counts for each participating club's own players;

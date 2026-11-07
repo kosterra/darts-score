@@ -8,19 +8,14 @@ import OneEightyCelebration from '../components/games/common/one.eighty.celebrat
 import KnockOut from '../components/games/common/knock.out';
 import ClubEliminationService from '../services/elimination.service';
 import { QuickEliminationService, quickPlayersOf } from '../services/quick.game.service';
-import { eliminationVisitOutcome, replayElimination } from '../rules/elimination';
+import { eliminationInDart, eliminationVisitOutcome, replayElimination } from '../rules/elimination';
 import PlayerService from '../services/player.service';
 import { loadWithUnsent, useGameSaves } from './unsent.games';
 import SaveStatus from '../components/games/common/save.status';
 import { knockOutScene } from './elimination.moments';
 
-import {
-    validateDartValue,
-    dartIsDouble,
-    dartIsTriple,
-    lastDartIsDouble,
-    lastDartIsTriple
-} from './game.utils';
+import { validateDartValue } from './game.utils';
+import { eliminationBust, eliminationCanThrow, eliminationDartsMissing } from './elimination.input';
 
 import { FETCH_GAME_SUCCESS, FETCH_PLAYERS_SUCCESS, SET_GAME, SET_LOADING, UPDATE_CURRENT_THROW } from './constants';
 import { t } from './i18n';
@@ -55,7 +50,14 @@ const EliminationState = ({ children, quick = false }) => {
     const requestSave = () => setSaveRequest(request => request + 1);
 
     // without a connection the game is kept on this device and sent once it is back
-    const { save, unsent } = useGameSaves(`${quick ? 'quick' : 'elimination'}:${id}`, (game) => EliminationService.updateEliminationGame(game), (game) => { if (game.hasWinner) setWinnerSaved(true); });
+    // bumped when the server refused a save for good: its state is loaded again
+    const [reload, setReload] = useState(0);
+    const notSaved = (detail) => toast.current?.show({ severity: 'error', summary: t('Not saved'), detail, life: 4000 });
+    const { save, unsent } = useGameSaves(`${quick ? 'quick' : 'elimination'}:${id}`, (game, options) => EliminationService.updateEliminationGame(game, options), (game) => { if (game.hasWinner) setWinnerSaved(true); }, (error) => {
+        // a game gone says so when it is loaded again
+        if (error.status !== 404) notSaved(error.message);
+        setReload(count => count + 1);
+    });
 
     useEffect(() => {
         if (!saveRequest) return;
@@ -69,7 +71,10 @@ const EliminationState = ({ children, quick = false }) => {
             try {
                 setLoading('initGameLoading', true);
                 const playersOf = async (loaded) => quick ? quickPlayersOf(loaded) : Promise.all(loaded.players.map(PlayerService.getPlayer));
-                const { game, players } = await loadWithUnsent(`${quick ? 'quick' : 'elimination'}:${id}`, () => EliminationService.loadEliminationGameById(id), playersOf);
+                const { game, players, kept, dropped } = await loadWithUnsent(`${quick ? 'quick' : 'elimination'}:${id}`, () => EliminationService.loadEliminationGameById(id), playersOf);
+                if (dropped) notSaved(t('This device kept an older state of the game than the server has: the server\'s is shown.'));
+                // a game already over on the server shows its result
+                if (game.hasWinner && !kept) setWinnerSaved(true);
                 dispatch({ type: FETCH_GAME_SUCCESS, payload: game });
                 dispatch({ type: FETCH_PLAYERS_SUCCESS, payload: players });
 
@@ -87,7 +92,7 @@ const EliminationState = ({ children, quick = false }) => {
         fetchGame();
         // the service follows "quick", which a page never changes
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [id, navigate]);
+    }, [id, navigate, reload]);
 
     // -------------------- Helper Functions --------------------
     const setLoading = (eventName, setTo) =>
@@ -105,17 +110,9 @@ const EliminationState = ({ children, quick = false }) => {
     };
 
     const updateCurrentThrowManual = (score, value, index) => {
+        // the in mode counts from the score before this dart: the darts after the opening double count
         if (value !== '' && validateDartValue(value)) {
-            const gameInMode = state.game.gameInMode;
-            const playerScore = state.game.playerModels[state.game.currentPlayerTurn]?.score ?? 0;
-            // Only apply in-mode restriction if the player hasn't started yet (score === 0)
-            if (playerScore === 0) {
-                if (gameInMode === 'Double In' && !dartIsDouble(value)) {
-                    value = '0';
-                } else if (gameInMode === 'Master In' && !dartIsDouble(value) && !dartIsTriple(value)) {
-                    value = '0';
-                }
-            }
+            value = eliminationInDart(state.game, state.game.currentThrow, index, value);
         }
 
         const newCurrentThrow = state.game.currentThrow.map((dart, i) =>
@@ -127,24 +124,10 @@ const EliminationState = ({ children, quick = false }) => {
 
     const updateCurrentThrowDartBoard = (score, value) => {
         const newCurrentThrow = [...state.game.currentThrow];
-        const gameInMode = state.game.gameInMode;
-        const playerScore = state.game.playerModels[state.game.currentPlayerTurn]?.score ?? 0;
-
-        // Apply in-mode restriction for players that haven't scored yet
-        if (validateDartValue(value) && playerScore === 0) {
-            if (gameInMode === 'Double In' && !dartIsDouble(value)) {
-                value = '0';
-            } else if (gameInMode === 'Master In' && !dartIsDouble(value) && !dartIsTriple(value)) {
-                value = '0';
-            }
-        }
-
-        for (let index = 0; index < newCurrentThrow.length; index++) {
-            if (newCurrentThrow[index] === '') {
-                newCurrentThrow[index] = value;
-                break;
-            }
-        }
+        const index = newCurrentThrow.indexOf('');
+        if (index < 0) return;
+        // the in mode counts from the score before this dart: the darts after the opening double count
+        newCurrentThrow[index] = validateDartValue(value) ? eliminationInDart(state.game, newCurrentThrow, index, value) : value;
 
         dispatch({ type: UPDATE_CURRENT_THROW, payload: newCurrentThrow });
     };
@@ -155,36 +138,12 @@ const EliminationState = ({ children, quick = false }) => {
     /**
      * Check if a given total score (base + current throw so far) would be a bust.
      */
-    const checkIfScoreIsBusted = (currentScore) => {
-        if (state.game.hasWinner) return false;
-
-        const target = state.game.targetScore;
-        if (currentScore > target) return true;
-
-        const mode = state.game.gameOutMode;
-        if (mode === 'Double Out') {
-            // Can't finish on 1 (no double), and must finish with a double
-            if (currentScore === target - 1) return true;
-            if (currentScore === target && !lastDartIsDouble(state.game.currentThrow)) return true;
-        } else if (mode === 'Master Out') {
-            if (currentScore === target &&
-                !lastDartIsDouble(state.game.currentThrow) &&
-                !lastDartIsTriple(state.game.currentThrow)) return true;
-        }
-
-        return false;
-    };
+    const checkIfScoreIsBusted = (currentScore) => eliminationBust(state.game, currentScore);
 
     /**
-     * Can the current player throw another dart?
+     * Can the current player throw another dart? Not after a bust: it ends the visit.
      */
-    const checkCanThrowMoreDarts = (currentScore) => {
-        if (state.game.hasWinner) return false;
-        const dartsThrown = state.game.currentThrow?.filter(d => d.trim() !== '').length ?? 0;
-        if (dartsThrown >= 3) return false;
-        if (currentScore > (state.game.targetScore ?? 0)) return false; // already bust
-        return true;
-    };
+    const checkCanThrowMoreDarts = (currentScore) => eliminationCanThrow(state.game, currentScore);
 
     /**
      * Points the current player needs to draw level with or surpass the
@@ -280,15 +239,8 @@ const EliminationState = ({ children, quick = false }) => {
     };
 
     const validateWholeThrow = (values, currentScore) => {
-        const empties = values.filter(v => v.trim() === '');
-        const target = state.game.targetScore;
-
-        // All 3 must be filled unless the player has reached/exceeded the target already
-        if (
-            (currentScore < target && empties.length > 0) ||
-            values[0] === '' ||
-            (values[1] === '' && values[2] !== '')
-        ) {
+        // All 3 must be filled unless the player has reached the target or bust already
+        if (eliminationDartsMissing(state.game, values, currentScore)) {
             toast.current.show({
                 severity: 'error',
                 summary: t('Validate Throw'),

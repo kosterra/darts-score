@@ -32,12 +32,31 @@ export const targetClubOfTraining = (player, fromClub) => {
 };
 
 /**
+ * A game moved to another club takes what it added to the old club along
+ * (see club.tally.model.js); when the new club has its own tally of it
+ * already, the old one just goes.
+ */
+const moveTally = async (gameId, fromClub, target) => {
+    const sourceId = String(gameId);
+    try {
+        await db.clubTally.updateOne({ club: fromClub, sourceId }, { $set: { club: target } });
+    } catch (err) {
+        if (err?.code !== 11000) throw err;
+        await db.clubTally.deleteOne({ club: fromClub, sourceId });
+    }
+};
+
+/**
  * Moves the games and trainings of these players that were played in clubs
- * they have left, where the rules above say so. Resolves to { games, trainings }
+ * they have left, where the rules above say so, with their club tallies; the
+ * badges and goals of the clubs involved follow. Resolves to { games, trainings }
  * moved. Never throws: moving history must not get in the way of the move itself.
  */
 export const relocateHistory = async (playerIds) => {
     const moved = { games: 0, trainings: 0 };
+    // the clubs that got games or trainings, and those they left
+    const gained = new Set();
+    const left = new Set();
     try {
         const players = await db.player.find({ _id: { $in: playerIds } }, 'clubs formerClubs nickname').lean();
         for (const player of players) {
@@ -53,6 +72,9 @@ export const relocateHistory = async (playerIds) => {
                         if (!target) continue;
                         // straight on the collection: the game keeps its own timestamps
                         await model().collection.updateOne({ _id: game._id }, { $set: { club: target } });
+                        await moveTally(game._id, fromClub, target);
+                        left.add(String(fromClub));
+                        gained.add(String(target));
                         moved.games += 1;
                     }
                 }
@@ -61,9 +83,20 @@ export const relocateHistory = async (playerIds) => {
                     for (const model of [db.atc, db.rulesTraining]) {
                         const { modifiedCount } = await model.collection.updateMany({ club: fromClub, 'player.id': id }, { $set: { club: target } });
                         moved.trainings += modifiedCount;
+                        if (modifiedCount) {
+                            left.add(String(fromClub));
+                            gained.add(String(target));
+                        }
                     }
                 }
             }
+        }
+        // the clubs' badges and goals follow what they played now; badges are only ever
+        // added, so the club the games left keeps its own (and hears of nothing new)
+        if (gained.size) {
+            const { syncClubBadges } = await import('./club.badge.service.js');
+            for (const clubId of gained) await syncClubBadges(clubId);
+            for (const clubId of left) if (!gained.has(clubId)) await syncClubBadges(clubId, { notify: false });
         }
         if (moved.games || moved.trainings) logger.info(`Moved ${moved.games} games and ${moved.trainings} trainings along with their players`);
     } catch (err) {

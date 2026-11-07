@@ -40,6 +40,11 @@ test('Bull practice to its last dart: the hit rate as the result, on the scorebo
     test.setTimeout(60_000);
     await start(page, 'bulls');
     for (let dart = 0; dart < 30; dart++) await tap(page, dart % 2 ? 'Miss' : (dart % 4 ? '25' : 'Bullseye'));
+    // saved once confirmed: the buttons of the darts make way for it
+    await expect(page.locator('.rules-hitmiss')).toHaveCount(0);
+    const save = page.getByRole('button', { name: 'Save the result' });
+    await expect(save).toBeInViewport();
+    await save.click();
     await expect(page.locator('.result-hero')).toContainText('50');
     await expect(page.locator('.result-hero')).toContainText('Hit rate');
     await expect(page.locator('.atc-row').filter({ hasText: '50 %' }).first()).toBeVisible();
@@ -53,4 +58,52 @@ test('Shortest leg: what is left from 501, the way out once a finish is in reach
     await keypad.locator('.x01-keypad-rings').getByText('Treble', { exact: true }).click();
     await keypad.getByRole('button', { name: 'Treble 20', exact: true }).click();
     await expect(page.locator('.rules-hero-figures')).toContainText('1Darts');
+});
+
+test('121 Checkout: a scoreboard per attempts and darts, the same score sharing a place', async ({ page }) => {
+    await post('/__test/rules-trainings', {});
+    const save = (player, score, settings, day) => post('/api/training/rules', { kind: 'checkout121', player: { id: player }, score, settings, createdAt: new Date(Date.UTC(2026, 9, day, 18)).toISOString() });
+    // 10 attempts: two at 128 (one saved before the settings), one at 125; 30 attempts: 141; 6 darts: 124
+    await save('p1', 128, { attempts: 10, darts: 9 }, 1);
+    await save('p2', 128, {}, 2);
+    await save('p3', 125, { attempts: 10, darts: 9 }, 3);
+    await save('p1', 141, { attempts: 30, darts: 9 }, 4);
+    await save('p2', 124, { attempts: 10, darts: 6 }, 5);
+    await page.goto('/training/checkout121');
+    await page.waitForLoadState('networkidle');
+
+    const filters = page.locator('.rules-board-filters');
+    await expect(filters.getByText('Attempts', { exact: true })).toBeVisible();
+    const rows = page.locator('.atc-rows .atc-row');
+    // the setup's settings first (10 attempts, 9 darts): the two at 128 both first, the next third
+    await expect(rows).toHaveCount(3);
+    await expect(rows.nth(0).locator('.badge-gold')).toHaveCount(1);
+    await expect(rows.nth(1).locator('.badge-gold')).toHaveCount(1);
+    await expect(rows.nth(2).locator('.badge-bronze')).toHaveCount(1);
+    await expect(page.locator('.atc-rows')).not.toContainText('141');
+
+    await filters.getByText('30', { exact: true }).click();
+    await expect(rows).toHaveCount(1);
+    await expect(rows.first()).toContainText('141');
+    // nothing with 30 attempts and six darts
+    await filters.getByText('6', { exact: true }).click();
+    await expect(page.getByText('Nobody has played it with these settings yet.')).toBeVisible();
+    await filters.getByText('10', { exact: true }).click();
+    await expect(rows).toHaveCount(1);
+    await expect(rows.first()).toContainText('124');
+    await post('/__test/rules-trainings', {});
+});
+
+test('the last darts stay in view once a visit is over, to check the last one', async ({ page }) => {
+    await start(page, 'trebles');
+    await tap(page, 'Treble');
+    await tap(page, 'Single');
+    await tap(page, 'Miss');
+    // the tiles of the visit are empty again; its darts are under them
+    const last = page.locator('.rules-last-darts');
+    await expect(last).toContainText('Last darts');
+    await expect(last.locator('.rules-last-dart')).toHaveText(['Treble', 'Single', 'Miss']);
+    await tap(page, 'Double');
+    await expect(last.locator('.rules-last-dart')).toHaveText(['Treble', 'Single', 'Miss']);
+    await page.screenshot({ path: `test-results/last-darts-${test.info().project.name}.png` });
 });

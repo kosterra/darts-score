@@ -1,4 +1,5 @@
 import { GAME_KINDS } from '../utils/rules.kinds.js';
+import { addPlayLevels } from './play.levels.field.js';
 
 // A game of the rules engine (Shanghai, Killer, Halve-It, Golf, Tactics): its
 // visits as thrown; the app works out everything else from them and keeps the
@@ -27,6 +28,8 @@ export default (mongoose) => {
   );
 
   schema.index({ players: 1, gameIsRunning: 1 });
+  // the level each player played at, for the lists and their filter
+  addPlayLevels(schema);
 
   schema.method('toJSON', function () {
     const { _id, ...object } = this.toObject();

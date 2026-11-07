@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { validate } from '../utils/validation.js';
-import { validateX01Create } from '../validators/game.validators.js';
+import { validateLevelQuery, validateX01Create } from '../validators/game.validators.js';
 import * as TrainingController from '../controllers/x01.training.controller.js';
 import { getX01TrainingStats } from '../controllers/x01.stats.controller.js';
 import db from '../models/db.model.js';
@@ -10,7 +10,7 @@ export default (app) => {
     const router = Router();
 
     router.post('/', validateX01Create, validate, TrainingController.create);
-    router.get('/', TrainingController.findByPlayer);
+    router.get('/', validateLevelQuery, validate, TrainingController.findByPlayer);
     router.get('/:id', TrainingController.findOne);
     router.get('/:id/stats', async (req, res, next) => {
         const found = db.mongoose.isValidObjectId(req.params.id) && await db.x01Training.exists({ _id: req.params.id, club: req.club._id });

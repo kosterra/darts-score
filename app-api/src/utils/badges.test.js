@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { CHECKOUT_121 } from '../rules/trainings.js';
 import { replayX01 } from '../rules/x01.js';
 import { BADGES, BADGE_CATEGORIES, BADGE_GROUPS, SHAME_BADGES, countBadges, currentWeekStreak, isLast, replayBadges, wonInDecidingLeg } from './badges.js';
 
@@ -112,6 +113,12 @@ describe('replayBadges', () => {
         };
         expect(ids([match(O, O, P, P, P)])).toContain('comeback-1');
         expect(ids([match(O, P, O, P, P)])).not.toContain('comeback-1');
+        // legs decided by the club's round limit count too: the fewest points left wins them
+        const limited = [{ playerId: P, darts: ['S1', 'S1', 'S1'], scoreLeft: 498 }, { playerId: O, darts: ['T20', 'T20', 'T20'], scoreLeft: 321 }];
+        const base = match(O, O, P, P, P);
+        const sets = base.data.allSetsThrows['set-1'];
+        const byLimit = { ...base, data: { ...base.data, roundLimit: 1, startingScore: 501, allSetsThrows: { 'set-1': { ...sets, 'leg-1': limited, 'leg-2': limited } } } };
+        expect(ids([byLimit])).toContain('comeback-1');
     });
 
     it('counts weekly streaks and knows the current one', () => {
@@ -283,6 +290,14 @@ describe('replayBadges', () => {
         const got = earned.map(e => e.badge);
         expect(got).toEqual(expect.arrayContaining(['trainingDays-5', 'trainingStreak-4', 'trainingModes-4', 'trainingDarts-40']));
         expect(got).not.toContain('trainingDarts-30');
+    });
+
+    it('cuts training days at midnight in Zurich, not in UTC', () => {
+        const training = (date) => ({ type: 'atc', id: `d${clock++}`, at: new Date(date), data: { mode: 'Single', timeMs: 100 } });
+        // 23:30 and 00:30 in Zurich are two days, though both are the 5th in UTC
+        expect(replayBadges([training('2026-01-05T22:30Z'), training('2026-01-05T23:30Z')], P).metrics.trainingDays).toBe(2);
+        // 00:30 and 19:00 in Zurich are one day, though the first is still the 5th in UTC
+        expect(replayBadges([training('2026-01-05T23:30Z'), training('2026-01-06T18:00Z')], P).metrics.trainingDays).toBe(1);
     });
 
     it('replays in time order whatever the input order', () => {
@@ -468,6 +483,16 @@ describe('the newer games and trainings', () => {
         expect(ids(seven)).not.toContain('everyTraining-11');
         // the four newer ones too: every drill
         expect(ids([...seven, ...['trebles', 'bulls', 'ladder', 'shortleg'].map(kind => training(kind, 1))])).toContain('everyTraining-11');
+    });
+
+    it('121 Checkout: every tier within reach of the most attempts, the ones earned before kept', () => {
+        const tiers = BADGES.filter(badge => badge.group === 'checkout121');
+        expect(tiers.map(badge => badge.id)).toEqual(['checkout121-121', 'checkout121-130', 'checkout121-140', 'checkout121-150']);
+        // one higher a checkout from 121: the most attempts reach 121 + attempts - 1
+        const most = Math.max(...CHECKOUT_121.options.find(option => option.key === 'attempts').values.map(entry => entry.value));
+        expect(Math.max(...tiers.map(badge => badge.target))).toBeLessThan(121 + most - 1);
+        expect(ids([training('checkout121', 145)])).toEqual(expect.arrayContaining(['checkout121-121', 'checkout121-130', 'checkout121-140']));
+        expect(ids([training('checkout121', 145)])).not.toContain('checkout121-150');
     });
 
     it('Bob\'s Bust only while the trainings are shown, washed off by all 21 doubles', () => {

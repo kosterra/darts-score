@@ -2,6 +2,8 @@ import db from '../models/db.model.js';
 import { viewOf } from './game.view.js';
 import { x01Kpis } from './kpi.data.js';
 import { getBadge } from './badges.js';
+import { partnersOf } from '../rules/x01.js';
+import { DEFAULT_TIME_ZONE, dayKeyIn, partsIn, yearIn, yearSpanIn } from '../rules/zones.js';
 
 /**
  * "Your year in darts": what a player did in one calendar year, in all their
@@ -18,14 +20,15 @@ const GAME_TYPES = [
 ];
 const round = (value, digits = 1) => Math.round(value * 10 ** digits) / 10 ** digits;
 
-// the year as instants: from its first day to the first of the next, in UTC (a game at midnight on New Year's Eve may fall either side)
-export const yearSpan = (year) => ({ from: new Date(Date.UTC(year, 0, 1)), to: new Date(Date.UTC(year + 1, 0, 1)) });
+// the year as instants: from New Year's midnight to the next, on the clock of a zone (a club's, else the default)
+export const yearSpan = (year, zone = DEFAULT_TIME_ZONE) => yearSpanIn(year, zone);
 
 // the years with a look back: from the first finished game to this one
 export const reviewYears = (firstGameAt, now = new Date()) => {
     if (!firstGameAt) return [];
-    const first = new Date(firstGameAt).getUTCFullYear();
-    return Array.from({ length: now.getUTCFullYear() - first + 1 }, (_, index) => now.getUTCFullYear() - index);
+    const first = yearIn(firstGameAt);
+    const current = yearIn(now);
+    return Array.from({ length: current - first + 1 }, (_, index) => current - index);
 };
 
 /**
@@ -67,15 +70,16 @@ export const yearReview = async (playerId, year) => {
     const kpis = x01.length ? x01Kpis(x01, id) : null;
 
     // the days with a game, the month with the most
-    const days = new Set(games.map(game => new Date(game.createdAt).toISOString().slice(0, 10)));
+    const days = new Set(games.map(game => dayKeyIn(game.createdAt)));
     const months = Array(12).fill(0);
-    for (const game of games) months[new Date(game.createdAt).getUTCMonth()] += 1;
+    for (const game of games) months[partsIn(game.createdAt).month - 1] += 1;
     const busiest = months.indexOf(Math.max(...months));
 
-    // the rival: the one played most against, and how it went
+    // the rival: the one played most against, and how it went (in doubles the partner played with, not against)
     const rivals = new Map();
     for (const game of together) {
-        for (const other of (game.players ?? []).map(String).filter(entry => entry !== id)) {
+        const team = game.kind === 'x01' ? [id, ...partnersOf(game, id)] : [id];
+        for (const other of (game.players ?? []).map(String).filter(entry => !team.includes(entry))) {
             const entry = rivals.get(other) ?? { player: other, games: 0, wins: 0 };
             entry.games += 1;
             if (won(game)) entry.wins += 1;
@@ -89,7 +93,8 @@ export const yearReview = async (playerId, year) => {
     const trainingWhere = { createdAt: { $gte: from, $lt: to } };
     const [atc, bot, rules, player] = await Promise.all([
         db.atc.countDocuments({ ...trainingWhere, 'player.id': id }),
-        db.x01Training.countDocuments({ ...trainingWhere, players: id }),
+        // only the finished ones against the bot are trainings
+        db.x01Training.countDocuments({ ...trainingWhere, players: id, hasWinner: true }),
         db.rulesTraining.countDocuments({ ...trainingWhere, 'player.id': id }),
         db.player.findById(id, 'nickname badges').lean(),
     ]);

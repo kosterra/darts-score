@@ -5,6 +5,8 @@ export default (mongoose) => {
       description: { type: String, trim: true, default: '' },
       // where the club plays: an ISO 3166 country code (CH, DE, …); empty when not set
       country:     { type: String, uppercase: true, trim: true, default: '' },
+      // the time zone the club plays in (see rules/zones.js): its days, weeks, club nights and matchdays
+      timeZone:    { type: String, default: 'Europe/Zurich' },
       // the club's accent colour in the app, for the members who did not choose their own (null: Legmate green)
       accent:      { type: String, default: null },
       // File name of the uploaded logo in IMG_DIR/clubs

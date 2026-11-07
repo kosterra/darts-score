@@ -35,6 +35,9 @@ import { TableLoading } from '../elements/skeletons';
 import FilterPills from '../elements/filter.pills';
 import PlayerOption from '../elements/player.option';
 import usePlayerLevels from '../../utils/use.player.levels';
+import PlayLevelTag from '../elements/play.level.tag';
+import { LEVEL_OPTIONS } from '../elements/level.options';
+import { levelQuery, playLevelOf } from '../../utils/play.levels';
 
 const WHOSE_OPTIONS = [
     { label: t('Everyone'), value: 'all', icon: 'pi pi-users' },
@@ -46,7 +49,7 @@ const MODE_OPTIONS = [
     ...['Single', 'Double', 'Triple', 'All'].map(mode => ({ label: t(mode), value: mode })),
 ];
 
-// a training against the bot as a row: { kind, id, createdAt, club, player, what, won, legs, averages }
+// a training against the bot as a row: { kind, id, createdAt, club, player, what, won, legs, averages, level }
 const x01Row = (training) => {
     const human = training.players.find(id => id !== BOT_ID);
     const own = training.playerModels?.[human] ?? {};
@@ -62,10 +65,12 @@ const x01Row = (training) => {
         won: Boolean(own.hasWonGame),
         legs: `${own.legsWon?.game ?? 0}–${bot.legsWon?.game ?? 0}`,
         averages: [own.averages?.game?.overall, bot.averages?.game?.overall],
+        // the level the player played at (an estimate the API keeps)
+        level: playLevelOf(training, human),
         raw: training,
     };
 };
-const atcRow = (entry) => ({ ...entry, kind: 'atc', what: entry.mode, raw: entry });
+const atcRow = (entry) => ({ ...entry, kind: 'atc', what: entry.mode, level: playLevelOf(entry, entry.player?.id), raw: entry });
 // Bob's 27, 121 Checkout, … : the kind is the training, "what" its options
 const rulesRow = (entry) => {
     const definition = trainingOf(entry.kind);
@@ -73,6 +78,7 @@ const rulesRow = (entry) => {
         ...entry,
         rules: definition,
         what: (definition?.options ?? []).map(option => option.values.find(value => value.value === entry.settings?.[option.key])?.label).filter(Boolean).join(' · ') || '–',
+        level: playLevelOf(entry, entry.player?.id),
         raw: entry,
     };
 };
@@ -96,8 +102,10 @@ const TrainingsTable = ({ scope = 'club' }) => {
     const [rows, setRows] = useState(null);
     const [players, setPlayers] = useState([]);
     // the filters, page and order live in the address: back from a training, the list is as it was left
-    const [view, setView] = useUrlState({ type: 'all', mode: 'any', player: '', whose: 'all', ...TABLE_DEFAULTS });
+    const [view, setView] = useUrlState({ type: 'all', mode: 'any', player: '', whose: 'all', level: 'all', ...TABLE_DEFAULTS });
     const { mode, whose } = view;
+    // a level the address names that is none: all levels
+    const level = LEVEL_OPTIONS.some(option => option.value === view.level) ? view.level : 'all';
     // the kinds of training chosen, none for all
     const types = useMemo(() => typesFrom(view.type, TRAINING_TYPE_GROUPS), [view.type]);
     // the mode (single, double, …) belongs to Around the Clock: offered when only it is chosen
@@ -108,6 +116,8 @@ const TrainingsTable = ({ scope = 'club' }) => {
     const setMode = (value) => setView({ mode: value, page: 1 });
     const setPlayerId = (value) => setView({ player: value ?? '', page: 1 });
     const setWhose = (value) => setView({ whose: value, page: 1 });
+    // the level is filtered by the server (a training has one player: the player filter stays here)
+    const setLevel = (value) => setView({ level: value, page: 1 });
 
     const loadRows = async () => {
         if (acrossClubs && !selectedIds.length) {
@@ -117,8 +127,8 @@ const TrainingsTable = ({ scope = 'club' }) => {
         }
         try {
             const [atc, x01, rules, loadedPlayers] = await Promise.all(acrossClubs
-                ? [AdminService.loadTrainings(selectedIds), AdminService.loadX01Trainings(selectedIds), AdminService.loadRulesTrainings(selectedIds), AdminService.loadPlayers(selectedIds)]
-                : [ATCService.loadATCEntries(), X01TrainingService.loadTrainings(), RulesService.loadTrainings(), PlayerService.searchPlayers('')]);
+                ? [AdminService.loadTrainings(selectedIds, levelQuery(level)), AdminService.loadX01Trainings(selectedIds, levelQuery(level)), AdminService.loadRulesTrainings(selectedIds, levelQuery(level)), AdminService.loadPlayers(selectedIds)]
+                : [ATCService.loadATCEntries(null, null, level), X01TrainingService.loadTrainings(null, level), RulesService.loadTrainings(null, level), PlayerService.searchPlayers('')]);
             setRows([...(atc ?? []).map(atcRow), ...(x01 ?? []).map(x01Row), ...(rules ?? []).filter(entry => trainingOf(entry.kind)).map(rulesRow)]);
             setPlayers(loadedPlayers);
         } catch (error) {
@@ -130,7 +140,7 @@ const TrainingsTable = ({ scope = 'club' }) => {
     useEffect(() => {
         loadRows();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [acrossClubs, selectedIds]);
+    }, [acrossClubs, selectedIds, level]);
 
     // the player as they are now; an Around the Clock entry keeps only the id and the nickname
     const playersById = useMemo(() => new Map(players.map(player => [player.id, player])), [players]);
@@ -239,11 +249,12 @@ const TrainingsTable = ({ scope = 'club' }) => {
         {/* across clubs: every club at a glance, a club picked there shows in the list */}
         {acrossClubs && <ActivityInsights what="trainings" onPickClub={(id) => select([id])} />}
         <Panel id="admin-list" header={acrossClubs ? t('Trainings of all clubs') : t('Trainings')}>
-            <AdminToolbar actions={!needsClubs && <span className="text-faint fs-7">{visibleRows.length} {visibleRows.length === 1 ? t('training') : t('trainings')}</span>} changed={[acrossClubs && selectedIds.length, view.whose !== 'all', view.type !== 'all', shownMode !== 'any', view.player].filter(Boolean).length} startOpen={needsClubs}>
+            <AdminToolbar actions={!needsClubs && <span className="text-faint fs-7">{visibleRows.length} {visibleRows.length === 1 ? t('training') : t('trainings')}</span>} changed={[acrossClubs && selectedIds.length, view.whose !== 'all', view.type !== 'all', shownMode !== 'any', view.player, level !== 'all'].filter(Boolean).length} startOpen={needsClubs}>
                 {acrossClubs && <ClubFilter clubs={clubs} selectedIds={selectedIds} onChange={select} />}
                 {hasOwn && <FilterPills label={t('Whose')} value={whose} options={WHOSE_OPTIONS} onChange={setWhose} ariaLabel={t('Whose trainings')} />}
                 <TypeFilter groups={TRAINING_TYPE_GROUPS} value={types} onChange={setTypes} allLabel={t('All trainings')} ariaLabel={t('Training')} />
                 {withAtc && <FilterPills label={t('Mode')} value={mode} options={MODE_OPTIONS} onChange={setMode} ariaLabel={t('Mode of Around the Clock')} dropdownOnPhone />}
+                <FilterPills label={t('Level')} value={level} options={LEVEL_OPTIONS} onChange={setLevel} ariaLabel={t('Level played at')} dropdownOnPhone />
                 <Dropdown
                     value={playerId}
                     options={playerOptions}
@@ -277,6 +288,8 @@ const TrainingsTable = ({ scope = 'club' }) => {
                         <Column bodyClassName="no-label training-cell" header={t('Training')} body={typeBody} />
                         <Column header={t('Played')} body={whatBody} />
                         <Column header={t('Result')} body={resultBody} />
+                        {/* the level played at, in a column of its own so it lines up */}
+                        <Column header={t('Level')} bodyClassName="no-label" body={(row) => <PlayLevelTag estimate={row.level} compact />} />
                         <Column body={actionsBody} />
                     </DataTable>
                 )

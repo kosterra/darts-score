@@ -1,5 +1,6 @@
 import { translateAnswer } from '../utils/i18n';
 import {
+    answerError,
     getHeaders
 } from '../utils/service.utils';
 import { gameOf, storedOf } from '../rules/stored';
@@ -39,9 +40,10 @@ const loadFinishedEliminationGames = async () => {
     });
 }
 
-const loadAllEliminationGames = async () => {
+// filter: the query string of the filter by level (see utils/play.levels.js), '' for none
+const loadAllEliminationGames = async (filter = '') => {
     try {
-        const response = await fetch(API_URL + 'games/elimination', {
+        const response = await fetch(API_URL + 'games/elimination' + filter, {
             method: 'GET',
             headers: getHeaders(false)
         });
@@ -80,39 +82,26 @@ const findEliminationGames = async (body) => {
     }
 }
 
+// rejects with the API's message and the status (404: the game is gone)
 const loadEliminationGameById = async (id) => {
-    try {
-        const response = await fetch(API_URL + 'games/elimination/' + id, {
-            method: 'GET',
-            headers: getHeaders(false)
-        });
-
-        if (!response.ok) {
-            throw Error(response.statusText);
-        };
-
-        return translateAnswer(await response.json());
-    } catch (error) {
-        throw new Error(error);
-    }
+    const response = await fetch(API_URL + 'games/elimination/' + id, {
+        method: 'GET',
+        headers: getHeaders(false)
+    });
+    if (!response.ok) throw await answerError(response);
+    return translateAnswer(await response.json());
 }
 
-const updateEliminationGame = async (game) => {
-    try {
-        const response = await fetch(API_URL + 'games/elimination/' + game.id, {
-            method: 'PUT',
-            headers: getHeaders(true),
-            body: JSON.stringify(game)
-        });
-
-        if (!response.ok) {
-            throw Error(response.statusText);
-        };
-
-        return response.ok;
-    } catch (error) {
-        throw new Error(error);
-    }
+// basedOn: the "updatedAt" of the stored state this one builds on; → the game as stored now.
+// Rejects with the status: 409 when the server has a newer state or the game is finished
+const updateEliminationGame = async (game, { basedOn } = {}) => {
+    const response = await fetch(API_URL + 'games/elimination/' + game.id, {
+        method: 'PUT',
+        headers: getHeaders(true),
+        body: JSON.stringify(basedOn ? { ...game, basedOn } : game)
+    });
+    if (!response.ok) throw await answerError(response);
+    return translateAnswer(await response.json());
 }
 
 const deleteEliminationGame = async (gameId, clubId) => {
@@ -141,7 +130,7 @@ const EliminationService = {
     loadAllEliminationGames,
     findEliminationGames,
     loadEliminationGameById: async (id) => gameOf('elimination', await loadEliminationGameById(id)),
-    updateEliminationGame: (game) => updateEliminationGame(storedOf('elimination', game)),
+    updateEliminationGame: (game, options) => updateEliminationGame(storedOf('elimination', game), options),
     deleteEliminationGame
 }
 

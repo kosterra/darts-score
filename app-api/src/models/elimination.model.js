@@ -1,3 +1,5 @@
+import { addPlayLevels } from './play.levels.field.js';
+
 const IN_MODES  = ['Straight In', 'Double In', 'Master In'];
 const OUT_MODES = ['Straight Out', 'Double Out', 'Master Out'];
 
@@ -32,6 +34,8 @@ export default (mongoose) => {
 
   // Used by stats queries and game filter queries
   schema.index({ players: 1, gameIsRunning: 1 });
+  // the level each player played at, for the lists and their filter
+  addPlayLevels(schema);
 
   schema.method('toJSON', function () {
     const { _id, ...object } = this.toObject();

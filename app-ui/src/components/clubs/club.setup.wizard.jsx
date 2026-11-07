@@ -10,6 +10,7 @@ import ClubService from '../../services/club.service';
 import AuthService from '../../services/auth.service';
 import { CLUB_ROLES } from '../../services/user.service';
 import CountryPicker from '../elements/country.picker';
+import TimeZonePicker from '../elements/time.zone.picker';
 import ImageUploader from '../elements/image.uploader';
 import SaveStatus from '../elements/save.status';
 import SettingSwitch from '../elements/setting.switch';
@@ -52,6 +53,7 @@ const ClubSetupWizard = () => {
     // step 1 — basics
     const [description, setDescription] = useState(club?.description ?? '');
     const [country, setCountry] = useState(club?.country ?? '');
+    const [timeZone, setTimeZone] = useState(club?.timeZone ?? '');
     const [accent, setAccent] = useState(club?.accent ?? 'green');
     const [logoPreview, setLogoPreview] = useState(resolveClubLogo(club?.logo));
     // step 2 — members
@@ -152,6 +154,9 @@ const ClubSetupWizard = () => {
                         </SetupBox>
                         <SetupBox title={t('Country')} hint={t('Where the club plays: its flag is shown next to its name in the lists of clubs.')}>
                             <CountryPicker value={country} onChange={(value) => { setCountry(value); saveSetting({ country: value }); }} />
+                        </SetupBox>
+                        <SetupBox title={t('Time zone')} hint={t('The club\'s days and weeks, its club nights and league matchdays follow this time zone.')}>
+                            <TimeZonePicker value={timeZone} onChange={(value) => { setTimeZone(value); saveSetting({ timeZone: value }); }} />
                         </SetupBox>
                         <SetupBox title={t('Club colour')} hint={t('The accent colour of the app for the members who did not choose their own.')}>
                             <div className="accent-choices" role="radiogroup" aria-label={t('Club colour')}>

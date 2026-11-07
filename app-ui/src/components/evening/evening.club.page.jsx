@@ -83,6 +83,11 @@ const EveningClubPage = () => {
                     {tn(played, 'and {{count}} game played tonight, in its statistics and badges.', 'and the {{count}} games played tonight, in their statistics and badges.')}{' '}
                     {t('You become its admin and can invite the others later.')}
                 </p>
+                {evening.report.running > 0 && (
+                    <p className="m-0 text-subtle">
+                        {tn(evening.report.running, 'A game is still running: it joins the club once it is finished.', '{{count}} games are still running: they join the club once they are finished.')}
+                    </p>
+                )}
                 <label className="d-flex flex-column gap-1" htmlFor="evening-club-name">
                     <span className="fs-7 text-default fw-semibold">{t('Name of the club')}</span>
                     <InputText id="evening-club-name" value={name} onChange={(event) => setName(event.target.value)} maxLength={60} />

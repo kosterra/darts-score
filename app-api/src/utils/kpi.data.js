@@ -1,5 +1,5 @@
 import { legsInOrder, thrownDarts } from './badges.js';
-import { legScores } from '../rules/x01.js';
+import { legScores, legWinnerOf, partnersOf } from '../rules/x01.js';
 import { startingScoreOf } from './x01.rules.js';
 import { withView } from './game.view.js';
 
@@ -21,8 +21,18 @@ export const legVisits = (game, leg, playerId) => legScores(game, leg)
     .map(({ visit, taken }) => ({ score: taken, darts: thrownDarts(visit.darts).length }));
 
 /**
+ * The points a player scored in X01 over every leg of the games: what their
+ * visits took off, so a bust scores nothing.
+ */
+export const x01PointsScored = (x01Games, playerId) => x01Games
+    .flatMap(game => legsInOrder(game).flatMap(leg => legVisits(game, leg, playerId)))
+    .reduce((sum, visit) => sum + visit.score, 0);
+
+/**
  * X01: average of the first three visits of a leg ("first 9"), the fewest
  * darts for a won 501 leg, visits of 100 or more, the highest visit and legs won.
+ * In doubles a leg the partner won is won too; its darts are the team's, so
+ * it is no best leg of the player's.
  */
 export const x01Kpis = (x01Games, playerId) => {
     const firstNine = [];
@@ -31,14 +41,16 @@ export const x01Kpis = (x01Games, playerId) => {
     let legsWon = 0;
 
     for (const game of x01Games) {
+        const team = [playerId, ...partnersOf(game, playerId)];
         for (const leg of legsInOrder(game)) {
             const own = legVisits(game, leg, playerId);
             firstNine.push(...own.slice(0, 3).map(visit => visit.score));
             visits.push(...own.map(visit => visit.score));
-            const finish = leg.find(visit => Number(visit?.scoreLeft) === 0);
-            if (finish?.playerId !== playerId) continue;
+            // the winner as the rules count it (a club's round limit decides some legs without a checkout)
+            if (!team.includes(legWinnerOf(game, leg))) continue;
             legsWon += 1;
-            if (startingScoreOf(game, playerId) === 501) best501Legs.push(own.reduce((sum, visit) => sum + visit.darts, 0));
+            const checkedOut = leg.some(visit => visit?.playerId === playerId && Number(visit?.scoreLeft) === 0);
+            if (checkedOut && team.length === 1 && startingScoreOf(game, playerId) === 501) best501Legs.push(own.reduce((sum, visit) => sum + visit.darts, 0));
         }
     }
 

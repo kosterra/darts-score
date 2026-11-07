@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { afterDart, isCheckout, isValidDart, parseDart } from './darts';
 import { progressOf, replayGame, replayTraining, withGameState } from './engine';
 import { BASEBALL, GAMES, GOLF, HALVE_IT, KILLER, SCRAM, SHANGHAI, TACTICS } from './games';
-import { BOBS_27, bobsDanger, bobsProgress, BULLS, CATCH_40, CHECKOUT_121, DOUBLES_AROUND, LADDER, RANDOM_CHECKOUTS, SCORING, SHORTEST_LEG, TRAININGS, TREBLES } from './trainings';
+import { BOBS_27, bobsDanger, bobsProgress, BULLS, CATCH_40, CHECKOUT_121, DOUBLES_AROUND, LADDER, RANDOM_CHECKOUTS, SCORING, SHORTEST_LEG, TRAININGS, TREBLES, boardKeyOf, boardLabels, boardOf, defaultBoardKey, placesOf, settingsProblem } from './trainings';
 
 const visit = (player, ...darts) => ({ player, darts });
 const game = (definition, visits, settings = {}, players = ['a', 'b']) => ({ players, settings, visits });
@@ -391,5 +391,81 @@ describe('trainings', () => {
         // seven of nine darts thrown: two left, not the three of a new visit
         expect(checkoutOf(CHECKOUT_121, Array(7).fill('S1'), { attempts: 10, darts: 9 })).toEqual({ left: 114, dartsLeft: 2 });
         expect(SCORING.checkout).toBeUndefined();
+    });
+
+    it('refuses settings a training does not offer', () => {
+        expect(settingsProblem(SCORING, { darts: 30 })).toBeNull();
+        expect(settingsProblem(SCORING, undefined)).toBeNull();
+        expect(settingsProblem(BOBS_27, {})).toBeNull();
+        // three darts: a ton-plus average after one visit
+        expect(settingsProblem(SCORING, { darts: 3 })).toBe('darts must be one of: 30, 60, 99.');
+        expect(settingsProblem(BULLS, { darts: 1 })).toMatch(/^darts must be one of/);
+        expect(settingsProblem(SHORTEST_LEG, { legs: 0 })).toMatch(/^legs must be one of/);
+        expect(settingsProblem(SCORING, { darts: '30' })).toMatch(/^darts must be one of/);
+        expect(settingsProblem(TREBLES, { number: 1 })).toMatch(/^number must be one of/);
+        expect(settingsProblem(SCORING, { darts: 30, extra: 1 })).toBe('extra is not a setting of this training.');
+        expect(settingsProblem(SCORING, [])).toBe('settings must be an object.');
+        expect(settingsProblem(CHECKOUT_121, { attempts: 50, darts: 6 })).toBeNull();
+        expect(settingsProblem(LADDER, { attempts: 60 })).toBeNull();
+    });
+
+    it('takes only the finishes Random checkouts draws: one for every attempt, each a checkout', () => {
+        const drawn = RANDOM_CHECKOUTS.prepare({ attempts: 20 });
+        expect(settingsProblem(RANDOM_CHECKOUTS, drawn)).toBeNull();
+        expect(settingsProblem(RANDOM_CHECKOUTS, { attempts: 10, targets: Array(10).fill(170) })).toBeNull();
+        const wrong = 'targets is not what this training draws at its start.';
+        expect(settingsProblem(RANDOM_CHECKOUTS, { attempts: 10 })).toBe(wrong);
+        expect(settingsProblem(RANDOM_CHECKOUTS, { attempts: 3, targets: [2, 2, 2] })).toMatch(/^attempts must be one of/);
+        expect(settingsProblem(RANDOM_CHECKOUTS, { attempts: 10, targets: Array(9).fill(40) })).toBe(wrong);
+        expect(settingsProblem(RANDOM_CHECKOUTS, { attempts: 10, targets: [...Array(9).fill(40), 169] })).toBe(wrong);
+        expect(settingsProblem(RANDOM_CHECKOUTS, { attempts: 10, targets: [...Array(9).fill(40), 1] })).toBe(wrong);
+        expect(settingsProblem(RANDOM_CHECKOUTS, { attempts: 10, targets: [...Array(9).fill(40), 40.5] })).toBe(wrong);
+        expect(settingsProblem(RANDOM_CHECKOUTS, { attempts: 10, targets: [...Array(9).fill(40), '40'] })).toBe(wrong);
+    });
+
+    it('splits the scoreboards by the settings that change what a score means', () => {
+        expect(boardOf(CHECKOUT_121, { attempts: 20, darts: 6 })).toEqual({ attempts: 20, darts: 6 });
+        // an older training without the setting is on the default board
+        expect(boardKeyOf(CHECKOUT_121, {})).toBe('attempts:10|darts:9');
+        expect(defaultBoardKey(CHECKOUT_121)).toBe('attempts:10|darts:9');
+        expect(boardKeyOf(CHECKOUT_121, { attempts: '20', darts: 9 })).toBe('attempts:20|darts:9');
+        expect(boardKeyOf(TREBLES, { number: 19 })).toBe('number:19|darts:30');
+        // the finishes drawn do not split Random checkouts, the attempts do
+        expect(boardKeyOf(RANDOM_CHECKOUTS, { attempts: 50, targets: [40] })).toBe('attempts:50');
+        expect(boardKeyOf(BOBS_27, {})).toBe('');
+        expect(boardKeyOf(CATCH_40, {})).toBe('');
+        expect(boardKeyOf(DOUBLES_AROUND, {})).toBe('');
+        expect(boardLabels(CHECKOUT_121, { attempts: 50 })).toEqual(['50 attempts', '9 darts']);
+        expect(boardLabels(TREBLES, { number: 18, darts: 99 })).toEqual(['T18', '99 darts']);
+        expect(boardLabels(BOBS_27, {})).toEqual([]);
+        // every board setting is an option of the training
+        TRAININGS.forEach(definition => (definition.boards ?? []).forEach(key => expect(definition.options.some(option => option.key === key)).toBe(true)));
+    });
+
+    it('121 Checkout climbs to 170 in 50 attempts at most, the ladder to 100 with ten misses in 60', () => {
+        // a way out of any finish up to 170 (in three darts from 61 to 100)
+        const finishOf = (left) => {
+            if (left === 50) return ['D25'];
+            if (left % 2 === 0 && left <= 40) return [`D${left / 2}`];
+            if (left > 62) return ['T20', ...finishOf(left - 60)];
+            if (left > 40) return [`S${Math.min(20, left - 40)}`, ...finishOf(left - Math.min(20, left - 40))];
+            return ['S1', ...finishOf(left - 1)];
+        };
+        const darts = Array.from({ length: 50 }, (_, index) => finishOf(121 + index)).flat();
+        expect(train(CHECKOUT_121, darts, { attempts: 50, darts: 9 }).result.score).toBe(170);
+        const ladder = [];
+        let target = 61;
+        // ten misses at 61, then fifty checkouts in a row
+        for (let index = 0; index < 10; index += 1) ladder.push('0', '0', '0');
+        for (let index = 0; index < 50; index += 1) { ladder.push(...finishOf(target)); target = Math.min(100, target + 1); }
+        expect(train(LADDER, ladder, { attempts: 60 }).result.score).toBe(100);
+    });
+
+    it('the same score shares a place on the scoreboard, unless the tiebreak tells them apart', () => {
+        const better = (a, b) => b.score - a.score || (b.reached ?? 0) - (a.reached ?? 0);
+        expect(placesOf([{ score: 130 }, { score: 130 }, { score: 128 }, { score: 128 }, { score: 127 }], better)).toEqual([1, 1, 3, 3, 5]);
+        // Bob's 27: 0 points each, the one further on the board first
+        expect(placesOf([{ score: 0, reached: 6 }, { score: 0, reached: 4 }, { score: 0, reached: 4 }], better)).toEqual([1, 2, 2]);
+        expect(placesOf([], better)).toEqual([]);
     });
 });

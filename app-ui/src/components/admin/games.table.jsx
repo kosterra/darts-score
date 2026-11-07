@@ -44,6 +44,9 @@ import { TableLoading } from '../elements/skeletons';
 import FilterPills from '../elements/filter.pills';
 import PlayerOption from '../elements/player.option';
 import usePlayerLevels from '../../utils/use.player.levels';
+import PlayLevelTag from '../elements/play.level.tag';
+import { LEVEL_OPTIONS } from '../elements/level.options';
+import { levelQuery, playLevelOf } from '../../utils/play.levels';
 
 // "3 games" in the language of the app (the word in English, as the key of its texts)
 const plural = (count, word) => t(count === 1 ? `{{count}} ${word}` : `{{count}} ${word}s`, { count });
@@ -51,7 +54,7 @@ const plural = (count, word) => t(count === 1 ? `{{count}} ${word}` : `{{count}}
 // How each game type is loaded (for the selected club), described, scored and deleted
 const GAME_TYPES = {
     x01: {
-        load: () => X01Service.loadAllX01Games(),
+        load: (filter) => X01Service.loadAllX01Games(filter),
         remove: (id, clubId) => X01Service.deleteX01Game(id, clubId),
         describe: (game) => ({
             title: `${game.startingScore} · ${game.setMode} ${plural(game.numberOfSets, 'set')} · ${game.legMode} ${plural(game.numberOfLegs, 'leg')}`,
@@ -62,27 +65,27 @@ const GAME_TYPES = {
             : plural(model.setsWon ?? 0, 'set'),
     },
     cricket: {
-        load: () => CricketService.loadAllCricketGames(),
+        load: (filter) => CricketService.loadAllCricketGames(filter),
         remove: (id, clubId) => CricketService.deleteCricketGame(id, clubId),
         // the tag says Cricket: only a variant other than the standard one
         describe: (game) => ({ title: game.variant && game.variant !== 'Standard' ? t(game.variant) : '' }),
         score: (model) => t('{{value}} points', { value: model.score ?? 0 }),
     },
     elimination: {
-        load: () => EliminationService.loadAllEliminationGames(),
+        load: (filter) => EliminationService.loadAllEliminationGames(filter),
         remove: (id, clubId) => EliminationService.deleteEliminationGame(id, clubId),
         describe: (game) => ({ title: t('Target {{targetScore}}', { targetScore: game.targetScore }) }),
         score: (model) => t('{{value}} points', { value: model.score ?? 0 }),
     },
     clock: {
-        load: () => ClockService.loadAllClockGames(),
+        load: (filter) => ClockService.loadAllClockGames(filter),
         remove: (id, clubId) => ClockService.deleteClockGame(id, clubId),
         describe: (game) => ({ title: t('Mode: {{value}}', { value: t(game.mode ?? 'All') }) }),
         score: (model) => model.finished ? t('{{value}} darts', { value: model.darts ?? 0 }) : t('{{value}} of 21', { value: model.target ?? 0 }),
     },
     // Shanghai, Killer, … : loaded together, each game typed by its kind
     rules: {
-        load: () => RulesService.loadAllGames(),
+        load: (filter) => RulesService.loadAllGames(filter),
     },
     ...Object.fromEntries(RULES_GAMES.map(definition => [definition.id, {
         remove: (id, clubId) => RulesService.deleteGame(id, clubId),
@@ -139,14 +142,20 @@ const GamesTable = ({ scope = 'club', initialType = 'all', initialPlayerId = nul
     const [games, setGames] = useState(null);
     const [players, setPlayers] = useState([]);
     // the filters, page and order live in the address: back from a game, the list is as it was left
-    const [view, setView] = useUrlState({ type: initialType, status: 'all', player: initialPlayerId ?? '', ...TABLE_DEFAULTS });
+    const [view, setView] = useUrlState({ type: initialType, status: 'all', player: initialPlayerId ?? '', level: 'all', ...TABLE_DEFAULTS });
     const { status } = view;
+    // a level the address names that is none: all levels
+    const level = LEVEL_OPTIONS.some(option => option.value === view.level) ? view.level : 'all';
     // the game types chosen, none for all
     const types = useMemo(() => typesFrom(view.type, GAME_TYPE_GROUPS), [view.type]);
     const playerId = view.player || null;
     const setTypes = (values) => setView({ type: typesText(values), page: 1 });
     const setStatus = (value) => setView({ status: value, page: 1 });
     const setPlayerId = (value) => setView({ player: value ?? '', page: 1 });
+    const setLevel = (value) => setView({ level: value, page: 1 });
+    // the level is filtered by the server, of the player chosen or of anyone (so the newest of each
+    // type at that level come, not only those among the newest)
+    const filter = levelQuery(level, playerId);
     const [selection, setSelection] = useState([]);
     // the open requests to delete a game, by game id; the game asked about and the request shown
     const [requests, setRequests] = useState(new Map());
@@ -156,7 +165,7 @@ const GamesTable = ({ scope = 'club', initialType = 'all', initialPlayerId = nul
 
     const loadClubGames = async () => {
         const loaded = await Promise.all(Object.entries(GAME_TYPES).filter(([, config]) => config.load).map(async ([gameType, config]) =>
-            (await config.load()).map(game => ({ ...game, type: gameType === 'rules' ? game.kind : gameType }))));
+            (await config.load(filter)).map(game => ({ ...game, type: gameType === 'rules' ? game.kind : gameType }))));
         return loaded.flat();
     };
 
@@ -169,7 +178,7 @@ const GamesTable = ({ scope = 'club', initialType = 'all', initialPlayerId = nul
         setGames(null);
         try {
             const [loadedGames, loadedPlayers] = await Promise.all(acrossClubs
-                ? [AdminService.loadGames(selectedIds), AdminService.loadPlayers(selectedIds)]
+                ? [AdminService.loadGames(selectedIds, filter), AdminService.loadPlayers(selectedIds)]
                 : [loadClubGames(), PlayerService.searchPlayers('', { includeGuests: true })]);
             setGames(loadedGames.map(game => ({ ...game, key: `${game.type}-${game.id}` })));
             setPlayers(loadedPlayers);
@@ -209,7 +218,7 @@ const GamesTable = ({ scope = 'club', initialType = 'all', initialPlayerId = nul
     useEffect(() => {
         loadGames();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [acrossClubs, selectedIds]);
+    }, [acrossClubs, selectedIds, filter]);
 
     const playersById = useMemo(() => new Map(players.map(player => [player.id, player])), [players]);
 
@@ -277,8 +286,8 @@ const GamesTable = ({ scope = 'club', initialType = 'all', initialPlayerId = nul
         );
     };
 
-    // the players with their score close after the longest name, one under another; the room
-    // left over goes before the status
+    // the players with their score close after the longest name, one under another, then the level
+    // each played at; the room left over goes before the status
     const playersBody = (game) => (
         <div className="games-players">
             {game.players.map(id => {
@@ -289,6 +298,8 @@ const GamesTable = ({ scope = 'club', initialType = 'all', initialPlayerId = nul
                             {model.hasWonGame && <FaTrophy className="ms-2 text-gold" aria-label={t('Winner')} />}
                         </PlayerCell>
                         <span className="text-subtle fs-8 text-nowrap">{GAME_TYPES[game.type].score(model, game, id)}</span>
+                        {/* an empty cell without one, so the column stays */}
+                        <span className="games-players-level"><PlayLevelTag estimate={playLevelOf(game, id)} compact /></span>
                     </Fragment>
                 );
             })}
@@ -373,10 +384,12 @@ const GamesTable = ({ scope = 'club', initialType = 'all', initialPlayerId = nul
                             onClick={confirmDeleteSelection}
                         />
                     }
-                </>} changed={[acrossClubs && selectedIds.length, view.type !== 'all', view.status !== 'all', view.player].filter(Boolean).length} startOpen={needsClubs}>
+                </>} changed={[acrossClubs && selectedIds.length, view.type !== 'all', view.status !== 'all', view.player, level !== 'all'].filter(Boolean).length} startOpen={needsClubs}>
                 {acrossClubs && <ClubFilter clubs={clubs} selectedIds={selectedIds} onChange={select} />}
                 <TypeFilter groups={GAME_TYPE_GROUPS} value={types} onChange={setTypes} allLabel={t('All game types')} ariaLabel={t('Game type')} />
                 <FilterPills label={t('Status')} value={status} options={acrossClubs ? STATUS_OPTIONS : CLUB_STATUS_OPTIONS} onChange={setStatus} ariaLabel={t('Status')} dropdownOnPhone />
+                {/* with a player chosen: the games that player played at the level */}
+                <FilterPills label={t('Level')} value={level} options={LEVEL_OPTIONS} onChange={setLevel} ariaLabel={t('Level played at')} dropdownOnPhone />
                 <Dropdown
                     value={playerId}
                     options={playerOptions}

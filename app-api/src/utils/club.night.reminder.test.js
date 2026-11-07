@@ -12,7 +12,12 @@ vi.mock('../models/db.model.js', () => ({
     default: {
         mongoose: { isValidObjectId: () => true },
         club: { find: () => lean(clubs) },
-        attendance: { find: (query) => lean(answers.filter(entry => entry.club === query.club && entry.day === query.day && entry.answer === query.answer)) },
+        attendance: {
+            find: (query) => {
+                if (query.club === 'broken') throw new Error('broken club');
+                return lean(answers.filter(entry => entry.club === query.club && entry.day === query.day && entry.answer === query.answer));
+            },
+        },
         player: { find: (query) => lean(players.filter(player => query._id.$in.includes(player._id) && player.user)) },
         noticeSent: { create: async ({ key }) => { if (sentKeys.has(key)) { const err = new Error('dup'); err.code = 11000; throw err; } sentKeys.add(key); } },
     },
@@ -51,6 +56,26 @@ describe('the reminder of a club night', () => {
         await remindClubNights(tuesday(19, 45));
         await remindClubNights(new Date(2026, 9, 28, 17, 0));
         expect(notices).toHaveLength(0);
+    });
+
+    it('reads the start on the club\'s clock, whatever the server\'s time zone', async () => {
+        // 16:00 UTC is 17:00 in Zurich (winter time): two and a half hours before 19:30
+        await remindClubNights(new Date('2026-10-27T16:00:00Z'));
+        expect(notices).toHaveLength(1);
+        // a club in London starts at 19:30 London time: at 15:00 UTC that is still too early
+        notices.length = 0;
+        sentKeys.clear();
+        clubs[0].timeZone = 'Europe/London';
+        await remindClubNights(new Date('2026-10-27T15:00:00Z'));
+        expect(notices).toHaveLength(0);
+        await remindClubNights(new Date('2026-10-27T17:00:00Z'));
+        expect(notices).toHaveLength(1);
+    });
+
+    it('goes on with the next club when one fails', async () => {
+        clubs.unshift({ _id: 'broken', calendar: clubs[0].calendar });
+        await remindClubNights(tuesday(17, 0));
+        expect(notices.map(notice => notice.user)).toEqual(['u-anna']);
     });
 
     it('not for a cancelled night (that is told when it is cancelled)', async () => {

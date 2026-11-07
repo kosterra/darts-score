@@ -5,12 +5,26 @@
  * and Shortest leg.
  */
 import { afterDart, isCheckout } from './darts.js';
+import { settingsOf } from './engine.js';
+import { DOUBLES_BANDS, TREBLES_BANDS } from './levels.play.js';
 import { t, tn } from '../utils/i18n.js';
 
 const DOUBLE_TARGETS = [...Array.from({ length: 20 }, (_, index) => index + 1), 25];
 const doubleName = (number) => (number === 25 ? t('Bull') : `D${number}`);
 const doubleValue = (number) => number * 2;
 const percent = (part, whole) => (whole ? `${Math.round(part / whole * 100)} %` : '–');
+// a figure of the level a training was played at, as shown beside it (see levels.play.js)
+const levelPercent = (value) => `${Math.round(value)} %`;
+// The bands of the levels are what a player of a 25, 40, 50, 60, 75 and 90 average scores in the
+// training, from the simulated thrower of levels.play.js (where hobby, amateur, semi-pro, pro,
+// world class and elite start).
+// 121 Checkout by darts per attempt and attempts
+const CHECKOUT_121_BANDS = {
+    9: { 10: [1, 120, 122, 124, 127, 128], 20: [1, 120, 122, 126, 133, 138], 30: [1, 120, 122, 129, 138, 146], 50: [1, 120, 123, 134, 150, 160] },
+    6: { 10: [1, 115, 119, 120, 122, 125], 20: [1, 115, 119, 121, 123, 129], 30: [1, 116, 119, 121, 124, 133], 50: [1, 115, 119, 121, 126, 140] },
+};
+// Shortest leg by the legs played: the best of ten comes easier than the best of three
+const SHORTEST_LEG_BANDS = { 3: [42, 31, 24, 20, 17, 14], 5: [40, 28, 23, 19, 16, 13], 10: [35, 26, 21, 18, 15, 13] };
 
 /**
  * The doubles of a training around the board as cells, D1 to the bull: the
@@ -154,11 +168,18 @@ export const BOBS_27 = {
         [t('Hit rate'), percent(result.hits, result.darts)],
         [t('Doubles played'), `${result.reached} / 21`],
     ],
+    // the points of a run that gets through, as the doubles of the simulated thrower make them (see
+    // levels.play.js): about 100 for a 50 average, 285 for 75, 455 for 90. Getting through at all is
+    // rare below a 50 average (one run in six there, half of them at 60), so any points are hobby
+    // and a run that ends early (0) is the lowest step
+    level: { by: t('the points'), of: (result) => result.score, bands: [1, 60, 100, 160, 285, 455] },
 };
 
 /**
  * 121 Checkout: check out the target in nine darts (double out). Done: the
- * target goes up by one; not done: down by one (not below 61). Ten targets.
+ * target goes up by one; not done: down by one (not below 61). 10 to 50
+ * attempts: the most attempts are the only way up to 150 and beyond
+ * (121 + attempts - 1 at most).
  */
 export const CHECKOUT_121 = {
     id: 'checkout121',
@@ -171,9 +192,11 @@ export const CHECKOUT_121 = {
     ],
     input: 'board',
     options: [
-        { key: 'attempts', label: t('Attempts'), values: [{ value: 10, label: t('10 attempts') }, { value: 20, label: t('20 attempts') }], default: 10 },
+        { key: 'attempts', label: t('Attempts'), values: [{ value: 10, label: t('10 attempts') }, { value: 20, label: t('20 attempts') }, { value: 30, label: t('30 attempts') }, { value: 50, label: t('50 attempts') }], default: 10 },
         { key: 'darts', label: t('Darts per attempt'), values: [{ value: 9, label: t('9 darts') }, { value: 6, label: t('6 darts') }], default: 9 },
     ],
+    // the attempts set how high one can get, the darts how hard each is
+    boards: ['attempts', 'darts'],
     init: () => ({ target: 121, left: 121, inAttempt: 0, attempt: 0, done: 0, best: 0, darts: 0, results: [] }),
     dart: (state, dart, { settings }) => {
         state.darts += 1;
@@ -216,6 +239,17 @@ export const CHECKOUT_121 = {
         [t('Checked out'), `${result.done} / ${result.attempts}`],
         [t('Next target'), result.last],
     ],
+    // the target goes one up or down an attempt, so it settles where about half of the attempts are
+    // checked out: the typical highest checkout of the simulated thrower, by the darts and the
+    // attempts (more attempts let the better ones climb further); any checkout at all is hobby
+    level: {
+        by: t('the highest checkout'),
+        of: (result) => result.score,
+        bands: (result, settings) => {
+            const byAttempts = CHECKOUT_121_BANDS[settings?.darts === 6 ? 6 : 9];
+            return byAttempts[settings?.attempts] ?? byAttempts[10];
+        },
+    },
 };
 
 // a random finish of 2 to 170 that can be checked out in one visit
@@ -240,8 +274,14 @@ export const RANDOM_CHECKOUTS = {
     ],
     input: 'board',
     options: [{ key: 'attempts', label: t('Attempts'), values: [{ value: 10, label: t('10 attempts') }, { value: 20, label: t('20 attempts') }, { value: 50, label: t('50 attempts') }], default: 10 }],
+    // a share of 10 is easier to get high than one of 50
+    boards: ['attempts'],
     // the finishes are drawn when the training starts
     prepare: (settings) => ({ ...settings, targets: Array.from({ length: settings.attempts }, randomCheckout) }),
+    // the finishes as prepare draws them: one for every attempt, each one a visit can check out
+    prepared: {
+        targets: (targets, settings) => Array.isArray(targets) && targets.length === settings.attempts && targets.every(target => Number.isInteger(target) && isCheckout(target)),
+    },
     init: (settings) => ({ index: 0, left: settings.targets?.[0] ?? 40, inAttempt: 0, done: 0, darts: 0, best: 0, results: [] }),
     dart: (state, dart, { settings }) => {
         const target = settings.targets?.[state.index] ?? 40;
@@ -281,6 +321,9 @@ export const RANDOM_CHECKOUTS = {
         [t('Checkout rate'), `${result.score} %`],
         [t('Highest checkout'), result.best || '–'],
     ],
+    // over all the finishes from 2 to 170, aimed at the usual way out: about 13 % for a 50 average,
+    // 28 % for 75 and 38 % for 90
+    level: { by: t('the checkout rate'), of: (result) => result.score, bands: [3, 8, 13, 20, 28, 38], format: levelPercent },
 };
 
 /**
@@ -298,6 +341,8 @@ export const SCORING = {
     ],
     input: 'board',
     options: [{ key: 'darts', label: t('Darts'), values: [{ value: 30, label: t('30 darts') }, { value: 60, label: t('60 darts') }, { value: 99, label: t('99 darts') }], default: 30 }],
+    // an average of a few darts swings more than one of many
+    boards: ['darts'],
     init: () => ({ points: 0, darts: 0, tons: 0, visit: 0, best: 0 }),
     dart: (state, dart) => {
         state.points += dart.points;
@@ -324,6 +369,10 @@ export const SCORING = {
         [t('Ton+ visits'), result.tons],
         [t('Best visit'), result.best],
     ],
+    // every dart at T20 and none at a double: higher than the average of X01 legs, which the darts
+    // at the finish pull down (a 50 average throws about 60 here, 75 about 88, 90 about 104; the
+    // X01 bot works the same way)
+    level: { by: t('the 3-dart average'), of: (result) => result.score, bands: [38, 50, 60, 71, 88, 104], format: (value) => Number(value).toFixed(1) },
 };
 
 /**
@@ -368,6 +417,9 @@ export const DOUBLES_AROUND = {
         [t('Darts'), result.score],
         [t('Hit rate'), percent(21, result.score)],
     ],
+    // the hit rate on doubles (DOUBLES_BANDS of levels.play.js): a 90 average hits about 39 % of its
+    // darts at a double, near the checkout rate of the pros
+    level: { by: t('the hit rate on the doubles'), of: (result) => (result.score ? 21 / result.score * 100 : null), bands: DOUBLES_BANDS, format: levelPercent },
 };
 
 /**
@@ -421,6 +473,9 @@ export const CATCH_40 = {
         [t('Points'), result.score],
         [t('Checked out'), `${result.done} / 40`],
     ],
+    // six darts at each of 61 to 100, aimed at the usual way out: about 21 points for a 50 average,
+    // 43 for 75 and 56 for 90
+    level: { by: t('the points'), of: (result) => result.score, bands: [3, 12, 21, 30, 43, 56] },
 };
 
 /**
@@ -449,6 +504,8 @@ export const TREBLES = {
         { key: 'number', label: t('Treble'), values: [{ value: 20, label: 'T20' }, { value: 19, label: 'T19' }, { value: 18, label: 'T18' }], default: 20 },
         { key: 'darts', label: t('Darts'), values: [{ value: 30, label: t('30 darts') }, { value: 60, label: t('60 darts') }, { value: 99, label: t('99 darts') }], default: 30 },
     ],
+    // each treble on its own, and a share of a few darts swings more than one of many
+    boards: ['number', 'darts'],
     init: () => ({ darts: 0, trebles: 0, onNumber: 0, points: 0, inVisit: 0, visitTrebles: 0, bestVisit: 0 }),
     dart: (state, dart, { settings }) => {
         state.darts += 1;
@@ -475,15 +532,19 @@ export const TREBLES = {
     // the trebles, their share and the darts big under the treble (instead of the status)
     heroFigures: (state, { settings }) => [[t('Trebles'), state.trebles], [t('Treble rate'), percent(state.trebles, state.darts)], [t('Darts'), `${state.darts} / ${settings.darts}`]],
     status: (state, { settings }) => [[t('Trebles'), state.trebles], [t('Treble rate'), percent(state.trebles, state.darts)], [t('Darts'), `${state.darts} / ${settings.darts}`]],
-    result: (state) => ({ score: Math.round(state.trebles / state.darts * 100), trebles: state.trebles, onNumber: state.onNumber, points: state.points, darts: state.darts, bestVisit: state.bestVisit }),
+    result: (state, { settings } = {}) => ({ score: Math.round(state.trebles / state.darts * 100), trebles: state.trebles, onNumber: state.onNumber, points: state.points, darts: state.darts, bestVisit: state.bestVisit, number: settings?.number ?? 20 }),
     higherIsBetter: true,
     format: (score) => `${score} %`,
     figures: (result) => [
         [t('Treble rate'), `${result.score} %`],
         [t('Trebles'), `${result.trebles} / ${result.darts}`],
         [t('On the number'), percent(result.onNumber, result.darts)],
-        [t('Points'), result.points],
+        // only the darts on the number count (a treble 3 ×, a double 2 ×): out of a treble with every dart
+        [t('Points on the {{number}}', { number: result.number ?? 20 }), `${result.points} / ${result.darts * (result.number ?? 20) * 3}`],
     ],
+    // the hit rate on trebles (TREBLES_BANDS of levels.play.js): about 13 % of the darts for a 50
+    // average, 27 % for 75, 38 % for 90; the 20, 19 and 18 alike
+    level: { by: t('the treble rate'), of: (result) => result.score, bands: TREBLES_BANDS, format: levelPercent },
 };
 
 /**
@@ -506,6 +567,8 @@ export const BULLS = {
         { value: '0', label: t('Miss'), icon: 'pi pi-times', severity: 'secondary' },
     ],
     options: [{ key: 'darts', label: t('Darts'), values: [{ value: 30, label: t('30 darts') }, { value: 60, label: t('60 darts') }, { value: 99, label: t('99 darts') }], default: 30 }],
+    // a share of a few darts swings more than one of many
+    boards: ['darts'],
     init: () => ({ darts: 0, bullseyes: 0, outers: 0 }),
     dart: (state, dart) => {
         state.darts += 1;
@@ -530,6 +593,10 @@ export const BULLS = {
         [t('Outer bulls'), result.outers],
         [t('Points'), result.points],
     ],
+    // the outer bull or the bullseye: a round target as wide as a treble is long, so it takes more
+    // darts than one would think: about 37 % for a 50 average, 70 % for 75, 85 % for 90 (the
+    // bullseye alone about a third of that at the top, as the pros' checkouts on it)
+    level: { by: t('the hit rate on the bull'), of: (result) => result.score, bands: [10, 25, 37, 50, 70, 85], format: levelPercent },
 };
 
 // the rungs of the checkout ladder
@@ -539,7 +606,8 @@ const LADDER_TOP = 100;
 /**
  * Checkout ladder: the finishes from 61 to 100, one visit of three darts
  * each. Checked out: one rung up (100 stays 100); not: one down (not below
- * 61). The highest finish checked out counts.
+ * 61). The highest finish checked out counts. 20 attempts reach 80 at most,
+ * 40 reach 100 only without a miss, 60 with up to ten.
  */
 export const LADDER = {
     id: 'ladder',
@@ -551,7 +619,9 @@ export const LADDER = {
         t('After the attempts set the highest finish checked out counts.'),
     ],
     input: 'board',
-    options: [{ key: 'attempts', label: t('Attempts'), values: [{ value: 20, label: t('20 attempts') }, { value: 40, label: t('40 attempts') }], default: 20 }],
+    options: [{ key: 'attempts', label: t('Attempts'), values: [{ value: 20, label: t('20 attempts') }, { value: 40, label: t('40 attempts') }, { value: 60, label: t('60 attempts') }], default: 20 }],
+    // the attempts set how high one can climb
+    boards: ['attempts'],
     init: () => ({ target: LADDER_BOTTOM, left: LADDER_BOTTOM, inAttempt: 0, attempt: 0, done: 0, best: 0, darts: 0 }),
     dart: (state, dart) => {
         state.darts += 1;
@@ -591,6 +661,16 @@ export const LADDER = {
         [t('Checked out'), `${result.done} / ${result.attempts}`],
         [t('Next finish'), result.last],
     ],
+    // the share of the attempts checked out, one visit a finish of 61 and up: about 18 % for a 50
+    // average, 37 % for 75 and 48 % for 90, however many attempts. Not the highest checkout: the
+    // ladder falls back after every miss, so even a 90 average rarely gets far above 61 and the
+    // highest says little about the level
+    level: {
+        by: t('the checkout rate'),
+        of: (result) => (result.attempts ? result.done / result.attempts * 100 : null),
+        bands: [3, 11, 18, 25, 37, 48],
+        format: levelPercent,
+    },
 };
 
 // the score a leg of Shortest leg starts from
@@ -612,6 +692,8 @@ export const SHORTEST_LEG = {
     ],
     input: 'board',
     options: [{ key: 'legs', label: t('Legs'), values: [{ value: 3, label: t('3 legs') }, { value: 5, label: t('5 legs') }, { value: 10, label: t('10 legs') }], default: 3 }],
+    // the best of ten legs comes easier than the best of three
+    boards: ['legs'],
     init: () => ({ left: LEG_START, visitStart: LEG_START, inVisit: 0, legDarts: 0, darts: 0, legs: [] }),
     dart: (state, dart) => {
         state.darts += 1;
@@ -660,7 +742,71 @@ export const SHORTEST_LEG = {
         [t('Average'), Number(result.average).toFixed(1)],
         [t('Legs'), result.legs.join(' · ')],
     ],
+    // the best leg of the simulated thrower, by the legs played: in three legs about 24 darts for a 50
+    // average, 17 for 75, 14 for 90 (as the developer had set it: 24, 17 and 13 for 50, 75 and 95)
+    level: { by: t('the darts in the best leg'), of: (result) => result.score, bands: (result, settings) => SHORTEST_LEG_BANDS[settings?.legs] ?? SHORTEST_LEG_BANDS[3], lowerIsBetter: true },
 };
 
 export const TRAININGS = [BOBS_27, CHECKOUT_121, RANDOM_CHECKOUTS, SCORING, DOUBLES_AROUND, CATCH_40, TREBLES, BULLS, LADDER, SHORTEST_LEG];
 export const trainingOf = (id) => TRAININGS.find(training => training.id === id) ?? null;
+
+/**
+ * Why the settings of a training cannot be played, or null: every option one
+ * of its values (a missing one is the default), nothing the training does not
+ * know, and what it fixes at the start as it would (Random checkouts: a finish
+ * for every attempt). The API refuses a training with such settings.
+ */
+export const settingsProblem = (definition, settings) => {
+    if (settings === undefined || settings === null) return settingsProblem(definition, {});
+    if (typeof settings !== 'object' || Array.isArray(settings)) return 'settings must be an object.';
+    const options = definition.options ?? [];
+    const prepared = definition.prepared ?? {};
+    for (const [key, value] of Object.entries(settings)) {
+        const option = options.find(entry => entry.key === key);
+        if (option && !option.values.some(entry => entry.value === value)) return `${key} must be one of: ${option.values.map(entry => entry.value).join(', ')}.`;
+        if (!option && !Object.hasOwn(prepared, key)) return `${key} is not a setting of this training.`;
+    }
+    const full = settingsOf(definition, settings);
+    const wrong = Object.entries(prepared).find(([key, valid]) => !valid(full[key], full));
+    return wrong ? `${wrong[0]} is not what this training draws at its start.` : null;
+};
+
+/**
+ * The settings that split a training's scoreboard, with their values: a score
+ * is only compared (the scoreboard, records and "new best", the trend, a
+ * weekly goal) with those of the same, as 140 in 121 Checkout cannot be
+ * reached in 10 attempts. Each definition lists them in "boards"; a setting
+ * an older training does not have is the default. { attempts: 20, darts: 9 },
+ * {} for a training with one board.
+ */
+export const boardOf = (definition, settings = {}) => Object.fromEntries((definition?.boards ?? []).map(key => {
+    const option = definition.options.find(entry => entry.key === key);
+    const value = settings?.[key];
+    if (value === undefined || value === null) return [key, option.default];
+    // a value of the options as the option has it (an older one kept as text too); one it does not know stays apart
+    return [key, option.values.find(entry => String(entry.value) === String(value))?.value ?? value];
+}));
+
+// a board as one key: "attempts:20|darts:9", '' for a training with one board
+export const boardKeyOf = (definition, settings) => Object.entries(boardOf(definition, settings)).map(([key, value]) => `${key}:${value}`).join('|');
+
+// a board in words, one per setting: ['20 attempts', '9 darts'] ([] for one board)
+export const boardLabels = (definition, settings) => Object.entries(boardOf(definition, settings))
+    .map(([key, value]) => definition.options.find(entry => entry.key === key).values.find(entry => entry.value === value)?.label ?? String(value));
+
+// the board of the default settings: the one to show when nothing else says which
+export const defaultBoardKey = (definition) => boardKeyOf(definition, {});
+
+/**
+ * The places of attempts best first: the same score shares a place (two at 130
+ * are both 1st, the next is 3rd), unless the training's own tiebreak tells
+ * them apart (Bob's 27: further on the board). better(a, b): the order of the
+ * list, 0 for the same.
+ */
+export const placesOf = (list, better) => {
+    const places = [];
+    list.forEach((entry, index) => {
+        places.push(index > 0 && better(entry, list[index - 1]) === 0 ? places[index - 1] : index + 1);
+    });
+    return places;
+};

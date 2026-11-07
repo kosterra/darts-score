@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import supertest from 'supertest';
+import { partsIn, timeIn } from '../../src/rules/zones.js';
 
 process.env.NODE_ENV = 'test';
 process.env.LOG_LEVEL ||= 'silent';
@@ -70,7 +71,9 @@ describe('setting the goals', () => {
         const res = await as(state.ann).get('/api/goals');
         expect(res.status).toBe(200);
         expect(res.body).toMatchObject({ goals: [], streak: 0, maxGoals: 3 });
-        expect(new Date(res.body.week.from).getDay()).toBe(1);
+        // Monday at midnight in Zurich (Sunday evening in UTC), whatever the server's time zone
+        expect(partsIn(res.body.week.from).weekday).toBe(1);
+        expect(timeIn(res.body.week.from)).toBe('00:00');
         expect(res.body.recent).toHaveLength(8);
     });
 

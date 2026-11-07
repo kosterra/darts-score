@@ -1,5 +1,5 @@
 import { t } from './i18n';
-import { partnersOf } from '../rules/x01';
+import { legScores, legWinnerOf, partnersOf } from '../rules/x01';
 
 /**
  * What the statistics page of one finished X01 game shows, worked out from
@@ -15,7 +15,9 @@ const dartsIn = (visit) => (Array.isArray(visit?.darts) ? visit.darts : []).filt
 
 /**
  * Every leg in the order it was played:
- * [{ key, set, legInSet, number, visits, starter, winner, winnerDarts, checkout, highest: { playerId, score } }]
+ * [{ key, set, legInSet, number, visits, scores, starter, winner, winnerDarts, checkout, highest: { playerId, score } }]
+ * scores: what each visit took off (0 for a bust); winner: as the rules count
+ * it, also of a leg a club's round limit decided (no checkout, no darts then)
  */
 export const legsOf = (game) => {
     const legs = [];
@@ -27,8 +29,9 @@ export const legsOf = (game) => {
                 .filter(([, visits]) => Array.isArray(visits) && visits.length > 0)
                 .forEach(([legKey, visits], index) => {
                     const finish = visits.find(visit => visit?.scoreLeft === 0);
-                    const highest = visits.reduce((best, visit) => (visit?.roundScore ?? 0) > best.score
-                        ? { playerId: visit.playerId, score: visit.roundScore }
+                    const scores = legScores(game, visits).map(({ taken }) => taken);
+                    const highest = visits.reduce((best, visit, at) => scores[at] > best.score
+                        ? { playerId: visit.playerId, score: scores[at] }
                         : best, { playerId: null, score: 0 });
                     legs.push({
                         key: `${setKey}/${legKey}`,
@@ -36,8 +39,9 @@ export const legsOf = (game) => {
                         legInSet: index + 1,
                         number: legs.length + 1,
                         visits,
+                        scores,
                         starter: visits[0]?.playerId ?? null,
-                        winner: finish?.playerId ?? null,
+                        winner: legWinnerOf(game, visits),
                         // the darts of the winner, in doubles of the team
                         winnerDarts: finish
                             ? visits.filter(visit => [finish.playerId, ...partnersOf(game, finish.playerId)].includes(visit.playerId)).reduce((sum, visit) => sum + dartsIn(visit), 0)
@@ -74,24 +78,28 @@ export const raceOf = (leg, playerIds, startingScore) => {
  */
 export const playerFigures = (game, playerId, legs = legsOf(game)) => {
     const model = game?.playerModels?.[playerId] ?? {};
-    const visitsByLeg = legs.map(leg => leg.visits.filter(visit => visit.playerId === playerId));
-    const visits = visitsByLeg.flat();
+    // what each of the player's visits scored, leg by leg (a bust nothing)
+    const scoresByLeg = legs.map(leg => leg.visits.map((visit, at) => (visit.playerId === playerId ? leg.scores?.[at] ?? 0 : null)).filter(score => score !== null));
+    const scores = scoresByLeg.flat();
+    const visits = legs.flatMap(leg => leg.visits.filter(visit => visit.playerId === playerId));
     // the first three visits of every leg
-    const firstNine = visitsByLeg.flatMap(legVisits => legVisits.slice(0, 3));
+    const firstNine = scoresByLeg.flatMap(legScores => legScores.slice(0, 3));
     const checkout = model.checkout?.game ?? {};
     // the legs won, in doubles also those the partner checked out
     const team = [playerId, ...partnersOf(game, playerId)];
     const wonLegs = legs.filter(leg => team.includes(leg.winner));
+    // the legs checked out, with their darts
+    const checkedOut = wonLegs.filter(leg => leg.winnerDarts != null);
     const checkouts = Object.keys(model.checkoutScores?.game ?? {}).map(Number).filter(Boolean);
 
     return {
         average: model.averages?.game?.overall != null ? round1(model.averages.game.overall) : null,
-        firstNine: firstNine.length ? round1(firstNine.reduce((sum, visit) => sum + (visit.roundScore ?? 0), 0) / firstNine.length) : null,
+        firstNine: firstNine.length ? round1(firstNine.reduce((sum, score) => sum + score, 0) / firstNine.length) : null,
         checkoutRate: checkout.total ? Math.round(checkout.hit / checkout.total * 100) : null,
         checkoutDetail: checkout.total ? `${checkout.hit}/${checkout.total}` : null,
         highestCheckout: checkouts.length ? Math.max(...checkouts) : null,
-        bestLeg: wonLegs.length ? Math.min(...wonLegs.map(leg => leg.winnerDarts)) : null,
-        highestVisit: visits.length ? Math.max(...visits.map(visit => visit.roundScore ?? 0)) : null,
+        bestLeg: checkedOut.length ? Math.min(...checkedOut.map(leg => leg.winnerDarts)) : null,
+        highestVisit: scores.length ? Math.max(...scores) : null,
         oneEighties: model.scoreRanges?.game?.['180'] ?? 0,
         // the high scores below 180, as in the side by side of a set
         ton60: model.scoreRanges?.game?.['160-179'] ?? 0,
@@ -119,7 +127,7 @@ export const matchMoments = (game, legs = legsOf(game)) => {
     const bestCheckout = finished.reduce((best, leg) => leg.checkout > (best?.checkout ?? 0) ? leg : best, null);
     if (bestCheckout) moments.push({ id: 'checkout', label: t('Best checkout'), value: bestCheckout.checkout, playerId: bestCheckout.winner, detail: legName(bestCheckout) });
 
-    const quickest = finished.reduce((best, leg) => leg.winnerDarts < (best?.winnerDarts ?? Infinity) ? leg : best, null);
+    const quickest = finished.filter(leg => leg.winnerDarts != null).reduce((best, leg) => leg.winnerDarts < (best?.winnerDarts ?? Infinity) ? leg : best, null);
     if (quickest) moments.push({ id: 'quickest', label: t('Quickest leg'), value: t('{{winnerDarts}} darts', { winnerDarts: quickest.winnerDarts }), playerId: quickest.winner, detail: legName(quickest) });
 
     const oneEighties = Object.values(game?.playerModels ?? {}).reduce((sum, model) => sum + (model?.scoreRanges?.game?.['180'] ?? 0), 0);

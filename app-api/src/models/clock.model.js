@@ -1,3 +1,5 @@
+import { addPlayLevels } from './play.levels.field.js';
+
 const MODES = ['Single', 'Double', 'Triple', 'All'];
 
 // Around the Clock as a game: the players take turns of three darts at 1 to
@@ -31,6 +33,8 @@ export default (mongoose) => {
 
   // Used by stats queries and game filter queries
   schema.index({ players: 1, gameIsRunning: 1 });
+  // the level each player played at, for the lists and their filter
+  addPlayLevels(schema);
 
   schema.method('toJSON', function () {
     const { _id, ...object } = this.toObject();

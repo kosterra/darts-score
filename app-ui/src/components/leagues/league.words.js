@@ -13,4 +13,4 @@ export const LEAGUE_STATUS_WORDS = {
 export const leagueName = (league, playerId) => league.names?.[playerId]?.nickname ?? '?';
 
 // the league as the match cards of the tournaments read it (players by id, the player asking)
-export const asTournament = (league) => ({ players: league.names ?? {}, entries: [], myPlayer: league.myPlayer, matches: league.matches ?? [] });
+export const asTournament = (league) => ({ players: league.names ?? {}, entries: [], myPlayer: league.myPlayer, matches: league.matches ?? [], status: league.status });

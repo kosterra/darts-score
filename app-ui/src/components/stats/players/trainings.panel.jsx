@@ -7,7 +7,7 @@ import { FaRobot } from 'react-icons/fa6';
 
 import { KpiHero } from './kpi';
 import TrainingTrend from './training.trend';
-import { trainingOf } from '../../../rules/trainings';
+import { boardLabels, trainingOf } from '../../../rules/trainings';
 import { rulesIcon } from '../../rules/rules.icons';
 import { formatTrainingTime } from '../../../utils/training.time';
 import { locale, t, tn } from '../../../utils/i18n';
@@ -124,7 +124,11 @@ const TrainingsPanel = ({ summary, playerId }) => {
                             color={COLORS.rules}
                             count={tn(entry.count, '{{count}} attempt', '{{count}} attempts')}
                             value={entry.best == null ? null : definition.format(entry.best)}
-                            detail={entry.latest?.length && entry.latest.at(-1) !== entry.best ? t('best · last {{last}}', { last: definition.format(entry.latest.at(-1)) }) : t('best')}
+                            // the best and the last of the settings played most, which they are beside them
+                            detail={[
+                                entry.latest?.length && entry.latest.at(-1) !== entry.best ? t('best · last {{last}}', { last: definition.format(entry.latest.at(-1)) }) : t('best'),
+                                ...boardLabels(definition, entry.board ?? {}),
+                            ].join(' · ')}
                             spark={<Sparkline values={entry.latest} lower={lower} color={COLORS.rules} />}
                             onOpen={playerId ? () => setTrend(kind) : undefined}
                         />

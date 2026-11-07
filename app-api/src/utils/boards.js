@@ -2,12 +2,14 @@ import { randomBytes } from 'node:crypto';
 import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
 import { MAX_BOARDS, boardsView, fill, hold, moveTo, nightItems, setBoards, topUp, tournamentItems } from '../rules/boards.js';
-import { addDays, dayKey, isClubNight, isDayKey } from '../rules/calendar.js';
+import { addDays, isClubNight, isDayKey } from '../rules/calendar.js';
 import { lockedOn, ruleViolations } from '../rules/club.rules.js';
 import { answerOf, storedOf } from './game.view.js';
 import { deliverQuietly } from './notify.js';
+import { untilSaved } from './retry.js';
 import { clubShirtOf } from './shirts.js';
 import { boardCalledTitle, roundName } from './tournaments.js';
+import { dayKeyIn, zoneOf } from '../rules/zones.js';
 
 /**
  * A club night played on boards (see rules/boards.js): its admins set the
@@ -43,7 +45,7 @@ const checkDay = (club, day, now = new Date()) => {
     if (!isDayKey(day)) throw failure('Choose a day.', 422);
     if (!isClubNight(club.calendar?.nights, day)) throw failure('There is no club night on that day.', 404);
     if ((club.calendar?.cancelled ?? []).some(entry => entry.day === day)) throw failure('This club night is cancelled.', 409);
-    if (day < addDays(dayKey(now), -1)) throw failure('This club night is over.', 409);
+    if (day < addDays(dayKeyIn(now, zoneOf(club)), -1)) throw failure('This club night is over.', 409);
 };
 
 // ---------------------------------------------------------------------------
@@ -81,9 +83,15 @@ const applyChanges = (entries, changes, now = new Date()) => {
  * the free boards filled, and the queue topped up again. Puts the entries
  * on the night. → the entries called now
  */
+// the players of a night who are still there: who went home is no longer paired
+const playersThere = (night) => {
+    const gone = new Set((night.left ?? []).map(entry => String(entry.id)));
+    return [...(night.players ?? [])].map(String).filter(id => !gone.has(id));
+};
+
 const settleNight = (night, entries, now = new Date()) => {
     const boards = boardsOf(night);
-    const players = [...(night.players ?? [])].map(String);
+    const players = playersThere(night);
     const topUpQueue = () => {
         for (const pair of topUp({ boards, players, entries })) {
             entries.push({ id: newEntryId(), players: pair, status: 'queued', board: null, held: false, game: { kind: null, id: null }, winner: null, readyAt: now, calledAt: null, doneAt: null });
@@ -109,16 +117,6 @@ const tellCalled = async (night, called) => {
     }))));
 };
 
-// two games finishing at once both save the entries: the one that lost the race reads them again
-const withRetry = async (work) => {
-    try {
-        return await work();
-    } catch (err) {
-        if (err.name !== 'VersionError') throw err;
-        return work();
-    }
-};
-
 // ---------------------------------------------------------------------------
 // The night as the admins set it up
 // ---------------------------------------------------------------------------
@@ -137,10 +135,11 @@ const setupOf = (sent, before) => {
 
 /**
  * An admin sets up the boards of a night or changes them: { count, out,
- * players, setup }, each optional. A new night starts with the club's
+ * players, gone, setup }, each optional. A new night starts with the club's
  * boards, the players who said they come and the usual game. A player taken
- * out leaves the pairings not started; boards that go send their pairing
- * back to the queue (first). → the night
+ * out or gone home (gone: the ids of the players who went home, each keeping
+ * when) leaves the pairings not started; who went home keeps their games.
+ * Boards that go send their pairing back to the queue (first). → the night
  */
 export const saveNight = async (club, day, body, { by = null, now = new Date() } = {}) => {
     checkDay(club, day, now);
@@ -160,8 +159,15 @@ export const saveNight = async (club, day, body, { by = null, now = new Date() }
         const members = new Set((await db.player.find({ _id: { $in: sent }, clubs: club._id }, '_id').lean()).map(player => String(player._id)));
         night.players = sent.filter(id => members.has(id));
     }
+    if (body.gone !== undefined) {
+        const before = new Map((night.left ?? []).map(entry => [String(entry.id), entry.at]));
+        night.left = [...new Set(body.gone.map(String))].map(id => ({ id, at: before.get(id) ?? now }));
+    }
+    // only players of the night can have gone home
+    const players = new Set(night.players.map(String));
+    night.left = (night.left ?? []).filter(entry => players.has(String(entry.id)));
     const entries = plainEntries(night);
-    const there = new Set(night.players.map(String));
+    const there = new Set(playersThere(night));
     for (const entry of entries) {
         if (['queued', 'called'].includes(entry.status) && entry.players.some(id => !there.has(id))) Object.assign(entry, { status: 'cancelled', board: null, doneAt: now });
     }
@@ -260,7 +266,8 @@ export const startEntry = async (club, night, entryId, { first = null, playerId 
  */
 export const boardGameFinished = async (game, view) => {
     try {
-        await withRetry(async () => {
+        // games finishing at once all save the entries: those that lost the race read them again
+        await untilSaved(async () => {
             const night = await db.boardNight.findOne({ 'entries.game.id': game._id });
             if (!night) return;
             const entries = plainEntries(night);
@@ -280,7 +287,7 @@ export const boardGameFinished = async (game, view) => {
 // a game of a pairing was deleted: the pairing stays on its board, called again
 export const boardGameDeleted = async (game) => {
     try {
-        await withRetry(async () => {
+        await untilSaved(async () => {
             const night = await db.boardNight.findOne({ 'entries.game.id': game._id });
             if (!night) return;
             const entries = plainEntries(night);
@@ -318,6 +325,8 @@ export const nightView = async (night, { playerId = null, isAdmin = false } = {}
         boards,
         setup: { ...NIGHT_SETUP, ...(json.setup ?? {}) },
         players: (json.players ?? []).map(id => found.get(String(id))).filter(Boolean).map(personOf),
+        // who went home, and when
+        left: (json.left ?? []).map(entry => ({ id: String(entry.id), at: entry.at ?? null })),
         entries: entries.map(entry => ({
             id: entry.id, players: entry.players, status: entry.status, board: entry.board ?? null, held: Boolean(entry.held),
             game: entry.game?.id ? { kind: entry.game.kind, id: String(entry.game.id) } : null,
@@ -343,7 +352,7 @@ export const myBoards = async (userId, now = new Date()) => {
             matches: { $elemMatch: { players: { $in: own }, board: { $ne: null }, status: { $in: ['ready', 'running'] } } },
         }, 'club name matches').lean(),
         db.boardNight.find({
-            day: { $gte: addDays(dayKey(now), -1) },
+            day: { $gte: addDays(dayKeyIn(now), -1) },
             entries: { $elemMatch: { players: { $in: own }, board: { $ne: null }, status: { $in: ['called', 'playing'] } } },
         }).lean(),
     ]);

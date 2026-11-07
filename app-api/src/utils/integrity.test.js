@@ -252,6 +252,17 @@ describe('the newer games and trainings', () => {
         expect(rules).not.toContain('scoreMismatch');
         expect(checkRulesTraining({ ...entry, score: 2000, startedAt: null }).map(item => item.rule)).toContain('scoreMismatch');
     });
+
+    it('a jump only against the trainings with the same settings', async () => {
+        const { checkRulesTraining } = await import('./integrity.js');
+        // a Scoring of 99 darts at an average of 60, after three of 30 darts at 70 and three of 99 at 40
+        const darts = Array(99).fill('S20');
+        const entry = { kind: 'scoring', score: 60, darts, settings: { darts: 99 }, player: { id: 'a' } };
+        const thirty = Array(3).fill({ score: 70, settings: { darts: 30 } });
+        expect(checkRulesTraining(entry, thirty).map(item => item.rule)).not.toContain('bestJump');
+        const ninetyNine = Array(3).fill({ score: 40, settings: { darts: 99 } });
+        expect(checkRulesTraining(entry, [...thirty, ...ninetyNine]).map(item => item.rule)).toContain('bestJump');
+    });
 });
 
 describe('patterns over many games', () => {

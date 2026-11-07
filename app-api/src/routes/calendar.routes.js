@@ -39,6 +39,8 @@ export default (app) => {
         body('out.*').isInt({ min: 1, max: MAX_BOARDS }).withMessage('Choose the boards taken out.').toInt(),
         body('players').optional().isArray({ max: NIGHT_MAX_PLAYERS }).withMessage(`Choose up to ${NIGHT_MAX_PLAYERS} players.`),
         body('players.*').isMongoId().withMessage('Choose the players of the night.'),
+        body('gone').optional().isArray({ max: NIGHT_MAX_PLAYERS }).withMessage('Choose who went home.'),
+        body('gone.*').isMongoId().withMessage('Choose who went home.'),
         body('setup').optional().isObject().withMessage('Choose the game of the night.'),
         setup('kind', NIGHT_KINDS),
         ...Object.entries(NIGHT_SETUP_CHOICES).map(([key, choices]) => setup(key, choices)),

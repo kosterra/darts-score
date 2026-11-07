@@ -17,6 +17,8 @@ export default (mongoose) => {
       hasWinner:     { type: Boolean, default: false },
       // counted in the all-time tally of finished quick games (once, even after an undo)
       counted:       { type: Boolean, default: false },
+      // a game of an evening that became a club: taken over into the club (once, see utils/evenings.js)
+      takenOver:     { type: Boolean, default: false },
       // only the browser with the key plays on: its hash
       keyHash:       { type: String, required: true },
     },

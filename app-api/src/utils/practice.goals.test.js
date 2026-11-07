@@ -78,6 +78,26 @@ describe('a goal as it is set', () => {
         expect(fresh).toEqual({ id: 'new-id', kind: 'games', target: 5, training: null, withBot: false });
         expect(normalizeGoals([{ kind: 'games', target: 1 }, { kind: 'games', target: 2 }, { kind: 'games', target: 3 }, { kind: 'games', target: 4 }])).toHaveLength(3);
     });
+
+    it('a goal on a score counts with the settings that split the scoreboard', () => {
+        expect(describeGoal({ kind: 'trainingScore', target: 135, training: 'checkout121', settings: { attempts: 30, darts: 9 } })).toBe('135 or better in 121 Checkout (30 attempts, 9 darts)');
+        // a goal saved before the settings: the defaults
+        expect(describeGoal({ kind: 'trainingScore', target: 60, training: 'scoring' })).toBe('60 or better in Scoring (30 darts)');
+        expect(goalError({ kind: 'trainingScore', target: 135, training: 'checkout121', settings: { attempts: 30 } })).toBeNull();
+        expect(goalError({ kind: 'trainingScore', target: 135, training: 'checkout121', settings: { attempts: 3 } })).toBe('Choose the settings of the training.');
+        // the finishes drawn are no setting of a goal
+        expect(goalError({ kind: 'trainingScore', target: 50, training: 'randomcheckouts', settings: { targets: [40] } })).toBe('Choose the settings of the training.');
+        expect(goalError({ kind: 'trainingScore', target: 50, training: 'scoring', settings: 'x' })).toBe('Choose the settings of the training.');
+        const before = [{ id: 'g1', kind: 'trainingScore', target: 130, training: 'checkout121' }];
+        const [kept, moved] = normalizeGoals([
+            { id: 'g1', kind: 'trainingScore', target: 130, training: 'checkout121', settings: { attempts: 10 } },
+            { id: 'g1', kind: 'trainingScore', target: 130, training: 'checkout121', settings: { attempts: 20 } },
+        ], before);
+        expect(kept).toEqual({ id: 'g1', kind: 'trainingScore', target: 130, training: 'checkout121', withBot: false, settings: { attempts: 10, darts: 9 } });
+        expect(moved).toMatchObject({ id: 'new-id', settings: { attempts: 20, darts: 9 } });
+        expect(goalView(kept, 128).settings).toEqual({ attempts: 10, darts: 9 });
+        expect(goalView({ id: 'g2', kind: 'games', target: 3 }, 1).settings).toBeNull();
+    });
 });
 
 describe('how far a goal is in the week', () => {
@@ -110,6 +130,18 @@ describe('how far a goal is in the week', () => {
         expect(shareOf(doubles, 64)).toBeCloseTo(55 / 64);
         expect(isReached({ kind: 'trainingScore', training: 'bobs27', target: 100 }, 87)).toBe(false);
         expect(isReached({ kind: 'trainingScore', training: 'bobs27', target: 100 }, null)).toBe(false);
+    });
+
+    it('takes the best score of the goal\'s settings only', () => {
+        const scoring = { ...emptyWeek(), rules: [
+            { at: new Date(2026, 10, 5, 19), player: 'p1', kind: 'scoring', score: 72, settings: { darts: 30 } },
+            { at: new Date(2026, 10, 5, 20), player: 'p1', kind: 'scoring', score: 58, settings: { darts: 99 } },
+            { at: new Date(2026, 10, 5, 21), player: 'p1', kind: 'scoring', score: 61, settings: {} },
+        ] };
+        expect(measure({ kind: 'trainingScore', training: 'scoring', settings: { darts: 99 } }, scoring, ['p1'])).toBe(58);
+        // without settings: the defaults (30 darts), a training saved without them too
+        expect(measure({ kind: 'trainingScore', training: 'scoring' }, scoring, ['p1'])).toBe(72);
+        expect(measure({ kind: 'trainingScore', training: 'scoring', settings: { darts: 60 } }, scoring, ['p1'])).toBeNull();
     });
 
     it('takes the best X01 average of the user\'s players, the bot only when chosen', () => {

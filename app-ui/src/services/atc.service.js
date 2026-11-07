@@ -24,10 +24,10 @@ const createATCEntry = async (atc) => {
     }
 }
 
-// scoring: 'Time' or 'Darts'; without it both
-const loadATCEntries = async (mode, scoring) => {
+// scoring: 'Time' or 'Darts'; without it both. level: only those played at that level
+const loadATCEntries = async (mode, scoring, level = null) => {
     try {
-        const params = new URLSearchParams({ ...(mode && { mode }), ...(scoring && { scoring }) }).toString();
+        const params = new URLSearchParams({ ...(mode && { mode }), ...(scoring && { scoring }), ...(level && level !== 'all' && { level }) }).toString();
         const queryString = params ? '?' + params : '';
         const response = await fetch(API_URL + 'training/atc' + queryString, {
             method: 'GET',

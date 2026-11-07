@@ -22,7 +22,8 @@ export default (mongoose) => {
       // how the player likes to play, on every device: the ways out, the keypad, the last setups, … (see rules/club.rules.js)
       gamePreferences: { type: mongoose.Schema.Types.Mixed, default: undefined },
       // the user's own goals for each week, in all their clubs: [{ id, kind, target, training, withBot }] (see utils/practice.goals.js)
-      practiceGoals:  { type: [{ _id: false, id: String, kind: String, target: Number, training: String, withBot: Boolean }], default: undefined },
+      // a goal on a score in a training counts with its settings (those that split the scoreboard)
+      practiceGoals:  { type: [{ _id: false, id: String, kind: String, target: Number, training: String, withBot: Boolean, settings: mongoose.Schema.Types.Mixed }], default: undefined },
       // which notifications the user gets, and how: { [topic]: { inApp, mail } } (see rules/notifications.js)
       notifications:  { type: mongoose.Schema.Types.Mixed, default: undefined },
       // when the last mail with the notifications of the day and of the week went out

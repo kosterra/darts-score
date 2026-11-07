@@ -5,8 +5,11 @@ import { removeProfileImageIfUnused } from './player.images.js';
 
 /**
  * Deletes a club with everything that belongs to it: its games, trainings,
- * tournaments, requests and what the app worked out for it. Players of this
- * club only go with it; members of other clubs stay there.
+ * tournaments, leagues, club nights, connections, requests, notices and
+ * what the app worked out for it. Players of this club only go with it;
+ * members of other clubs stay there. Kept: the alerts of the global admins
+ * (with the club's name), the shared tournaments of other clubs it played
+ * in (their host's), and a darts evening it was made from (it goes by itself).
  */
 export const deleteClubData = async (club, { by = '' } = {}) => {
     const onlyHere = { clubs: [club._id] };
@@ -31,6 +34,12 @@ export const deleteClubData = async (club, { by = '' } = {}) => {
         db.clubTally.deleteMany({ club: club._id }),
         db.fairPlayHit.deleteMany({ club: club._id }),
         db.deletionRequest.deleteMany({ club: club._id }),
+        db.attendance.deleteMany({ club: club._id }),
+        db.league.deleteMany({ club: club._id }),
+        db.integrityReview.deleteMany({ club: club._id }),
+        db.notification.deleteMany({ club: club._id }),
+        // its connections and requests, in both directions: no other club can accept one later
+        db.clubLink.deleteMany({ $or: [{ clubs: club._id }, { requestedClub: club._id }] }),
         db.user.updateMany({ defaultClub: club._id }, { $set: { defaultClub: null } }),
     ]);
     await db.club.deleteOne({ _id: club._id });

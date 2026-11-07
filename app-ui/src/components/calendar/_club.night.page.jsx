@@ -18,10 +18,9 @@ import EliminationService from '../../services/elimination.service';
 import { useAuth } from '../../utils/auth.context';
 import { locale, t } from '../../utils/i18n';
 import { QUICK_DEFAULTS, QUICK_GAMES, QUICK_LEGS, QUICK_SCORES, QUICK_VARIANTS, newQuickGame, quickSetupText } from '../../utils/quick.games';
-import { choosePlayers, chosenPlayers, eveningWindow, noteNightGame } from '../../utils/club.night';
-import { dayKey } from '../../rules/calendar';
+import { chooseGone, choosePlayers, chosenPlayers, eveningWindow, gonePlayers, noteNightGame } from '../../utils/club.night';
 import NextGame from '../evening/evening.next.game';
-import { EveningAwards, EveningForm, EveningHeadToHead, EveningTable } from '../evening/evening.parts';
+import { EveningAwards, EveningForm, EveningHeadToHead, EveningTable, TableOrder } from '../evening/evening.parts';
 import GameTypeIcon from '../elements/game.type.icon';
 import GameTypeTag from '../elements/game.type.tag';
 import GameStatusTag from '../elements/game.status.tag';
@@ -39,10 +38,13 @@ import MyMatch from '../boards/my.match';
 import SaveStatus from '../elements/save.status';
 import SettingSwitch from '../elements/setting.switch';
 import SetupBox from '../elements/setup.box';
+import { dayKeyIn, zoneOf } from '../../rules/zones';
 
 // the table follows the games played on the other boards; more often while the player's own match is on a board
 const REFRESH_MS = 20 * 1000;
 const MY_BOARD_MS = 15 * 1000;
+// who went home on a night on boards, as the page keeps it: { [id]: when }
+const goneOf = (night) => Object.fromEntries((night.left ?? []).map(entry => [entry.id, entry.at]));
 const CREATE = {
     x01: (game) => X01Service.createX01Game(game),
     cricket: (game) => CricketService.createCricketGame(game),
@@ -65,6 +67,8 @@ const ClubNightPage = () => {
     const [members, setMembers] = useState([]);
     const levels = usePlayerLevels();
     const [players, setPlayers] = useState(null);
+    // who went home ({ [id]: when }): no longer in the next game, their games keep counting
+    const [gone, setGone] = useState({});
     const [evening, setEvening] = useState(null);
     const [error, setError] = useState('');
     const [busy, setBusy] = useState(false);
@@ -72,19 +76,35 @@ const ClubNightPage = () => {
     const [boardNight, setBoardNight] = useState(null);
     const [boardChoice, setBoardChoice] = useState({});
     const boardPatch = useRef({});
+    // the admin's changes to the boards so far, and how many of them a save has answered: a
+    // refresh in between does not undo what is still on its way
+    const boardEdits = useRef(0);
+    const boardAnswered = useRef(0);
     const [boardBusy, setBoardBusy] = useState('');
-    const today = dayKey(new Date());
+    // the table by wins (as always), or by win rate when some played much less
+    const [order, setOrder] = useState('wins');
+    // today on the club's clock, the clock of its club nights
+    const today = dayKeyIn(new Date(), zoneOf(activeClub));
     const tonight = day === today;
     // the boards of the night, saved as you go: the changes chosen since the last save sent together
     const boardSave = useAutoSave(async () => {
         const changes = boardPatch.current;
         boardPatch.current = {};
-        const result = await BoardService.saveNight(day, changes);
-        setBoardNight(result);
-        // the players chosen are the night's now, on every device
-        if (result?.players) setPlayers(result.players.map(player => player.id));
+        const sent = boardEdits.current;
+        try {
+            const result = await BoardService.saveNight(day, changes);
+            setBoardNight(result);
+            // the players chosen are the night's now, on every device (unless chosen again meanwhile)
+            if (boardEdits.current === sent) {
+                if (result?.players) setPlayers(result.players.map(player => player.id));
+                if (result?.left) setGone(goneOf(result));
+            }
+        } finally {
+            boardAnswered.current = Math.max(boardAnswered.current, sent);
+        }
     });
     const chooseBoards = (changes, options = { now: true }) => {
+        boardEdits.current += 1;
         boardPatch.current = { ...boardPatch.current, ...changes };
         setBoardChoice(current => ({ ...current, ...changes }));
         boardSave.change({ ...boardPatch.current }, options);
@@ -101,15 +121,24 @@ const ClubNightPage = () => {
             }
             setNight(found);
             setPlayers(chosenPlayers(activeClub?.id, day) ?? found.coming.map(entry => entry.player));
+            setGone(gonePlayers(activeClub?.id, day));
         }).catch(err => setError(err.message));
         PlayerService.searchPlayers('').then(list => setMembers(list.filter(member => !member.guest))).catch(() => setMembers([]));
     }, [day, activeClub?.id]);
 
-    const span = useMemo(() => (night ? eveningWindow(day, night.start) : null), [day, night]);
-    const loadBoards = useCallback(() => BoardService.loadNight(day).then(found => {
-        setBoardNight(found);
-        if (found?.players?.length) setPlayers(found.players.map(player => player.id));
-    }).catch(() => {}), [day]);
+    const span = useMemo(() => (night ? eveningWindow(day, night.start, zoneOf(activeClub)) : null), [day, night, activeClub]);
+    const loadBoards = useCallback(() => {
+        const asked = boardEdits.current;
+        return BoardService.loadNight(day).then(found => {
+            setBoardNight(found);
+            // what the admin chose and is not saved yet stays as chosen
+            const changed = boardEdits.current !== asked || boardAnswered.current < boardEdits.current;
+            if (found?.players?.length && !changed) {
+                setPlayers(found.players.map(player => player.id));
+                setGone(goneOf(found));
+            }
+        }).catch(() => {});
+    }, [day]);
     useEffect(() => { loadBoards(); }, [loadBoards]);
     const myBoard = boardNight?.entries?.find(entry => entry.board && ['called', 'playing'].includes(entry.status) && entry.players.includes(boardNight.myPlayer)) ?? null;
     const load = useCallback(() => {
@@ -136,6 +165,20 @@ const ClubNightPage = () => {
         // on boards the players are the night's: who is taken out leaves the queue
         if (boardNight && isClubAdmin) chooseBoards({ players: ids });
     };
+    // someone went home (left) or is back: kept on this device, on boards the night's for everyone
+    const goHome = (id, left) => {
+        const next = { ...gone };
+        if (left) next[id] = new Date().toISOString();
+        else delete next[id];
+        setGone(next);
+        chooseGone(activeClub?.id, day, next);
+        if (boardNight && isClubAdmin) chooseBoards({ gone: Object.keys(next) });
+    };
+    // on boards the players and who went home are the night's: only the admins change them, the others see them
+    const canChoose = isClubAdmin || !boardNight?.players?.length;
+    const here = evening.players.filter(player => !gone[player.id]);
+    // the players of the table, with when they went home
+    const tablePlayers = evening.players.map(player => ({ ...player, leftAt: gone[player.id] ?? null }));
     const nameOf = (playerId) => evening.players.find(player => player.id === playerId)?.name ?? members.find(member => member.id === playerId)?.nickname ?? '?';
     const notPlaying = members.filter(member => !players.includes(member.id));
     const names = new Map(evening.players.map(player => [player.id, { nickname: player.name }]));
@@ -231,15 +274,21 @@ const ClubNightPage = () => {
                 {night.cancelled && <Message severity="warn" className="w-100 justify-content-start" text={t('This club night is cancelled.')} />}
 
                 <Panel header={t('Players tonight')}>
-                    <span className="text-faint fs-8 d-block mb-3">{t('Those who said they come; add others who came anyway. Only games among these players count for tonight.')}</span>
+                    <span className="text-faint fs-8 d-block mb-3">{t('Those who said they come; add others who came anyway. Only games among these players count for tonight: who goes home keeps theirs, who is taken out does not.')}</span>
                     <div className="d-flex flex-wrap align-items-center gap-2">
                         {players.map(id => (
-                            <span key={id} className="club-night-chip">
-                                {nameOf(id)}
-                                <button type="button" aria-label={t('Take {{name}} out of tonight', { name: nameOf(id) })} title={t('Take out')} onClick={() => setChosen(players.filter(entry => entry !== id))}><i className="pi pi-times" aria-hidden="true" /></button>
+                            <span key={id} className={`club-night-chip evening-player-chip ${gone[id] ? 'is-gone' : ''}`}>
+                                <span className="d-flex flex-column">
+                                    <span>{nameOf(id)}</span>
+                                    {gone[id] && <span className="evening-player-note">{t('went home at {{time}}', { time: dayjs(gone[id]).format('HH:mm') })}</span>}
+                                </span>
+                                {tonight && canChoose && (gone[id]
+                                    ? <button type="button" aria-label={t('{{name}} is back', { name: nameOf(id) })} title={t('Back')} onClick={() => goHome(id, false)}><i className="pi pi-replay" aria-hidden="true" /></button>
+                                    : <button type="button" aria-label={t('{{name}} went home', { name: nameOf(id) })} title={t('Gone home')} onClick={() => goHome(id, true)}><i className="pi pi-sign-out" aria-hidden="true" /></button>)}
+                                {canChoose && <button type="button" aria-label={t('Take {{name}} out of tonight', { name: nameOf(id) })} title={t('Take out')} onClick={() => setChosen(players.filter(entry => entry !== id))}><i className="pi pi-times" aria-hidden="true" /></button>}
                             </span>
                         ))}
-                        {notPlaying.length > 0 &&
+                        {canChoose && notPlaying.length > 0 &&
                             <Dropdown value={null} options={notPlaying.map(member => ({ label: member.nickname, value: member.id, player: member }))} itemTemplate={(option) => <PlayerOption player={option.player} level={levels[option.value]} />} onChange={(event) => setChosen([...players, event.value])} placeholder={t('Add a member')} filter className="club-night-add" />}
                     </div>
                 </Panel>
@@ -296,16 +345,16 @@ const ClubNightPage = () => {
                         hint={t('Who played least goes next, against someone new; a finished game frees its board at once.')}
                     />}
 
-                {tonight && evening.players.length >= 2 && !night.cancelled && !onBoards &&
+                {tonight && here.length >= 2 && !night.cancelled && !onBoards &&
                     <Panel header={t('Next game')}>
-                        <NextGame evening={{ id: `club-${activeClub?.id}-${day}`, players: evening.players, games: evening.games }} onStart={start} busy={busy} />
+                        <NextGame evening={{ id: `club-${activeClub?.id}-${day}`, players: here, games: evening.games }} onStart={start} busy={busy} />
                         <span className="text-faint fs-8 d-block mt-3">{t('A club game: it counts for the statistics, badges and levels of the club.')}</span>
                     </Panel>}
 
-                <Panel header={t('Table of the evening')}>
+                <Panel header={t('Table of the evening')} icons={report.played > 0 && <TableOrder value={order} onChange={setOrder} />}>
                     {report.played === 0
                         ? <span className="text-faint fs-7">{tonight ? t('The table fills with the first game.') : t('No game among these players that night.')}</span>
-                        : <EveningTable report={report} players={evening.players} />}
+                        : <EveningTable report={report} players={tablePlayers} order={order} />}
                 </Panel>
 
                 {report.awards.length > 0 &&

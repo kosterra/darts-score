@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 // Share cards: a nine-darter and a high checkout in the statistics of an X01 game, and
 // the win of a tournament, as pictures (saved where the browser has no share menu).
-const MOCK = 'http://localhost:3901';
+const MOCK = process.env.MOCK_URL ?? 'http://localhost:3901';
 const post = (path, body = {}) => fetch(`${MOCK}${path}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
 
 test.skip(({ isMobile }) => isMobile, 'once is enough: the pictures to share are the same at every width');
@@ -38,4 +38,16 @@ test('the win of a tournament to share', async ({ page }) => {
     const download = page.waitForEvent('download');
     await page.locator('.tournament-champion').getByRole('button', { name: 'Share' }).click();
     await (await download).saveAs(`test-results/share-win-${test.info().project.name}.png`);
+});
+
+test('the win of a league season to share', async ({ page }) => {
+    await post('/__test/logged-out', { loggedOut: false });
+    await post('/__test/role', { admin: true });
+    await post('/__test/leagues', { scenario: 'finished' });
+    const { leagues } = await (await fetch(`${MOCK}/api/leagues`)).json();
+    await page.addInitScript(() => localStorage.setItem('darts-score.activeClub', 'c1'));
+    await page.goto(`/leagues/${leagues[0].id}`);
+    const download = page.waitForEvent('download');
+    await page.locator('.tournament-champion').getByRole('button', { name: 'Share' }).click();
+    await (await download).saveAs(`test-results/share-league-${test.info().project.name}.png`);
 });

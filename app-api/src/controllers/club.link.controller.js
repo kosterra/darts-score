@@ -146,7 +146,12 @@ export const decide = async (req, res) => {
     if (String(link.requestedClub) === String(club._id)) {
         return res.status(403).json({ message: 'The other club decides your request.' });
     }
-    const other = await Club.findById(link.requestedClub, 'name');
+    const other = await Club.findById(link.requestedClub, 'name logo');
+    // the club that asked is gone meanwhile: nothing to connect to, the request goes
+    if (!other) {
+        await ClubLink.deleteOne({ _id: link._id });
+        return res.status(404).json({ message: 'That club was not found.' });
+    }
     try {
         if (req.body.accept) {
             link.status = 'accepted';

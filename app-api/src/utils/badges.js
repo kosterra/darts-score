@@ -4,7 +4,8 @@ import { isRulesGame } from './rules.kinds.js';
 import { withView } from './game.view.js';
 import { gameOf } from '../rules/games.js';
 import { replayGame } from '../rules/engine.js';
-import { legScores, partnersOf, sideKeysOf } from '../rules/x01.js';
+import { legScores, legWinnerOf, partnersOf, sideKeysOf } from '../rules/x01.js';
+import { wallClock } from '../rules/zones.js';
 
 /**
  * Badges players collect. Each group counts one thing (a "metric") and has
@@ -342,7 +343,9 @@ export const BADGE_GROUPS = [
     {
         group: 'checkout121', category: 'training', title: '121 Checkout', metric: 'checkout121Best',
         describe: (n) => `Check out ${n} in 121 Checkout`,
-        tiers: [[121, 'One-Two-One'], [130, 'Climber'], [150, 'Summit']],
+        // the target climbs one a checkout: 130 takes 20 of 30 attempts (or 10 of 10), 140 25 of 30 or
+        // 35 of 50, 150 every one of 30 or 40 of 50 (121 + attempts - 1 at most)
+        tiers: [[121, 'One-Two-One'], [130, 'Climber'], [140, 'High Ground'], [150, 'Summit']],
     },
     {
         group: 'catch40', category: 'training', title: 'Catch 40', metric: 'catch40Best',
@@ -620,11 +623,11 @@ export const wonInDecidingLeg = (game, playerId) => {
     const sets = Object.entries(withView('x01', game).allSetsThrows ?? {})
         .sort(([a], [b]) => number(a) - number(b))
         .map(([, set]) => Object.entries(set ?? {}).sort(([a], [b]) => number(a) - number(b)).map(([, leg]) => leg).filter(Array.isArray));
-    // the side that won a leg (in doubles the team, by its first player)
+    // the side that won a leg (in doubles the team, by its first player), also by the round limit
     const keyOf = sideKeysOf(game);
     const winnerOf = (leg) => {
-        const id = leg.find(visit => visit?.scoreLeft === 0)?.playerId;
-        return id === undefined ? undefined : keyOf[id] ?? id;
+        const id = legWinnerOf(game, leg);
+        return id == null ? undefined : keyOf[id] ?? id;
     };
 
     const setsWon = new Map();
@@ -671,11 +674,13 @@ const applyVisits = (metrics, game, playerId, won, lost) => {
         if (busts >= BUSTS_IN_A_LEG) metrics.bustMasters += 1;
         if (atDouble >= DARTS_AT_DOUBLE) metrics.stuckOnDoubles += 1;
 
-        const finish = leg.find(visit => visit?.scoreLeft === 0);
-        if (!finish) continue;
-        legsWon.set(sideOf(finish.playerId), (legsWon.get(sideOf(finish.playerId)) ?? 0) + 1);
+        // the leg's winner, also by the round limit; the checkout figures only for a leg checked out
+        const winner = legWinnerOf(game, leg);
+        if (winner == null) continue;
+        legsWon.set(sideOf(winner), (legsWon.get(sideOf(winner)) ?? 0) + 1);
 
-        if (finish.playerId === playerId) {
+        const finish = leg.find(visit => visit?.scoreLeft === 0);
+        if (finish?.playerId === playerId) {
             const darts = upperDarts(finish.darts);
             if (sameDarts(finish.darts, SHANGHAI)) metrics.shanghaiFinishes += 1;
             if (darts.at(-1) === 'D1') metrics.madhouses += 1;
@@ -723,8 +728,10 @@ const applyCricket = (metrics, game, model, playerId) => {
     }
 };
 
-const weekOf = (date) => Math.floor((new Date(date).getTime() - FIRST_MONDAY_MS) / WEEK_MS);
-const dayOf = (date) => Math.floor(new Date(date).getTime() / DAY_MS);
+// the week of a moment, Monday to Sunday on the clock of the default zone (Europe/Zurich), not in UTC
+const weekOf = (date) => Math.floor((wallClock(date) - FIRST_MONDAY_MS) / WEEK_MS);
+// the day of a moment on the clock of the default zone (Europe/Zurich), not in UTC
+const dayOf = (date) => Math.floor(wallClock(date) / DAY_MS);
 
 /**
  * Keeps track of the weeks in which the player played or trained.

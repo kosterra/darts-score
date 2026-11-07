@@ -75,6 +75,10 @@ const sendToTv = (id, code) => request(`${API_URL}/${id}/screen/send`, { method:
 // the end of the evening (the browser that runs it): no more games → the evening
 const endEvening = (id) => request(`${API_URL}/${id}/end`, { method: 'POST', key: eveningKeyOf(id) });
 
-const EveningService = { createEvening, loadEvening, loadShared, addGame, makeClub, screenLink, sendToTv, endEvening };
+// someone arrives later, or went home and is back (the browser that runs it) → the evening
+const addPlayer = (id, name) => request(`${API_URL}/${id}/players`, { method: 'POST', body: { name }, key: eveningKeyOf(id) });
+const setPlayerLeft = (id, player, left) => request(`${API_URL}/${id}/players/${player}`, { method: 'PUT', body: { left }, key: eveningKeyOf(id) });
+
+const EveningService = { createEvening, loadEvening, loadShared, addGame, makeClub, screenLink, sendToTv, endEvening, addPlayer, setPlayerLeft };
 
 export default EveningService;

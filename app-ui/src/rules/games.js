@@ -9,6 +9,17 @@ import { HALVE_IT_CLASSIC, HALVE_IT_SHORT } from './club.rules.js';
 const sum = (values) => values.reduce((total, value) => total + value, 0);
 const playersOf = (ids, make) => Object.fromEntries(ids.map(id => [id, make(id)]));
 const roundsLeft = (round, rounds) => Math.max(0, rounds - round + 1);
+// fewer darts than this say too little about the level a game was played at (see levels.play.js)
+const LEVEL_DARTS = 9;
+const levelPercent = (value) => `${Math.round(value)} %`;
+// The bands of the levels are what a player of a 25, 40, 50, 60, 75 and 90 average throws in the
+// game, from the simulated thrower of levels.play.js (where hobby, amateur, semi-pro, pro, world
+// class and elite start).
+// marks per round aiming at the treble of one number, as in Shanghai and Baseball: the darts on
+// the number count, its neighbours nothing
+const ONE_NUMBER_MARKS = [1.25, 2.2, 2.8, 3.4, 4.3, 5.2];
+// hit rate on doubles, as Doubles around the board (DOUBLES_BANDS of levels.play.js)
+const DOUBLES_BANDS = [5, 11, 16, 22, 30, 39];
 
 /**
  * Shanghai: round 1 on the 1s, round 2 on the 2s, and so on. Only the number
@@ -70,6 +81,16 @@ export const SHANGHAI = {
         [t('Hit rate'), player.darts ? `${Math.round(player.hits / player.darts * 100)} %` : '–'],
         [t('Shanghai'), player.shanghai ? t('Yes') : t('No')],
     ],
+    // the points against the marks per round at the treble of the round's number: round r is worth
+    // r a mark, so on 1 to 7 a 50 average's 2.8 marks a round are about 78 points, a 90's 5.2 about 146
+    level: {
+        by: t('the points'),
+        of: (player) => (player.darts >= LEVEL_DARTS ? player.points : null),
+        bands: (player) => {
+            const rounds = Math.ceil(player.darts / 3);
+            return ONE_NUMBER_MARKS.map(marks => marks * rounds * (rounds + 1) / 2);
+        },
+    },
     preview: (state, id, darts, { round, settings }) => {
         const points = sum(darts.filter(dart => dart.number === round).map(dart => dart.points));
         const rings = new Set(darts.filter(dart => dart.number === round).map(dart => dart.ring));
@@ -102,7 +123,7 @@ export const KILLER = {
         return { ...settings, numbers: Object.fromEntries(ids.map((id, index) => [id, numbers[index]])) };
     },
     init: (settings, ids) => ({
-        players: playersOf(ids, id => ({ number: settings.numbers?.[id] ?? ids.indexOf(id) + 1, lives: settings.lives, killer: false, kills: 0, outAt: null, darts: 0, ownLost: 0, bestVisit: 0 })),
+        players: playersOf(ids, id => ({ number: settings.numbers?.[id] ?? ids.indexOf(id) + 1, lives: settings.lives, killer: false, kills: 0, outAt: null, darts: 0, ownLost: 0, bestVisit: 0, onTarget: 0 })),
         visits: 0,
     }),
     visit: (state, id, darts, { settings } = {}) => {
@@ -118,12 +139,15 @@ export const KILLER = {
             if (player.lives <= 0) continue;
             if (!player.killer && anyHit && dart.number === player.number) {
                 player.killer = true;
+                player.onTarget += 1;
                 continue;
             }
             if (!isDouble(dart)) continue;
             if (dart.number === player.number) {
-                if (!player.killer) player.killer = true;
-                else if (!ownSafe) {
+                if (!player.killer) {
+                    player.killer = true;
+                    player.onTarget += 1;
+                } else if (!ownSafe) {
                     player.lives -= 1;
                     player.ownLost = (player.ownLost ?? 0) + 1;
                 }
@@ -134,6 +158,7 @@ export const KILLER = {
             if (victim) {
                 victim.lives -= 1;
                 player.kills += 1;
+                player.onTarget += 1;
             }
         }
         player.bestVisit = Math.max(player.bestVisit ?? 0, player.kills - killsBefore);
@@ -170,6 +195,14 @@ export const KILLER = {
         [t('Lives left'), Math.max(0, player.lives)],
         [t('Lives taken'), player.kills],
     ],
+    // the throwing, not the result: the share of darts in the double that counted (one's own to
+    // become a killer, then the others'), as the hit rate on doubles of Doubles around the board
+    level: {
+        by: t('the hit rate on the doubles'),
+        of: (player) => (player.darts >= LEVEL_DARTS && player.onTarget != null ? player.onTarget / player.darts * 100 : null),
+        bands: DOUBLES_BANDS,
+        format: levelPercent,
+    },
     preview: (state, id, darts, { settings } = {}) => {
         const player = state.players[id];
         const becomes = (dart) => dart.number === player.number && (isDouble(dart) || settings?.become === 'any');
@@ -256,6 +289,15 @@ export const HALVE_IT = {
         [t('Halved'), player.halved],
         [t('Best round'), player.best],
     ],
+    // the points at the end, the typical game of the simulated thrower (trebles of the numbers, D20
+    // for any double, T20 for any treble, the bullseye, singles to make 41): the classic nine rounds
+    // about 225 for a 50 average, 520 for 75 and 700 for 90, the short six 180, 380 and 510. A club's
+    // own targets have no level, nor a game not played to the end.
+    level: {
+        by: t('the points'),
+        of: (player, state, settings) => (!settings?.targetList?.length && player.rounds.length >= halveItTargetsOf(settings).length ? player.points : null),
+        bands: (player, state, settings) => (settings?.targets === 'short' ? [35, 110, 180, 255, 380, 510] : [35, 120, 225, 345, 520, 700]),
+    },
     preview: (state, id, darts, { round, settings }) => {
         const target = halveItTargetsOf(settings)[round - 1];
         const points = target ? target.points(darts) : 0;
@@ -323,6 +365,16 @@ export const GOLF = {
         [t('Holes in one stroke'), player.holes.filter(strokes => strokes === 1).length],
         [t('Strokes per hole'), player.holes.length ? (player.strokes / player.holes.length).toFixed(1) : '–'],
     ],
+    // strokes per hole (the holes played, so 9 or 18 alike), aiming at the double, treble or single
+    // that promises the fewest and stopping when the next dart would not do better: about 2.5 for a
+    // 50 average, 1.95 for 75 and 1.6 for 90; par is 3
+    level: {
+        by: t('the strokes per hole'),
+        of: (player) => (player.holes.length >= 3 ? player.strokes / player.holes.length : null),
+        bands: [3.35, 2.8, 2.5, 2.25, 1.95, 1.6],
+        lowerIsBetter: true,
+        format: (value) => Number(value).toFixed(1),
+    },
     preview: (state, id, darts, { round }) => darts.length ? tn(strokesOf(darts, round), 'This hole: {{count}} stroke', 'This hole: {{count}} strokes') : t('Throw at the {{number}}', { number: round }),
 };
 
@@ -391,6 +443,14 @@ export const TACTICS = {
         [t('Numbers closed'), `${TACTICS_NUMBERS.filter(number => player.marks[number] >= 3).length} / 12`],
         [t('Marks per round'), player.darts ? (player.totalMarks / player.darts * 3).toFixed(1) : '–'],
     ],
+    // the throwing, not the tactics: marks per round as in Cricket, a little higher than there as
+    // more numbers count (the 15 next to the 10, the 11 next to the 14 and 8 …)
+    level: {
+        by: t('the marks per round'),
+        of: (player) => (player.darts >= LEVEL_DARTS ? player.totalMarks / player.darts * 3 : null),
+        bands: [2, 2.5, 3, 3.5, 4.3, 5.1],
+        format: (value) => Number(value).toFixed(1),
+    },
     preview: (state, id, darts) => tn(sum(darts.filter(dart => TACTICS_NUMBERS.includes(dart.number)).map(marksOf)), '{{count}} mark this visit', '{{count}} marks this visit'),
 };
 
@@ -474,6 +534,17 @@ export const BASEBALL = {
         [t('Best inning'), player.innings.length ? Math.max(...player.innings) : '–'],
         [t('Home runs'), player.homeRuns],
     ],
+    // runs per inning of the nine on the numbers (not the extra ones on the bull): a run a mark at
+    // the treble of the inning's number, as in Shanghai (a home run now and then hardly counts)
+    level: {
+        by: t('the runs per inning'),
+        of: (player) => {
+            const innings = player.innings.slice(0, BASEBALL_INNINGS);
+            return innings.length >= 3 ? sum(innings) / innings.length : null;
+        },
+        bands: ONE_NUMBER_MARKS,
+        format: (value) => Number(value).toFixed(1),
+    },
     preview: (state, id, darts, { round }) => tn(sum(darts.map(dart => runsOf(dart, round))), 'Inning {{inning}}: {{count}} run', 'Inning {{inning}}: {{count}} runs', { inning: inningName(round) }),
 };
 
@@ -559,6 +630,15 @@ export const SCRAM = {
         [t('Points per visit'), player.scoreDarts ? (player.points / player.scoreDarts * 3).toFixed(1) : '–'],
         [t('Darts to close'), player.stopDarts || '–'],
     ],
+    // the throwing, not the result: the numbers closed as stopper per dart, any ring of an open
+    // number, aiming at its outer single. With 1 to 20 a dart next door often closes one too, so
+    // the rate is higher there (a 50 average about 69 % on 15 to 20, 80 % on all the numbers)
+    level: {
+        by: t('the hit rate as stopper'),
+        of: (player) => (player.stopDarts >= 6 ? player.closed / player.stopDarts * 100 : null),
+        bands: (player, state, settings) => (settings?.numbers === 'all' ? [47, 71, 80, 87, 93, 97] : [32, 57, 69, 79, 88, 94]),
+        format: levelPercent,
+    },
     preview: (state, id, darts, { settings }) => {
         const numbers = numbersOf(settings);
         const open = darts.filter(dart => numbers.includes(dart.number) && !state.closed.includes(dart.number));

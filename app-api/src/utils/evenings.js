@@ -1,7 +1,11 @@
 import crypto from 'node:crypto';
+import mongoose from 'mongoose';
+import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
 import { NAME, QUICK_PLAYER_IDS, hashKey, newKey, quickGameError } from './quick.games.js';
 import { storedOf, viewOf } from './game.view.js';
+import { levelKindOf, withPlayLevels } from './play.levels.js';
+import { gameLevelOf } from '../rules/levels.play.js';
 import { countEvening } from './quick.tally.js';
 
 /**
@@ -45,9 +49,40 @@ export const newEvening = ({ name = '', names }) => {
     };
 };
 
+// a player of the evening as it shows them: when they came later and when they went home
+const playerView = ({ id, name, joinedAt = null, leftAt = null }) => ({ id, name, joinedAt: joinedAt ?? null, leftAt: leftAt ?? null });
+
+/**
+ * Someone arrives later: a new player of the evening under a name of their
+ * own, while there is room (8 at most). Puts them on the evening.
+ * → { player } or { error }
+ */
+export const addEveningPlayer = (evening, name, now = new Date()) => {
+    const trimmed = typeof name === 'string' ? name.trim() : '';
+    if (!NAME.test(trimmed)) return { error: 'A name has 1 to 20 letters or digits.' };
+    if (evening.players.some(player => player.name.toLowerCase() === trimmed.toLowerCase())) return { error: 'Every player needs a name of their own.' };
+    const id = QUICK_PLAYER_IDS.find(entry => !evening.players.some(player => player.id === entry));
+    if (!id || evening.players.length >= EVENING_PLAYERS.max) return { error: 'An evening has 2 to 8 players.' };
+    const player = { id, name: trimmed, joinedAt: now, leftAt: null };
+    evening.players.push(player);
+    return { player };
+};
+
+/**
+ * A player went home (left: true) or is back (false): who went home is no
+ * longer suggested or chosen for a game, their games keep counting.
+ * → { player } or { error }
+ */
+export const setEveningPlayerLeft = (evening, playerId, left, now = new Date()) => {
+    const player = evening.players.find(entry => entry.id === playerId);
+    if (!player) return { error: 'There is no such player in this evening.' };
+    player.leftAt = left ? (player.leftAt ?? now) : null;
+    return { player };
+};
+
 /**
  * Why a game cannot be played in the evening, or null: a quick game whose
- * players are players of the evening, under their names.
+ * players are players of the evening, under their names, none of them gone home.
  */
 export const eveningGameError = (evening, kind, game) => {
     const error = quickGameError(kind, game);
@@ -57,6 +92,8 @@ export const eveningGameError = (evening, kind, game) => {
     for (const player of game.quickPlayers) {
         if (names.get(player.id) !== player.nickname.trim()) return 'The players of a game are players of the evening.';
     }
+    const gone = evening.players.find(player => player.leftAt && game.players.includes(player.id));
+    if (gone) return 'Someone in this game went home: bring them back first.';
     return null;
 };
 
@@ -187,12 +224,14 @@ export const gameSummary = (game) => {
         kind: game.kind,
         players: data.players ?? [],
         winner,
-        // each player's result: the legs won in X01, the score in Cricket and Elimination
+        // each player's result: the legs won in X01, the score in Cricket and Elimination, and
+        // the level played at (null without enough darts to judge)
         results: (data.players ?? []).map(id => {
             const model = view.playerModels?.[id] ?? {};
+            const level = gameLevelOf(game.kind, view, id)?.level ?? null;
             return game.kind === 'x01'
-                ? { player: id, legs: model.legsWon?.game ?? 0, isWinner: id === winner }
-                : { player: id, score: model.score ?? null, isWinner: id === winner };
+                ? { player: id, legs: model.legsWon?.game ?? 0, isWinner: id === winner, level }
+                : { player: id, score: model.score ?? null, isWinner: id === winner, level };
         }),
         finished: Boolean(game.hasWinner),
         running: Boolean(game.gameIsRunning) && !game.hasWinner,
@@ -213,7 +252,7 @@ export const gameSummary = (game) => {
 export const eveningView = (evening, games, { owner = false } = {}) => ({
     id: String(evening._id),
     name: evening.name,
-    players: evening.players.map(({ id, name }) => ({ id, name })),
+    players: evening.players.map(playerView),
     games: [...games].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).map(gameSummary),
     report: eveningReport(evening, games),
     createdAt: evening.createdAt,
@@ -227,31 +266,22 @@ export const eveningView = (evening, games, { owner = false } = {}) => ({
 // Making it a club
 // ---------------------------------------------------------------------------
 
+// how long a request making the evening a club holds it; after that (it crashed) another may try
+const ADOPTING_HOLD_MS = 10 * 60 * 1000;
+
 /**
- * Makes the evening a club of the user: the club with the user as its admin,
- * a player for each player of the evening (the user's own one, "me", gets
- * their login), and the evening's finished games taken over with their dates,
- * counted in the club's statistics and badges. → { club, players }
+ * Takes a finished quick game of the evening over into its club, with the
+ * club's players (players: evening player id → club player id), keeping the
+ * day it was played, and counts it in the club's statistics and badges.
+ * Only once per game, also with two requests at once: resolves to false when
+ * it was taken over already (or is not finished).
  */
-export const adoptEvening = async (evening, user, { name, me = null } = {}) => {
-    if (evening.club) throw Object.assign(new Error('This evening is a club already.'), { status: 409 });
-    const clubName = String(name ?? '').trim();
-    if (!clubName || clubName.length > 60) throw Object.assign(new Error('Give the club a name of at most 60 characters.'), { status: 422 });
-    if (me && !evening.players.some(player => player.id === me)) throw Object.assign(new Error('Choose one of the players of the evening.'), { status: 422 });
-
-    const club = await db.club.create({ name: clubName, admins: [user._id] });
-    const players = new Map();
-    for (const player of evening.players) {
-        const created = await db.player.create({
-            firstname: player.name, lastname: '-', nickname: player.name, clubs: [club._id],
-            ...(player.id === me ? { user: user._id, firstname: user.firstname, lastname: user.lastname } : {}),
-        });
-        players.set(player.id, String(created._id));
-    }
-
-    const games = await db.quickGame.find({ evening: evening._id, hasWinner: true }).sort({ createdAt: 1 }).lean();
-    const { syncGameBadges } = await import('./badge.service.js');
-    for (const game of games) {
+export const takeOverGame = async (game, clubId, players) => {
+    const claimed = await db.quickGame.updateOne({ _id: game._id, hasWinner: true, takenOver: { $ne: true } }, { $set: { takenOver: true } });
+    if (!claimed.modifiedCount) return false;
+    const Model = GAME_MODELS[game.kind]();
+    let doc = null;
+    try {
         const data = game.data ?? {};
         const map = (id) => players.get(id) ?? id;
         // eslint-disable-next-line no-unused-vars
@@ -265,14 +295,138 @@ export const adoptEvening = async (evening, user, { name, me = null } = {}) => {
             visits: (data.visits ?? []).map(visit => ({ ...visit, player: map(visit.player) })),
             flyingDarts: 'players',
         });
-        const doc = await GAME_MODELS[game.kind]().create({ ...stored, club: club._id, friendly: false });
+        doc = await Model.create({ ...withPlayLevels(levelKindOf(game.kind), stored), club: clubId, friendly: false });
         // the game keeps the day it was played
-        await GAME_MODELS[game.kind]().updateOne({ _id: doc._id }, { $set: { createdAt: game.createdAt, updatedAt: game.updatedAt } }, { timestamps: false });
-        await syncGameBadges(club._id, { ...doc.toObject(), createdAt: game.createdAt, updatedAt: game.updatedAt }, game.kind);
+        await Model.updateOne({ _id: doc._id }, { $set: { createdAt: game.createdAt, updatedAt: game.updatedAt } }, { timestamps: false });
+        const { syncGameBadges } = await import('./badge.service.js');
+        await syncGameBadges(clubId, { ...doc.toObject(), createdAt: game.createdAt, updatedAt: game.updatedAt }, game.kind);
+        return true;
+    } catch (err) {
+        // not taken over after all: no half copy in the club, and it may be tried again
+        if (doc) await Promise.all([Model.deleteOne({ _id: doc._id }), db.clubTally.deleteMany({ club: clubId, sourceId: String(doc._id) })]);
+        await db.quickGame.updateOne({ _id: game._id }, { $set: { takenOver: false } });
+        throw err;
+    }
+};
+
+// the finished games of the evening not in its club yet, the oldest first, taken over → how many
+const takeOverFinished = async (evening, clubId, players) => {
+    const games = await db.quickGame.find({ evening: evening._id, hasWinner: true, takenOver: { $ne: true } }).sort({ createdAt: 1 }).lean();
+    let count = 0;
+    for (const game of games) if (await takeOverGame(game, clubId, players)) count += 1;
+    return count;
+};
+
+/**
+ * A game of an evening that became a club was finished afterwards (it was
+ * still running then): it goes into the club like the others. Never throws:
+ * the quick game is saved all the same. → true when it was taken over
+ */
+export const takeOverLateGame = async (game) => {
+    if (!game?.evening || !game.hasWinner || game.takenOver) return false;
+    try {
+        const evening = await db.quickEvening.findById(game.evening, 'club clubPlayers').lean();
+        // evenings made a club before the club's players were noted, or whose club is gone, keep it to themselves
+        if (!evening?.club || !evening.clubPlayers?.length || !(await db.club.exists({ _id: evening.club }))) return false;
+        const players = new Map(evening.clubPlayers.map(entry => [entry.id, String(entry.player)]));
+        const ids = (game.data?.players ?? []).map(id => players.get(id));
+        // every player of the game is still in the club
+        if (ids.some(id => !id) || await db.player.countDocuments({ _id: { $in: ids }, clubs: evening.club }) !== new Set(ids).size) return false;
+        return await takeOverGame(game, evening.club, players);
+    } catch (err) {
+        logger.error(err, `Failed to take the game ${game._id} over into the club of its evening`);
+        return false;
+    }
+};
+
+// the club a request to make the evening a club left behind when it stopped part-way: removed, with its players
+const removeHalfClub = async (evening) => {
+    const left = (await db.quickEvening.findById(evening._id, 'adoptingClub').lean())?.adoptingClub;
+    if (!left) return;
+    const half = await db.club.findById(left);
+    if (half) {
+        const { deleteClubData } = await import('./club.deletion.js');
+        await deleteClubData(half, { by: 'a take-over of a darts evening that stopped part-way' });
+    }
+    await db.quickGame.updateMany({ evening: evening._id, takenOver: true }, { $set: { takenOver: false } });
+    await db.quickEvening.updateOne({ _id: evening._id }, { $set: { adoptingClub: null } });
+};
+
+/**
+ * Makes the evening a club of the user: the club with the user as its admin,
+ * a player for each player of the evening (the user's own one, "me", gets
+ * their login), and the evening's finished games taken over with their dates,
+ * counted in the club's statistics and badges; a game still running follows
+ * once it is finished (see takeOverLateGame). Only one request makes the
+ * club: a second one at the same time, or one after it, is refused; when
+ * something fails on the way, what was created goes again and it can be
+ * tried once more. A request that stopped part-way without cleaning up (the
+ * server went down) leaves its club noted on the evening: the next one,
+ * after the hold, removes that half club first. → { club, players, games }
+ */
+export const adoptEvening = async (evening, user, { name, me = null } = {}) => {
+    const already = () => Object.assign(new Error('This evening is a club already.'), { status: 409 });
+    if (evening.club) throw already();
+    const clubName = String(name ?? '').trim();
+    if (!clubName || clubName.length > 60) throw Object.assign(new Error('Give the club a name of at most 60 characters.'), { status: 422 });
+    if (me && !evening.players.some(player => player.id === me)) throw Object.assign(new Error('Choose one of the players of the evening.'), { status: 422 });
+
+    // claim it first, so no other request makes a second club of it
+    const since = new Date();
+    const claimed = await db.quickEvening.updateOne(
+        { _id: evening._id, club: null, $or: [{ adopting: null }, { adopting: { $lt: new Date(since.getTime() - ADOPTING_HOLD_MS) } }] },
+        { $set: { adopting: since } }
+    );
+    if (!claimed.modifiedCount) throw already();
+
+    // a half club of a request that stopped part-way goes first (if that fails, it stays noted)
+    try {
+        await removeHalfClub(evening);
+    } catch (err) {
+        await db.quickEvening.updateOne({ _id: evening._id, adopting: since }, { $set: { adopting: null } });
+        throw err;
     }
 
-    evening.club = club._id;
-    evening.adoptedAt = new Date();
-    await evening.save();
-    return { club, players: Object.fromEntries(players), games: games.length };
+    let club = null;
+    try {
+        // the club noted on the evening before it is made, so a request stopped part-way leaves no stray club
+        const clubId = new mongoose.Types.ObjectId();
+        const noted = await db.quickEvening.updateOne({ _id: evening._id, adopting: since }, { $set: { adoptingClub: clubId } });
+        // after the hold another request may have taken it over: this one stops
+        if (!noted.modifiedCount) throw already();
+        club = await db.club.create({ _id: clubId, name: clubName, admins: [user._id] });
+        const players = new Map();
+        for (const player of evening.players) {
+            const created = await db.player.create({
+                firstname: player.name, lastname: '-', nickname: player.name, clubs: [club._id],
+                ...(player.id === me ? { user: user._id, firstname: user.firstname, lastname: user.lastname } : {}),
+            });
+            players.set(player.id, String(created._id));
+        }
+        const clubPlayers = [...players].map(([id, player]) => ({ id, player }));
+        const adoptedAt = new Date();
+        // the club is the evening's from now on: a game finished meanwhile follows by itself
+        const made = await db.quickEvening.updateOne({ _id: evening._id, adopting: since }, { $set: { club: club._id, adoptedAt, clubPlayers, adopting: null, adoptingClub: null } });
+        if (!made.modifiedCount) throw already();
+        Object.assign(evening, { club: club._id, adoptedAt, clubPlayers, adopting: null, adoptingClub: null });
+        const games = await takeOverFinished(evening, club._id, players);
+        return { club, players: Object.fromEntries(players), games };
+    } catch (err) {
+        // back to how it was: no half club, and it can be made a club again
+        let removed = true;
+        if (club) {
+            const { deleteClubData } = await import('./club.deletion.js');
+            await deleteClubData(club, { by: 'a failed take-over of a darts evening' }).catch(cleanup => {
+                removed = false;
+                logger.error(cleanup, `Failed to remove the club ${club._id} of a failed take-over`);
+            });
+        }
+        await db.quickGame.updateMany({ evening: evening._id, takenOver: true }, { $set: { takenOver: false } });
+        // a club not removed stays noted, for the next request to remove
+        const reset = { club: null, adoptedAt: null, clubPlayers: [], adopting: null, ...(removed && { adoptingClub: null }) };
+        // only while the evening is still this request's (not another's that took over after the hold)
+        await db.quickEvening.updateOne({ _id: evening._id, $or: [{ adopting: since }, ...(club ? [{ club: club._id }] : [])] }, { $set: reset });
+        Object.assign(evening, reset);
+        throw err;
+    }
 };

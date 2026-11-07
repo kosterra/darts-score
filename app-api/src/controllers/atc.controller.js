@@ -6,6 +6,7 @@ import { noteCreated, noteDeleted, noteFairPlay, checkLater } from '../utils/spa
 import { hiddenTrainingPlayers, mayDeleteTrainingOf } from '../utils/training.privacy.js';
 import { noteTrainingRecords } from '../utils/player.notices.js';
 import { practiceGoalsAfterTraining } from '../utils/practice.goals.js';
+import { levelFilterOf, withPlayLevels } from '../utils/play.levels.js';
 
 const ATC = db.atc;
 
@@ -49,7 +50,7 @@ export const create = async (req, res) => {
         const clubBest = await ATC.findOne({ club: req.club._id, mode: req.body.mode, ...scoringFilter(scoring) }).sort({ [field]: 1, createdAt: 1 }).lean();
 
         // the player by id, with the nickname for when the player is deleted later
-        const atc = new ATC({
+        const atc = new ATC(withPlayLevels('atc', {
             club: req.club._id,
             mode: req.body.mode,
             scoring,
@@ -58,7 +59,7 @@ export const create = async (req, res) => {
                 : { timeMs: req.body.timeMs }),
             ...(req.body.session && { session: req.body.session }),
             player: { id: String(player._id), nickname: player.nickname },
-        });
+        }));
         const data = await atc.save();
         checkLater(() => noteCreated(req, 'training', { id: data._id, name: 'Around the Clock', names: [] }));
         checkLater(() => noteFairPlay(req.club._id, 'training', data));
@@ -101,6 +102,8 @@ export const findByQuery = async (req, res) => {
             ? { mode: { $regex: new RegExp(req.query.mode.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i') } }
             : {};
         condition.club = req.club._id;
+        // ?level: only those played at that level
+        Object.assign(condition, levelFilterOf(req.query));
         if (req.query.scoring) Object.assign(condition, scoringFilter(req.query.scoring));
         // the trainings of players who keep them to themselves stay out (also of the scoreboard)
         const hidden = await hiddenTrainingPlayers(req);

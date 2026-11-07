@@ -228,6 +228,30 @@
   min-width: 0;
 }
 
+// the level the round was played at, under the hit rate
+.atc-row-level {
+  align-self: flex-start;
+  margin-top: 0.3rem;
+}
+
+// on a scoreboard the level played at after the date, on the same line
+// (under it where the row is narrow, as on a phone)
+.atc-row-detail-level {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.15rem $space-2;
+  min-width: 0;
+  overflow: visible;
+  white-space: normal;
+
+  > span:first-child { white-space: nowrap; }
+  // the long label beside a long result on a phone: on two lines rather than cut off;
+  // the short one ("World class") fits the column and stays on one line
+  .play-level-tag { max-width: 100%; white-space: normal; text-align: left; }
+  .play-level-tag.is-compact { white-space: nowrap; }
+}
+
 .atc-row-name,
 .atc-row-detail {
   overflow: hidden;

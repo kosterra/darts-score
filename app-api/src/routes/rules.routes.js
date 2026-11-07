@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { screenGameRoutes } from './screen.routes.js';
 import { validate } from '../utils/validation.js';
 import { requireClubAdmin } from '../middleware/auth.middleware.js';
-import { validatePlayerIds, validateRulesGame, validateRulesTraining } from '../validators/game.validators.js';
+import { validateLevelQuery, validatePlayerIds, validateRulesGame, validateRulesTraining } from '../validators/game.validators.js';
 import controller from '../controllers/rules.game.controller.js';
 import * as TrainingController from '../controllers/rules.training.controller.js';
 
@@ -11,7 +11,7 @@ export default (app) => {
     const games = Router();
     games.post('/',    validateRulesGame, validate, controller.create);
     games.post('/find', validatePlayerIds, validate, controller.findByFilters);
-    games.get('/',                                  controller.findAll);
+    games.get('/',     validateLevelQuery, validate, controller.findAll);
     games.get('/:id',                               controller.findOne);
     games.put('/:id',  validateRulesGame, validate, controller.update);
     games.delete('/:id', requireClubAdmin,          controller.delete);
@@ -21,7 +21,7 @@ export default (app) => {
 
     const trainings = Router();
     trainings.post('/', validateRulesTraining, validate, TrainingController.create);
-    trainings.get('/', TrainingController.findByQuery);
+    trainings.get('/', validateLevelQuery, validate, TrainingController.findByQuery);
     // the player's own trainings, or any as an admin of the club (checked in the controller)
     trainings.delete('/:id', TrainingController.del);
     app.use('/api/training/rules', trainings);

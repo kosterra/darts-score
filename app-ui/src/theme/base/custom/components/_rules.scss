@@ -212,6 +212,53 @@
     }
 }
 
+// the end of a training, where the darts were entered: saved only once confirmed, the last dart can
+// still go back; the two buttons as big as Hit and Miss, side by side also on a phone
+.rules-over {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: $space-2;
+    padding: $space-4;
+    border-radius: $radius-md;
+    background: var(--surface-raised);
+    text-align: center;
+
+    .rules-over-icon {
+        color: $accentGold;
+        font-size: $text-2xl;
+    }
+
+    .rules-over-title {
+        color: $textDefaultColor;
+        font-size: $text-xl;
+        font-weight: $weight-semibold;
+    }
+
+    .rules-over-hint {
+        color: $textSubtleColor;
+        font-size: $text-sm;
+    }
+
+    .rules-over-actions {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: $space-3;
+        width: 100%;
+        margin-top: $space-2;
+
+        .p-button {
+            justify-content: center;
+            gap: $space-2;
+            min-height: 4.5rem;
+            font-size: $text-lg;
+        }
+
+        .p-button-label { flex: 0 0 auto; }
+        .p-button-icon { margin: 0; }
+    }
+}
+
 // the three darts of the visit: a hit green with a tick, a miss red with a cross,
 // the next dart framed, the ones after it faint
 .rules-visit {
@@ -281,6 +328,27 @@
 
 .rules-status .rules-status-item.is-undone { animation: rules-undone 1.2s ease-out; }
 
+// the last darts before this visit, small under its tiles: the one entered a moment ago can be checked
+.rules-last-darts {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    margin: $space-2 0 0;
+    font-size: $text-xs;
+
+    .rules-last-dart {
+        @include label-shape;
+        @include label-neutral;
+        color: var(--text-subtle);
+        font-weight: $weight-semibold;
+
+        &.is-hit { color: var(--c-positive); }
+        &.is-miss { color: $accentRed; }
+    }
+}
+
 .rules-undone {
     display: flex;
     align-items: center;
@@ -314,9 +382,12 @@
     to { opacity: 1; transform: none; }
 }
 
-// the doubles from D1 to the bull: two rows on a phone, one from a tablet on
+// the doubles from D1 to the bull, by the room the strip itself has (a result, a row of the
+// scoreboard, the training under way): one row of 21 where every cell keeps about 1.9rem, else
+// three even rows of seven (the bull too); while training two rows, so the board stays in sight
 .rules-doubles {
     margin: 0;
+    container-type: inline-size;
 
     .rules-doubles-label {
         margin-bottom: $space-2;
@@ -328,21 +399,16 @@
 
 .rules-doubles-cells {
     display: grid;
-    grid-template-columns: repeat(11, minmax(0, 1fr));
+    grid-template-columns: repeat(7, minmax(0, 1fr));
     gap: 0.25rem;
     margin: 0;
     padding: 0;
     list-style: none;
 
-    @media (min-width: 768px) {
-        grid-template-columns: repeat(21, minmax(0, 1fr));
-    }
-}
+    .rules-doubles.is-live & { grid-template-columns: repeat(11, minmax(0, 1fr)); }
 
-// in a result on a phone three rows of seven, so every cell has room (the bull too)
-@media (max-width: 575.98px) {
-    .rules-doubles:not(.is-live) .rules-doubles-cells {
-        grid-template-columns: repeat(7, minmax(0, 1fr));
+    @container (min-width: 40rem) {
+        &, .rules-doubles.is-live & { grid-template-columns: repeat(21, minmax(0, 1fr)); }
     }
 }
 

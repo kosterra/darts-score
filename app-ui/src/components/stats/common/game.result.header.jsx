@@ -3,6 +3,7 @@ import { FaTrophy } from 'react-icons/fa6';
 
 import { PLAYER_COLORS } from '../charts/chart.theme';
 import SideBySide from './side.by.side';
+import PlayLevelTag from '../../elements/play.level.tag';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../../utils/image.utils';
 import { t } from '../../../utils/i18n';
 
@@ -14,12 +15,16 @@ import { t } from '../../../utils/i18n';
  * game was won, the winner glows gold. A player alone has the figures beside
  * them instead of a table. "footer": what else belongs to the result, at the end.
  * rows: [{ key, label, format?, detail?, lowerIsBetter?, neutral?, long? (a long text, smaller beside a player alone), record? (a new best, in gold) }]
+ * levelOf(player): the level the player played at, { level, by, value } of
+ * judgeLevel (rules/levels.play.js), or null; shown as an estimate under the score.
  */
-const GameResultHeader = ({ game, players, title, subtitle, scoreOf, scoreDetailOf, rows, figures, actions, footer = null, celebrate = false, className = 'mb-4' }) => {
+const GameResultHeader = ({ game, players, title, subtitle, scoreOf, scoreDetailOf, rows, figures, actions, levelOf = null, footer = null, celebrate = false, className = 'mb-4' }) => {
     // the winner, or in doubles both partners
     const won = (player) => Boolean(game.playerModels?.[player.id]?.hasWonGame);
     const winner = players.find(won);
     const compare = players.length > 1;
+    const levels = Object.fromEntries(players.map(player => [player.id, levelOf?.(player) ?? null]));
+    const anyLevel = Object.values(levels).some(Boolean);
 
     // the best value of a figure, to mark it; none when all are the same
     const bestOf = (figure) => {
@@ -66,6 +71,8 @@ const GameResultHeader = ({ game, players, title, subtitle, scoreOf, scoreDetail
                                 <span className="result-hero-score">{scoreOf(player)}</span>
                                 <span className="text-faint fs-8">{scoreDetailOf(player)}</span>
                             </>}
+                            {/* an estimate for this game only; the others keep its room, as for the winner */}
+                            {anyLevel && <PlayLevelTag estimate={levels[player.id]} placeholder className="mt-1" />}
                         </div>
                 ))}
             </div>

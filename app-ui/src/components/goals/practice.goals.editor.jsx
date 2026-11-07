@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Button } from 'primereact/button';
 import { Dropdown } from 'primereact/dropdown';
+import { SelectButton } from 'primereact/selectbutton';
 import { InputNumber } from 'primereact/inputnumber';
 import { Tag } from 'primereact/tag';
 
@@ -9,7 +10,8 @@ import SettingSwitch from '../elements/setting.switch';
 import useAutoSave from '../../utils/use.auto.save';
 import GoalsService from '../../services/goals.service';
 import { PracticeGoalList, WeekDots } from './practice.goal.list';
-import { ALL_TRAININGS, COUNT_TRAININGS, GOAL_KINDS, SCORE_TRAININGS, draftOf, figureOf, goalsValid, kindOf, newGoal, weekLeftText } from './goal.kinds';
+import { ALL_TRAININGS, COUNT_TRAININGS, GOAL_KINDS, SCORE_TRAININGS, draftOf, figureOf, goalSettings, goalsValid, kindOf, newGoal, weekLeftText } from './goal.kinds';
+import { trainingOf } from '../../rules/trainings';
 import { addDays } from '../../rules/calendar';
 import { formatDate } from '../../utils/dates';
 import { Lines } from '../elements/skeletons';
@@ -58,7 +60,8 @@ const PracticeGoalsEditor = ({ onError }) => {
     const changeKind = (index, kind) => change(index, { ...newGoal(kind), id: drafts[index].id });
     const changeTraining = (index, training) => {
         const goal = drafts[index];
-        const fits = goal.kind === 'trainingScore' ? { target: SCORE_TRAININGS.find(entry => entry.value === training)?.target ?? goal.target } : {};
+        // a score: the number to start from and the settings of that training
+        const fits = goal.kind === 'trainingScore' ? { target: SCORE_TRAININGS.find(entry => entry.value === training)?.target ?? goal.target, settings: goalSettings(goal.kind, training) } : {};
         change(index, { training, ...fits });
     };
     const add = () => update([...drafts, newGoal('trainings')]);
@@ -113,6 +116,23 @@ const PracticeGoalsEditor = ({ onError }) => {
                                         inputClassName="practice-goal-target"
                                     />
                                     <Button type="button" icon="pi pi-trash" text severity="danger" aria-label={t('Remove the goal')} onClick={() => remove(index)} />
+                                    {/* a score counts with the settings that change what it means (121 Checkout: the attempts and the darts) */}
+                                    {goal.kind === 'trainingScore' && (trainingOf(goal.training)?.boards ?? []).length > 0 &&
+                                        <div className="practice-goal-board">
+                                            {trainingOf(goal.training).boards.map(key => {
+                                                const option = trainingOf(goal.training).options.find(entry => entry.key === key);
+                                                return (
+                                                    <SelectButton
+                                                        key={key}
+                                                        value={goal.settings?.[key] ?? option.default}
+                                                        options={option.values}
+                                                        onChange={(e) => e.value !== null && e.value !== undefined && change(index, { settings: { ...goalSettings(goal.kind, goal.training, goal.settings), [key]: e.value } })}
+                                                        className="p-selectbutton-pills pills-inline flex-wrap"
+                                                        aria-label={option.label}
+                                                    />
+                                                );
+                                            })}
+                                        </div>}
                                     {goal.kind === 'x01Average' &&
                                         <div className="practice-goal-bot">
                                             <SettingSwitch id={`practice-goal-bot-${index}`} title={t('Count trainings against the bot')} checked={goal.withBot} onChange={(withBot) => change(index, { withBot })} />

@@ -3,6 +3,7 @@ import { describe, expect, it, vi, beforeEach } from 'vitest';
 // the club, its members, the games and what was told, in memory
 let players = [];
 let games = [];
+let clubZone = null;
 const notices = [];
 const lean = (value) => ({ lean: async () => value });
 vi.mock('../models/logger.model.js', () => ({ default: { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn() } }));
@@ -13,10 +14,11 @@ vi.mock('../models/db.model.js', () => ({
             find: (query) => lean(players.filter(player => query._id.$in.map(String).includes(String(player._id)))),
             countDocuments: async (query) => players.filter(player => query._id.$in.map(String).includes(String(player._id))).length,
         },
-        club: { findById: () => lean({ _id: 'club', admins: ['admin1'] }) },
+        club: { findById: () => lean({ _id: 'club', admins: ['admin1'], timeZone: clubZone }) },
         x01: {
             create: async (doc) => { const game = { ...doc, _id: `game${games.length + 1}` }; games.push(game); return game; },
             findById: async (id) => games.find(game => game._id === String(id)) ?? null,
+            find: (query) => lean(games.filter(game => query._id.$in.map(String).includes(String(game._id)))),
             updateOne: async () => ({}),
         },
     },
@@ -37,6 +39,7 @@ const leagueDoc = (fields = {}) => {
 beforeEach(() => {
     players = [1, 2, 3, 4, 5].map(n => ({ _id: id(n), nickname: `P${n}`, user: id(100 + n) }));
     games = [];
+    clubZone = null;
     notices.length = 0;
 });
 
@@ -84,6 +87,32 @@ describe('leagues', () => {
         const { leagueTable } = await import('../rules/leagues.js');
         expect(league.winner).toBe(leagueTable(league.players, league.matches)[0].player);
         expect(notices.some(notice => notice.kind === 'leagueWon')).toBe(true);
+
+        // the finished season shows the played match with its score and the levels played at; a walkover without
+        game.playLevels = [{ player: a, level: 'semiPro' }];
+        const view = await service.leagueView(league, { games: true });
+        expect(view.matches.find(match => match.id === first.id)).toMatchObject({ score: { legs: [2, 1] }, playLevels: [{ player: a, level: 'semiPro' }] });
+        expect(view.matches.find(match => match.status === 'walkover').playLevels).toBeUndefined();
+    });
+
+    it('reads the matches again (as often as it takes) when other games were saved at the same moment', async () => {
+        const league = leagueDoc();
+        await service.startLeague(league);
+        const first = league.matches[0];
+        const game = await service.startMatch(league, first.id);
+        // the first two reads are out of date by the time they are saved
+        const stale = () => {
+            const doc = leagueDoc({ ...league, matches: league.matches.map(match => ({ ...match, players: [...match.players] })) });
+            doc.save.mockImplementation(async () => { throw Object.assign(new Error('No matching document'), { name: 'VersionError' }); });
+            return doc;
+        };
+        const reads = [stale(), stale(), league];
+        const db = (await import('../models/db.model.js')).default;
+        db.league = { findById: async () => reads.shift() };
+        const [a, b] = first.players;
+        await service.leagueGameFinished(game, { playerModels: { [a]: { hasWonGame: false, legsWon: { game: 1 } }, [b]: { hasWonGame: true, legsWon: { game: 2 } } } });
+        expect(reads).toHaveLength(0);
+        expect(league.matches.find(match => match.id === first.id)).toMatchObject({ status: 'done', winner: b, score: { legs: [1, 2] } });
     });
 
     it('moves a matchday and a single match, and tells their players', async () => {
@@ -113,5 +142,53 @@ describe('leagues', () => {
         expect(notices[0].title).toMatch(/2 matches of matchday 1 not played/);
         await service.runLeagueJobs(new Date(2026, 10, 6));
         expect(notices).toHaveLength(1);
+    });
+
+    it('reminds again of a matchday moved after its reminder, once it is over again', async () => {
+        const league = leagueDoc();
+        await service.startLeague(league);
+        const db = (await import('../models/db.model.js')).default;
+        db.league = { find: async () => [league] };
+        await service.runLeagueJobs(new Date(2026, 10, 5));
+        await service.moveMatchday(league, 1, new Date(2026, 10, 7, 19, 30));
+        notices.length = 0;
+        await service.runLeagueJobs(new Date(2026, 10, 7, 12));
+        expect(notices).toHaveLength(0);
+        await service.runLeagueJobs(new Date(2026, 10, 8));
+        expect(notices.map(notice => notice.title)).toEqual(['Winter League: 2 matches of matchday 1 not played']);
+    });
+
+    it('tells the admins of a single match moved to a day that is over, again when it is moved', async () => {
+        const league = leagueDoc();
+        await service.startLeague(league);
+        const db = (await import('../models/db.model.js')).default;
+        db.league = { find: async () => [league] };
+        // a match of matchday 3 (17.11.) moved earlier, to 6.11.
+        const match = league.matches.find(entry => entry.day === 3);
+        await service.moveMatch(league, match.id, new Date(2026, 10, 6, 19, 30));
+        notices.length = 0;
+        await service.runLeagueJobs(new Date(2026, 10, 7, 12));
+        // matchday 1 is over too, the moved match is told on its own
+        expect(notices.map(notice => notice.title)).toEqual(['Winter League: 2 matches of matchday 1 not played', 'Winter League: a moved match not played']);
+        await service.runLeagueJobs(new Date(2026, 10, 8));
+        expect(notices).toHaveLength(2);
+        await service.moveMatch(league, match.id, new Date(2026, 10, 9, 19, 30));
+        notices.length = 0;
+        await service.runLeagueJobs(new Date(2026, 10, 10));
+        expect(notices.map(notice => notice.title)).toEqual(['Winter League: a moved match not played']);
+    });
+
+    it("counts the days of the reminder on the club's clock", async () => {
+        clubZone = 'America/New_York';
+        const league = leagueDoc();
+        await service.startLeague(league);
+        const db = (await import('../models/db.model.js')).default;
+        db.league = { find: async () => [league] };
+        // matchday 1 at 22:00 on 3.11. in New York: already 4.11. in Zurich
+        league.matchdays = league.matchdays.map(entry => (entry.day === 1 ? { day: 1, date: new Date('2026-11-04T03:00:00Z') } : entry));
+        notices.length = 0;
+        // 07:00 on 4.11. in New York: the matchday was yesterday
+        await service.runLeagueJobs(new Date('2026-11-04T12:00:00Z'));
+        expect(notices.map(notice => notice.title)).toEqual(['Winter League: 2 matches of matchday 1 not played']);
     });
 });

@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { validate } from '../utils/validation.js';
 import { requireClubAdmin } from '../middleware/auth.middleware.js';
-import { validateX01Create, validatePlayerIds } from '../validators/game.validators.js';
+import { validateX01Create, validatePlayerIds, validateLevelQuery } from '../validators/game.validators.js';
 import controller from '../controllers/x01.controller.js';
 import { screenGameRoutes } from './screen.routes.js';
 
@@ -10,7 +10,7 @@ export default (app) => {
 
     router.post('/',    validateX01Create, validate, controller.create);
     router.post('/find', validatePlayerIds, validate, controller.findByFilters);
-    router.get('/',                                  controller.findAll);
+    router.get('/',    validateLevelQuery, validate, controller.findAll);
     router.get('/:id',                               controller.findOne);
     router.put('/:id',  validateX01Create, validate, controller.update);
     router.delete('/:id', requireClubAdmin,                 controller.delete);

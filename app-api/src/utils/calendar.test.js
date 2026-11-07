@@ -1,3 +1,4 @@
+import { instantIn } from '../rules/zones.js';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 
 // the clubs, members, answers and what was told, in memory
@@ -123,7 +124,9 @@ describe('the feed', () => {
         leagues = [{ _id: 'l1', club: 'club1', name: 'Winter League', status: 'running', matchdays: [{ day: 2, date: new Date(`${addDays(day, 1)}T18:30:00Z`) }] }];
         const ics = await service.feedOf('a'.repeat(48));
         expect(ics).toContain('X-WR-CALNAME:Red Lion\r\n');
-        expect(ics).toContain(`DTSTART:${day.replaceAll('-', '')}T193000\r\nDTEND:${day.replaceAll('-', '')}T230000\r\nSUMMARY:Clubabend`);
+        // 19:30 to 23:00 on the club's clock (Europe/Zurich), as moments in UTC
+        const stamp = (time) => instantIn(day, time, 'Europe/Zurich').toISOString().replace(/[-:]/g, '').replace('.000', '');
+        expect(ics).toContain(`DTSTART:${stamp('19:30')}\r\nDTEND:${stamp('23:00')}\r\nSUMMARY:Clubabend`);
         expect(ics).toContain('DESCRIPTION:Back room\\nDu hast zugesagt.');
         expect(ics).toContain('Grund: Room\\, taken');
         expect(ics).toContain('STATUS:CANCELLED');

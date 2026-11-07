@@ -1,21 +1,32 @@
 import { FaSeedling, FaBeerMugEmpty, FaUsers, FaFlag, FaMedal, FaEarthEurope, FaCrown } from 'react-icons/fa6';
 import { t } from './i18n';
 import { ACCENT, readable } from './palette';
+import { LEVEL_STEPS } from '../rules/levels.play.js';
+
+// the look of every step: its name, colour and icon, from grey to gold
+const LOOKS = {
+    beginner: { name: 'Beginner', get color() { return readable('#a3a3a3'); }, icon: FaSeedling },
+    hobby: { name: 'Hobby', get color() { return readable('#b5c9a8'); }, icon: FaBeerMugEmpty },
+    amateur: { name: 'Amateur', get color() { return ACCENT.green; }, icon: FaUsers },
+    semiPro: { name: 'Semi-pro', get color() { return readable('#8fc3df'); }, icon: FaFlag },
+    pro: { name: 'Pro', get color() { return readable('#c3a9e6'); }, icon: FaMedal },
+    worldClass: { name: t('World class'), get color() { return readable('#e8b98a'); }, icon: FaEarthEurope },
+    elite: { name: 'Elite', get color() { return ACCENT.gold; }, icon: FaCrown },
+};
 
 /**
- * Levels of the 3-dart average, on the same steps as the minimum averages of
- * the player levels (40, 50, 60, 75, 90), with icons and colours in their
- * style, from grey to gold.
+ * Levels of the 3-dart average, the steps of the one scale of the app
+ * (rules/levels.play.js, also the level a game was played at), on the same
+ * steps as the minimum averages of the player levels (40, 50, 60, 75, 90):
+ * { key, min (the average it starts from), name, color, icon }.
  */
-export const AVERAGE_LEVELS = [
-    { min: 0, name: 'Beginner', get color() { return readable('#a3a3a3'); }, icon: FaSeedling },
-    { min: 25, name: 'Hobby', get color() { return readable('#b5c9a8'); }, icon: FaBeerMugEmpty },
-    { min: 40, name: 'Amateur', get color() { return ACCENT.green; }, icon: FaUsers },
-    { min: 50, name: 'Semi-pro', get color() { return readable('#8fc3df'); }, icon: FaFlag },
-    { min: 60, name: 'Pro', get color() { return readable('#c3a9e6'); }, icon: FaMedal },
-    { min: 75, name: t('World class'), get color() { return readable('#e8b98a'); }, icon: FaEarthEurope },
-    { min: 90, name: 'Elite', get color() { return ACCENT.gold; }, icon: FaCrown },
-];
+export const AVERAGE_LEVELS = LEVEL_STEPS.map(step => Object.defineProperties(
+    { key: step.key, min: step.average },
+    Object.getOwnPropertyDescriptors(LOOKS[step.key]),
+));
+
+// a level by its key ('semiPro'), or null
+export const averageLevelByKey = (key) => AVERAGE_LEVELS.find(level => level.key === key) ?? null;
 
 /**
  * The level of an average, or null without one.

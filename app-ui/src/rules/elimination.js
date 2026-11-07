@@ -56,6 +56,23 @@ export const newEliminationState = (settings, players) => ({
 });
 
 /**
+ * A dart as the in mode of the game lets it count (double in, master in):
+ * until the player has scored, only a double (or with master in also a
+ * treble) opens, and the darts after it in the same visit count. index: the
+ * dart's place in the visit. → the dart, or '0' when it does not count
+ */
+export const eliminationInDart = (game, currentThrow, index, dart) => {
+    const mode = game.gameInMode;
+    if (mode !== 'Double In' && mode !== 'Master In') return dart;
+    // the score before this dart: of the visits before, and of the darts before it in this one
+    const before = (game.playerModels?.[game.currentPlayerTurn]?.score ?? 0)
+        + (currentThrow ?? []).slice(0, index).reduce((sum, earlier) => sum + dartScore(earlier), 0);
+    if (before !== 0) return dart;
+    const opens = mode === 'Double In' ? /^d/i.test(dart) : /^[dt]/i.test(dart);
+    return opens ? dart : '0';
+};
+
+/**
  * What the darts of a visit do, dart by dart: { busted, winner, score (the
  * thrower's after the visit), roundScore, eliminations (players sent back to 0) }.
  */
@@ -76,7 +93,10 @@ export const eliminationVisitOutcome = (game, currentThrow) => {
         else if (projected === target) {
             if (outMode === 'Double Out' && !/^d/i.test(dart)) bust = true;
             if (outMode === 'Master Out' && !/^[dt]/i.test(dart)) bust = true;
-        } else if (outMode === 'Double Out' && projected === target - 1) bust = true;
+        } else if ((outMode === 'Double Out' || outMode === 'Master Out') && projected === target - 1) {
+            // one short cannot be finished on a double (or a treble)
+            bust = true;
+        }
         if (bust) return { busted: true, winner: false, score: scores[playerId] ?? 0, roundScore: 0, eliminations: [] };
         game.players.filter(id => id !== playerId).forEach(id => {
             if (scores[id] === projected && projected > 0) {

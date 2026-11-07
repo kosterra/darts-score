@@ -45,6 +45,20 @@ describe('throwDart', () => {
     });
 });
 
+describe('the last visit', () => {
+    it('keeps the visit just over in view until the next one is over', () => {
+        let round = newRound(['a', 'b']);
+        round = throwDart(throwDart(round, true), false);
+        expect(round.lastVisit).toBeUndefined();
+        round = throwDart(round, 2);
+        expect(round.lastVisit).toEqual({ player: 'a', darts: [true, false, 2] });
+        round = throwDart(round, false);
+        expect(round.lastVisit.player).toBe('a');
+        round = throwDart(throwDart(round, false), true);
+        expect(round.lastVisit).toEqual({ player: 'b', darts: [false, false, true] });
+    });
+});
+
 describe('roundResults', () => {
     it('ranks by fewest darts, the same darts share a place', () => {
         let round = newRound(['a', 'b', 'c']);

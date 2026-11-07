@@ -22,6 +22,7 @@ import DateTimeField from '../elements/date.time.field';
 import SetupBox from '../elements/setup.box';
 import PlayerOption from '../elements/player.option';
 import usePlayerLevels from '../../utils/use.player.levels';
+import { zoneOf } from '../../rules/zones';
 
 // a match of a club league: 501 double out, best of 5 legs
 const DEFAULT_RULES = { startingScore: 501, legInMode: 'Straight In', legOutMode: 'Double Out', setMode: 'Best of', numberOfSets: 1, legMode: 'Best of', numberOfLegs: 5 };
@@ -44,7 +45,7 @@ const defaultFirst = () => {
 const LeagueEditor = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { isClubAdmin } = useAuth();
+    const { isClubAdmin, activeClub } = useAuth();
     const [stored, setStored] = useState(null);
     const [form, setForm] = useState(null);
     const [members, setMembers] = useState([]);
@@ -72,7 +73,7 @@ const LeagueEditor = () => {
     const set = (changes) => setForm(current => ({ ...current, ...changes }));
     const problem = draft ? leagueSetupError({ players: form.players, meetings: form.meetings, rules: form.rules, first: form.firstDay, everyDays: form.everyDays }) : null;
     const days = form.players.length >= 2 ? matchdayCount(form.players.length, form.meetings) : 0;
-    const last = days ? matchdayDates(form.firstDay, form.everyDays, days)[days - 1] : null;
+    const last = days ? matchdayDates(form.firstDay, form.everyDays, days, zoneOf(activeClub))[days - 1] : null;
     const matchesEach = (form.players.length - 1) * form.meetings;
 
     const save = async (start) => {

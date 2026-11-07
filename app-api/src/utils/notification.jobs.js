@@ -14,7 +14,8 @@ import { lastWeeks, usageLines } from './usage.stats.js';
 import { runTournamentJobs } from './tournaments.js';
 import { runLeagueJobs } from './leagues.js';
 import { runEveningJobs } from './evenings.js';
-import { clubNightsBetween, dayKey } from '../rules/calendar.js';
+import { clubNightsBetween } from '../rules/calendar.js';
+import { dayKeyIn, instantIn, zoneOf } from '../rules/zones.js';
 import { closePracticeWeeks, lastWeekGoals, nudgeOf, weekProgress } from './practice.goals.js';
 
 /**
@@ -104,28 +105,34 @@ export const remindRunningGames = async (now = new Date()) => {
  * A cancelled night is told when it is cancelled, not reminded of.
  */
 export const remindClubNights = async (now = new Date()) => {
-    const today = dayKey(now);
-    const clubs = await db.club.find({ 'calendar.nights.0': { $exists: true } }, 'calendar').lean();
+    const clubs = await db.club.find({ 'calendar.nights.0': { $exists: true } }, 'calendar timeZone').lean();
     for (const club of clubs) {
-        const [night] = clubNightsBetween(club.calendar.nights, club.calendar.cancelled ?? [], today, today);
-        if (!night || night.cancelled) continue;
-        const [hours, minutes] = night.start.split(':').map(Number);
-        const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes);
-        if (now >= start || start - now > CLUB_NIGHT_HOURS * HOUR) continue;
-        const coming = await db.attendance.find({ club: club._id, day: today, answer: 'yes' }, 'player').lean();
-        const due = [];
-        for (const entry of coming) {
-            if (await once(`clubNight:${club._id}:${today}:${entry.player}`)) due.push(String(entry.player));
+        // one club that fails does not keep the others from their reminder
+        try {
+            // today and the start on the club's clock
+            const zone = zoneOf(club);
+            const today = dayKeyIn(now, zone);
+            const [night] = clubNightsBetween(club.calendar.nights, club.calendar.cancelled ?? [], today, today);
+            if (!night || night.cancelled) continue;
+            const start = instantIn(today, night.start, zone);
+            if (now >= start || start - now > CLUB_NIGHT_HOURS * HOUR) continue;
+            const coming = await db.attendance.find({ club: club._id, day: today, answer: 'yes' }, 'player').lean();
+            const due = [];
+            for (const entry of coming) {
+                if (await once(`clubNight:${club._id}:${today}:${entry.player}`)) due.push(String(entry.player));
+            }
+            const users = await accountsOf(due);
+            await deliverQuietly(users.map(user => ({
+                user,
+                kind: 'clubNightReminder',
+                title: `Club night today at ${night.start}`,
+                body: night.note,
+                link: `/club-night/${today}`,
+                club: club._id,
+            })));
+        } catch (err) {
+            logger.error(err, `The club night reminder of the club ${club._id} failed`);
         }
-        const users = await accountsOf(due);
-        await deliverQuietly(users.map(user => ({
-            user,
-            kind: 'clubNightReminder',
-            title: `Club night today at ${night.start}`,
-            body: night.note,
-            link: `/club-night/${today}`,
-            club: club._id,
-        })));
     }
 };
 
@@ -182,25 +189,34 @@ export const remindUnusedInvites = async (now = new Date()) => {
 
 /**
  * A goal of a club ending within GOAL_DAYS days and not reached yet: its admins hear how far it is.
+ * The club's badges and goals are brought up to date first, and the members
+ * hear what is new (a goal reached just now is told as reached, not as ending).
  */
 export const remindEndingGoals = async (now = new Date()) => {
     const clubs = await db.club.find({ goals: { $elemMatch: { reachedAt: null, until: { $gt: now, $lt: new Date(now.getTime() + GOAL_DAYS * DAY) } } } }, 'name admins goals').lean();
     if (!clubs.length) return;
     const { syncClubBadges } = await import('./club.badge.service.js');
     for (const club of clubs) {
-        const { progress } = await syncClubBadges(club._id, { notify: false });
-        for (const goal of club.goals ?? []) {
-            if (goal.reachedAt || !goal.until || new Date(goal.until) <= now || new Date(goal.until) > new Date(now.getTime() + GOAL_DAYS * DAY)) continue;
-            if (!(await once(`goalEnding:${club._id}:${goal.id}`))) continue;
-            const days = Math.max(1, Math.ceil((new Date(goal.until) - now) / DAY));
-            await deliverQuietly((club.admins ?? []).map(admin => ({
-                user: admin,
-                kind: 'goalEnding',
-                title: `The goal of ${club.name} ends in ${days} days: ${GOAL_METRICS[goal.metric]?.describe(goal.target) ?? goal.target}`,
-                body: `It stands at ${Math.floor(progress[goal.id] ?? 0)} of ${goal.target}.`,
-                link: '/badges#club',
-                club: club._id,
-            })));
+        // one club that fails does not keep the others from their reminder
+        try {
+            const { progress } = await syncClubBadges(club._id);
+            for (const goal of club.goals ?? []) {
+                if (goal.reachedAt || !goal.until || new Date(goal.until) <= now || new Date(goal.until) > new Date(now.getTime() + GOAL_DAYS * DAY)) continue;
+                // reached by now (the sync just told the club)
+                if ((progress[goal.id] ?? 0) >= goal.target) continue;
+                if (!(await once(`goalEnding:${club._id}:${goal.id}`))) continue;
+                const days = Math.max(1, Math.ceil((new Date(goal.until) - now) / DAY));
+                await deliverQuietly((club.admins ?? []).map(admin => ({
+                    user: admin,
+                    kind: 'goalEnding',
+                    title: `The goal of ${club.name} ends in ${days} days: ${GOAL_METRICS[goal.metric]?.describe(goal.target) ?? goal.target}`,
+                    body: `It stands at ${Math.floor(progress[goal.id] ?? 0)} of ${goal.target}.`,
+                    link: '/badges#club',
+                    club: club._id,
+                })));
+            }
+        } catch (err) {
+            logger.error(err, `The goal reminder of the club ${club._id} failed`);
         }
     }
 };
@@ -274,7 +290,8 @@ export const playerWeek = async (player, language, now = new Date()) => {
     const [atc, rules, bot] = await Promise.all([
         db.atc.countDocuments({ 'player.id': id, createdAt: { $gt: since } }),
         db.rulesTraining.countDocuments({ 'player.id': id, createdAt: { $gt: since } }),
-        db.x01Training.countDocuments({ players: id, createdAt: { $gt: since } }),
+        // finished ones only, as the weekly goals count them
+        db.x01Training.countDocuments({ players: id, hasWinner: true, updatedAt: { $gt: since } }),
     ]);
     const trainings = atc + rules + bot;
     const badges = (player.badges ?? []).filter(entry => new Date(entry.earnedAt) > since).map(entry => getBadge(entry.badge)?.title).filter(Boolean);
@@ -303,24 +320,29 @@ export const clubWeek = async (club, language, now = new Date()) => {
     ]);
     const players = new Set(tallies.flatMap(tally => (tally.players ?? []).map(String))).size;
     const num180s = tallies.reduce((sum, tally) => sum + (tally.num180s ?? 0), 0);
-    const badges = (club.badges ?? []).filter(entry => new Date(entry.earnedAt) > since).map(entry => getClubBadge(entry.badge)?.title).filter(Boolean);
+    const open = (club.goals ?? []).filter(goal => !goal.reachedAt && (!goal.until || new Date(goal.until) > now));
+    // the badges and goals brought up to date (the members hear what is new)
+    let progress = {};
+    const earned = [...(club.badges ?? [])];
+    if (open.length) {
+        const { syncClubBadges } = await import('./club.badge.service.js');
+        const synced = await syncClubBadges(club._id);
+        progress = synced.progress;
+        earned.push(...synced.fresh);
+    }
+    const badges = earned.filter(entry => new Date(entry.earnedAt) > since).map(entry => getClubBadge(entry.badge)?.title).filter(Boolean);
     const lines = [];
     if (tallies.length) lines.push(tr(language, 'Games: {{games}}, players: {{players}}', { games: tallies.length, players }));
     if (num180s) lines.push(tr(language, '180s: {{count}}', { count: num180s }));
     if (atc + rules) lines.push(tr(language, 'Trainings: {{count}}', { count: atc + rules }));
     if (members) lines.push(tr(language, 'New members: {{count}}', { count: members }));
     if (badges.length) lines.push(tr(language, 'New club badges: {{badges}}', { badges: badges.map(title => translate(language, title)).join(', ') }));
-    const open = (club.goals ?? []).filter(goal => !goal.reachedAt && (!goal.until || new Date(goal.until) > now));
-    if (open.length) {
-        const { syncClubBadges } = await import('./club.badge.service.js');
-        const { progress } = await syncClubBadges(club._id, { notify: false });
-        for (const goal of open) {
-            lines.push(tr(language, 'Goal {{goal}}: {{progress}} of {{target}}', {
-                goal: translate(language, GOAL_METRICS[goal.metric]?.describe(goal.target) ?? String(goal.target)),
-                progress: Math.floor(progress[goal.id] ?? 0),
-                target: goal.target,
-            }));
-        }
+    for (const goal of open) {
+        lines.push(tr(language, 'Goal {{goal}}: {{progress}} of {{target}}', {
+            goal: translate(language, GOAL_METRICS[goal.metric]?.describe(goal.target) ?? String(goal.target)),
+            progress: Math.floor(progress[goal.id] ?? 0),
+            target: goal.target,
+        }));
     }
     if (waiting) lines.push(tr(language, 'New under Fair play: {{count}}', { count: waiting }));
     if (requests) lines.push(tr(language, 'Open requests to join: {{count}}', { count: requests }));
@@ -346,7 +368,8 @@ export const sendWeeklySummaries = async (now = new Date()) => {
     const users = await db.user.find({ blockedAt: null, notifications: { $exists: true } }, 'email firstname language notifications role practiceGoals').lean();
     for (const user of users) {
         const language = languageOf(user);
-        const token = unsubscribeToken('user', user._id, 'all');
+        // each summary turns off only itself
+        const tokenOf = (topic) => unsubscribeToken('user', user._id, topic);
         try {
             if (user.role !== ROLES.GLOBAL_ADMIN && preferenceOf(user.notifications, 'weeklySummary').mail === 'weekly' && await once(`weeklySummary:${user._id}:${week}`)) {
                 const players = await db.player.find({ user: user._id, guest: { $ne: true } }, 'badges').lean();
@@ -356,7 +379,7 @@ export const sendWeeklySummaries = async (now = new Date()) => {
                     lines.push(`• ${tr(language, 'Goal {{goal}}: {{progress}} of {{target}}', { goal: translate(language, goal), progress, target })}`);
                 }
                 if (lines.length) {
-                    await sendTemplateMail('weeklySummary', user.email, { firstname: user.firstname, summary: lines.join('\n'), link: `${getAppUrl()}/me`, manageUrl: manageUrl() }, language, { headers: headersOf(token) });
+                    await sendTemplateMail('weeklySummary', user.email, { firstname: user.firstname, summary: lines.join('\n'), link: `${getAppUrl()}/me`, manageUrl: manageUrl() }, language, { headers: headersOf(tokenOf('weeklySummary')) });
                     sent += 1;
                 }
             }
@@ -366,7 +389,7 @@ export const sendWeeklySummaries = async (now = new Date()) => {
                     if (!(await once(`clubSummary:${user._id}:${club._id}:${week}`))) continue;
                     const lines = await clubWeek(club, language, now);
                     if (!lines.length) continue;
-                    await sendTemplateMail('clubSummary', user.email, { firstname: user.firstname, club: club.name, summary: lines.join('\n'), link: `${getAppUrl()}/club`, manageUrl: manageUrl() }, language, { headers: headersOf(token) });
+                    await sendTemplateMail('clubSummary', user.email, { firstname: user.firstname, club: club.name, summary: lines.join('\n'), link: `${getAppUrl()}/club`, manageUrl: manageUrl() }, language, { headers: headersOf(tokenOf('clubSummary')) });
                     sent += 1;
                 }
             }
@@ -383,7 +406,7 @@ export const sendWeeklySummaries = async (now = new Date()) => {
             if (!player || player.user) continue;
             const lines = await playerWeek(player, contact.language ?? 'en', now);
             if (!lines.length) continue;
-            await mailContact(contact, { title: 'Your week on the oche', details: lines.join('\n') });
+            await mailContact(contact, { title: 'Your week on the oche', details: lines.join('\n'), topic: 'weeklySummary' });
             sent += 1;
         } catch (err) {
             logger.error(err, `Failed to send the weekly summary of player ${contact.player}`);

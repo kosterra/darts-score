@@ -1,7 +1,7 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
-import { preferenceOf, topicOfKind } from '../rules/notifications.js';
+import { CONTACT_TOPICS, NOTIFICATION_TOPICS, preferenceOf, topicById, topicOfKind } from '../rules/notifications.js';
 import { getSessionSecret } from './auth.utils.js';
 import { getAppUrl, isMailConfigured } from './mail.utils.js';
 import { sendTemplateMail } from './mail.service.js';
@@ -23,8 +23,13 @@ const sign = (payload) => createHmac('sha256', `unsubscribe:${getSessionSecret()
 
 /**
  * A token that turns off one topic by mail ('all': every mail that can be
- * turned off) for an account ('user') or a player without a login ('contact').
+ * turned off; 'digest:daily' / 'digest:weekly': the topics that go with the
+ * mail of the day or the week) for an account ('user') or a player without a
+ * login ('contact').
  */
+export const digestTopic = (period) => `digest:${period}`;
+const periodOfDigest = (topic) => (['digest:daily', 'digest:weekly'].includes(topic) ? topic.slice('digest:'.length) : null);
+
 export const unsubscribeToken = (type, id, topic = 'all') => {
     const payload = Buffer.from(JSON.stringify([type === 'contact' ? 'c' : 'u', String(id), topic])).toString('base64url');
     return `${payload}.${sign(payload)}`;
@@ -198,7 +203,7 @@ export const digestDue = (period, lastSent, now = new Date()) => {
 const digestOfUser = async (user, period, notices) => {
     const language = languageOf(user);
     const layout = layoutOf(language);
-    const token = unsubscribeToken('user', user._id, 'all');
+    const token = unsubscribeToken('user', user._id, digestTopic(period));
     await sendTemplateMail('digest', user.email, {
         firstname: user.firstname,
         period: layout.period[period],
@@ -209,8 +214,29 @@ const digestOfUser = async (user, period, notices) => {
 };
 
 /**
+ * The notifications noted for a mail that the user still wants with it: a
+ * topic turned off (or unsubscribed) since is not mailed any more, one moved
+ * to the other period goes with that mail. Resolves to those to send now.
+ */
+const stillWanted = async (user, period, notices) => {
+    const keep = [];
+    const moves = { off: [], daily: [], weekly: [] };
+    for (const notice of notices) {
+        const topic = topicOfKind(notice.kind);
+        const mail = topic ? preferenceOf(user.notifications, topic.id).mail : period;
+        if (mail === period) keep.push(notice);
+        else moves[mail === 'daily' || mail === 'weekly' ? mail : 'off'].push(notice._id);
+    }
+    for (const [mail, ids] of Object.entries(moves)) {
+        if (ids.length) await db.notification.updateMany({ _id: { $in: ids } }, { mail });
+    }
+    return keep;
+};
+
+/**
  * Sends the mails of the day and the week that are due: per account the
- * notifications not mailed yet, and per player without a login theirs.
+ * notifications not mailed yet (as it wants them now), and per player
+ * without a login theirs.
  */
 export const sendDigests = async (now = new Date()) => {
     if (!isMailConfigured()) return 0;
@@ -220,7 +246,8 @@ export const sendDigests = async (now = new Date()) => {
         for (const userId of userIds) {
             const user = await db.user.findById(userId, `${USER_FIELDS} digestSentAt`);
             if (!user || user.blockedAt || !digestDue(period, user.digestSentAt?.[period], now)) continue;
-            const notices = await db.notification.find({ user: userId, mail: period, mailedAt: null }).sort({ createdAt: 1 }).limit(50).lean();
+            const noted = await db.notification.find({ user: userId, mail: period, mailedAt: null }).sort({ createdAt: 1 }).limit(50).lean();
+            const notices = await stillWanted(user, period, noted);
             if (!notices.length) continue;
             try {
                 await digestOfUser(user, period, notices);
@@ -240,13 +267,13 @@ export const sendDigests = async (now = new Date()) => {
  * A mail to a player without a login: what happened (the badges, the level,
  * the records) or their week, with the link to a login of their own.
  */
-export const mailContact = async (contact, { title, details }) => {
+export const mailContact = async (contact, { title, details, topic = 'all' }) => {
     const player = await db.player.findById(contact.player, 'nickname firstname clubs user').lean();
     if (!player || player.user) return false;
     const club = await db.club.findById(player.clubs?.[0], 'name').lean();
     const { claimLink } = await import('./player.claims.js');
     const language = contact.language ?? 'en';
-    const token = unsubscribeToken('contact', contact._id, 'all');
+    const token = unsubscribeToken('contact', contact._id, topic);
     return sendTemplateMail('contactNews', contact.email, {
         firstname: player.firstname,
         nickname: player.nickname,
@@ -263,20 +290,26 @@ const sendContactDigests = async (now) => {
     const playerIds = await db.notification.distinct('player', { mail: 'daily', mailedAt: null, player: { $ne: null } });
     for (const playerId of playerIds) {
         const contact = await db.playerContact.findOne({ player: playerId, unsubscribedAt: null });
-        const notices = await db.notification.find({ player: playerId, mail: 'daily', mailedAt: null }).sort({ createdAt: 1 }).limit(50).lean();
-        const done = () => db.notification.updateMany({ _id: { $in: notices.map(notice => notice._id) } }, { mailedAt: now });
+        const noted = await db.notification.find({ player: playerId, mail: 'daily', mailedAt: null }).sort({ createdAt: 1 }).limit(50).lean();
+        const done = (list) => db.notification.updateMany({ _id: { $in: list.map(notice => notice._id) } }, { mailedAt: now });
         if (!contact) {
-            await done();
+            await done(noted);
             continue;
         }
         if (!digestDue('daily', contact.digestSentAt?.daily, now)) continue;
+        // a topic the club (or the player) turned off since is not mailed any more
+        const notices = noted.filter(notice => contact.topics.includes(topicOfKind(notice.kind)?.id));
+        const dropped = noted.filter(notice => !notices.includes(notice));
+        if (dropped.length) await db.notification.updateMany({ _id: { $in: dropped.map(notice => notice._id) } }, { mail: 'off' });
+        if (!notices.length) continue;
         try {
             const language = contact.language ?? 'en';
             await mailContact(contact, {
                 title: 'Your news from the oche',
                 details: notices.map(notice => lineOf(notice, language)).join('\n'),
+                topic: digestTopic('daily'),
             });
-            await done();
+            await done(notices);
             await db.playerContact.updateOne({ _id: contact._id }, { $set: { 'digestSentAt.daily': now } });
             sent += 1;
         } catch (err) {
@@ -291,23 +324,35 @@ const sendContactDigests = async (now) => {
 // ---------------------------------------------------------------------------
 
 /**
- * Turns off what a token is for. Resolves to { type, topic } or null.
+ * Turns off what a token is for. Resolves to { type, topic } or null. What
+ * was noted for a mail of the day or the week is then left out of it (see
+ * stillWanted).
  */
 export const unsubscribe = async (token) => {
     const target = readUnsubscribeToken(token);
     if (!target) return null;
+    const period = periodOfDigest(target.topic);
     if (target.type === 'contact') {
         const contact = await db.playerContact.findById(target.id);
         if (!contact) return null;
-        contact.unsubscribedAt = contact.unsubscribedAt ?? new Date();
+        if (target.topic === 'all') {
+            contact.unsubscribedAt = contact.unsubscribedAt ?? new Date();
+        } else {
+            // one topic, or those of the mail of the day
+            const off = period ? CONTACT_TOPICS.filter(topic => topic.mail === period).map(topic => topic.id) : [target.topic];
+            contact.topics = (contact.topics ?? []).filter(id => !off.includes(id));
+        }
         await contact.save();
-        return { type: 'contact', topic: 'all' };
+        return { type: 'contact', topic: target.topic };
     }
     const user = await db.user.findById(target.id);
     if (!user) return null;
-    const { NOTIFICATION_TOPICS, topicById } = await import('../rules/notifications.js');
     const preferences = { ...(user.notifications ?? {}) };
-    const topics = target.topic === 'all' ? NOTIFICATION_TOPICS.filter(topic => !topic.locked) : [topicById(target.topic)].filter(Boolean);
+    const topics = target.topic === 'all'
+        ? NOTIFICATION_TOPICS.filter(topic => !topic.locked)
+        // the mail of the day or the week: every topic that goes with it
+        : period ? NOTIFICATION_TOPICS.filter(topic => !topic.locked && preferenceOf(user.notifications, topic.id).mail === period)
+            : [topicById(target.topic)].filter(topic => topic && !topic.locked);
     for (const topic of topics) preferences[topic.id] = { ...(preferences[topic.id] ?? {}), mail: 'off' };
     user.notifications = preferences;
     user.markModified('notifications');

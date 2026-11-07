@@ -320,7 +320,56 @@ const migrations = [
             return true;
         },
     },
+    {
+        id: '2026-11-leftovers-of-deleted-clubs',
+        description: 'Remove what clubs deleted before left behind: their connections and requests (another club could still accept one), club nights, leagues, integrity reviews and notifications',
+        run: async () => {
+            const existing = (await db.club.distinct('_id')).map(String);
+            const gone = (ids) => ids.filter(id => id && !existing.includes(String(id)));
+            const removed = {};
+            for (const [name, model] of [['attendance', db.attendance], ['league', db.league], ['integrityReview', db.integrityReview], ['notification', db.notification]]) {
+                const clubs = gone(await model.distinct('club'));
+                removed[name] = clubs.length ? (await model.deleteMany({ club: { $in: clubs } })).deletedCount : 0;
+            }
+            const links = gone([...await db.clubLink.distinct('clubs'), ...await db.clubLink.distinct('requestedClub')]);
+            removed.clubLink = links.length ? (await db.clubLink.deleteMany({ $or: [{ clubs: { $in: links } }, { requestedClub: { $in: links } }] })).deletedCount : 0;
+            logger.info(`Leftovers of deleted clubs removed: ${Object.entries(removed).map(([name, count]) => `${count} ${name}`).join(', ')}`);
+            return true;
+        },
+    },
+    {
+        // replaces 2026-11-play-levels (never released), which wrote the four steps pub to world class
+        id: '2026-11-12-play-levels-scale',
+        description: 'Work out the level every player played each game and training at, on the seven steps of the average levels, for the lists and their filter by level',
+        run: async () => {
+            const counts = await recomputePlayLevels();
+            logger.info(`Play levels: ${Object.entries(counts).map(([kind, count]) => `${count} ${kind}`).join(', ')}`);
+            return true;
+        },
+    },
 ];
+
+/**
+ * The level every player played at (playLevels) worked out again for every
+ * game and training, one at a time, also those that have one (it may be of
+ * an older scale). Writes that field alone: nothing else, and "last updated"
+ * stays. Safe to run again.
+ * → { [kind]: documents written }
+ */
+export const recomputePlayLevels = async () => {
+    const { PLAY_LEVEL_KINDS } = await import('./play.levels.js');
+    const counts = {};
+    for (const [kind, levelsOf] of Object.entries(PLAY_LEVEL_KINDS)) {
+        const Model = db[kind];
+        counts[kind] = 0;
+        const cursor = Model.find({}).lean().cursor();
+        for await (const doc of cursor) {
+            await Model.updateOne({ _id: doc._id }, { $set: { playLevels: levelsOf(doc) } }, { timestamps: false });
+            counts[kind] += 1;
+        }
+    }
+    return counts;
+};
 
 export const runMigrations = async (context) => {
     const applied = db.mongoose.connection.collection('migrations');

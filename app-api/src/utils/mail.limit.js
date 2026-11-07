@@ -37,12 +37,15 @@ export const getMailLimit = async () => {
     return value;
 };
 
-export const saveMailLimit = async (perDay) => {
+export const saveMailLimit = async (perDay, now = new Date()) => {
     const value = perDay ? Math.min(LIMIT_RANGE.max, Math.max(LIMIT_RANGE.min, Math.round(perDay))) : null;
     await db.setting.updateOne({ key: KEY }, { $set: { value: { perDay: value } } }, { upsert: true });
     cached = { at: Date.now(), value };
-    // today goes by the new limit
-    await db.usageDay.updateOne({ day: dayKey() }, { $set: { mailLimit: value } });
+    // today goes by the new limit: with none, or one above the mails sent
+    // today, mails go out again
+    const day = await today(now);
+    const open = !value || (day?.mails ?? 0) < value;
+    await db.usageDay.updateOne({ day: dayKey(now) }, { $set: { mailLimit: value, ...(open && { mailLimitReachedAt: null, mailLimitNearAt: null }) } });
     return value;
 };
 

@@ -6,6 +6,8 @@ import { TARGET_NAMES, hardestTargets, targetLabel } from '../../utils/atc.darts
 import { ordinal } from '../../utils/atc.scoreboard';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
 import { t, tn } from '../../utils/i18n';
+import { CLOCK_LEVEL, judgeLevel } from '../../rules/levels.play';
+import PlayLevelTag from '../elements/play.level.tag';
 
 const MEDALS = ['gold', 'silver', 'bronze'];
 
@@ -28,7 +30,8 @@ export const TargetBars = ({ perTarget, hardest }) => {
 
 /**
  * The result of a round with the fewest darts: everybody's darts, how many hit,
- * where it took longest, and their place on the scoreboard.
+ * where it took longest, the level it was played at (an estimate) and their
+ * place on the scoreboard.
  *
  * finished: { players, mode, results, saving, error }
  * placeOf(playerId): where the player's result is on the scoreboard, or null
@@ -63,6 +66,7 @@ const ATCDartsResult = ({ finished, placeOf, onRetry, onPlayAgain, onDone }) => 
                                         {result.hitRate}{' '}{t('% hit')}
                                         {hardest.length > 0 && t(' · hardest {{join}}', { join: hardest.map(target => `${targetLabel(target.index, mode)} (${target.darts})`).join(', ') })}
                                     </span>
+                                    <PlayLevelTag estimate={judgeLevel(CLOCK_LEVEL, result, mode)} className="atc-row-level" />
                                 </span>
                                 <span className="atc-row-time">{result.darts}{' '}{t('darts')}</span>
                             </div>

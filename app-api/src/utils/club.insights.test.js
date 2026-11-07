@@ -44,6 +44,20 @@ describe('clubKpis', () => {
             longestStreak: { value: 5, player: 'b' },
         });
     });
+
+    it('cuts the months at midnight on the club clock, not in UTC', () => {
+        // 23:30 UTC on 31 October is already November in Zurich, still October in New York
+        const late = x01Game({ updatedAt: new Date('2026-10-31T23:30:00Z') });
+        const kpis = (zone) => clubKpis({
+            finishedByType: [{ type: 'x01', games: [late] }], allGames: [], members: [],
+            now: new Date('2026-11-10T12:00:00Z'), ...(zone ? { zone } : {}),
+        });
+        expect(kpis()).toMatchObject({ gamesThisMonth: 1, gamesLastMonth: 0 });
+        expect(kpis('America/New_York')).toMatchObject({ gamesThisMonth: 0, gamesLastMonth: 1 });
+        // last month of January is December of the year before
+        const december = x01Game({ updatedAt: new Date('2025-12-15T12:00:00Z') });
+        expect(clubKpis({ finishedByType: [{ type: 'x01', games: [december] }], allGames: [], members: [], now: new Date('2026-01-10T12:00:00Z') }).gamesLastMonth).toBe(1);
+    });
 });
 
 function round(value) { return Math.round(value * 10) / 10; }
@@ -55,6 +69,15 @@ describe('headToHead', () => {
         expect(result.players).toEqual(['a', 'b']);
         expect(result.wins).toEqual({ a: { b: 2 }, b: { a: 1 } });
     });
+
+    it('lets both partners of doubles beat both losers, never each other', () => {
+        const doubles = x01Game({
+            doubles: true,
+            players: ['a', 'b', 'c', 'd'],
+            playerModels: { a: { hasWonGame: true }, b: {}, c: { hasWonGame: true }, d: {} },
+        });
+        expect(headToHead([{ type: 'x01', games: [doubles] }], new Set(['a', 'b', 'c', 'd'])).wins).toEqual({ a: { b: 1, d: 1 }, c: { b: 1, d: 1 } });
+    });
 });
 
 describe('clubRecords', () => {
@@ -64,6 +87,16 @@ describe('clubRecords', () => {
         expect(records.highestCheckout).toMatchObject({ value: 141, player: 'a' });
         expect(records.most180sInGame).toMatchObject({ value: 2, player: 'a' });
         expect(records.bestGameAverage).toMatchObject({ value: 167, player: 'a' });
+    });
+
+    it('takes no best leg from doubles, whose darts were the team\'s', () => {
+        const doubles = x01Game({
+            doubles: true,
+            players: ['a', 'b', 'c', 'd'],
+            allSetsThrows: { 'set-1': { 'leg-1': [visit('a', 321), visit('b', 441), visit('c', 141), visit('d', 381), visit('a', 0)] } },
+        });
+        expect(clubRecords([doubles]).bestLeg).toBeNull();
+        expect(clubKpis({ finishedByType: [{ type: 'x01', games: [doubles] }], allGames: [], members: [] }).bestLeg).toBeNull();
     });
 });
 

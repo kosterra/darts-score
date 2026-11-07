@@ -143,6 +143,31 @@ describe('groups + knockout', () => {
         expect(level[0].player).toBe('y');
     });
 
+    it('ranks three level in a circle by the draw, whatever order the matches come in', () => {
+        const walkover = (a, b) => ({ id: `${a}${b}`, group: 0, players: [a, b], winner: a, status: 'walkover', score: null });
+        // a wins all; b beat c, c beat d, d beat b: 2 points each and nothing else to tell them apart
+        const matches = [walkover('a', 'b'), walkover('a', 'c'), walkover('a', 'd'), walkover('b', 'c'), walkover('c', 'd'), walkover('d', 'b')];
+        for (const drawn of [['a', 'b', 'c', 'd'], ['d', 'c', 'b', 'a'], ['c', 'a', 'd', 'b'], ['b', 'd', 'a', 'c']]) {
+            const order = ['a', ...drawn.filter(player => player !== 'a')];
+            expect(groupTable(drawn, matches).map(row => row.player)).toEqual(order);
+            expect(groupTable(drawn, [...matches].reverse()).map(row => row.player)).toEqual(order);
+        }
+    });
+
+    it('ranks players level on the table by a table of their matches against each other', () => {
+        const won = (a, b, legs) => ({ id: `${a}${b}`, group: 0, players: [a, b], winner: a, status: 'done', score: { legs } });
+        // a, b and c each beat one of the others and lose to d: 2 points, 9 legs won, −5 each;
+        // among themselves a is +4, c ±0 and b −4
+        const matches = [
+            won('a', 'b', [5, 0]), won('b', 'c', [5, 4]), won('c', 'a', [5, 4]),
+            won('d', 'a', [9, 0]), won('d', 'b', [5, 4]), won('d', 'c', [5, 0]),
+        ];
+        const table = groupTable(['b', 'c', 'a', 'd'], matches);
+        expect(table.slice(1).map(row => [row.points, row.legsFor, row.legsFor - row.legsAgainst])).toEqual([[2, 9, -5], [2, 9, -5], [2, 9, -5]]);
+        expect(table.map(row => row.player)).toEqual(['d', 'a', 'c', 'b']);
+        expect(groupTable(['c', 'b', 'a', 'd'], [...matches].reverse()).map(row => row.player)).toEqual(['d', 'a', 'c', 'b']);
+    });
+
     it('fills the bracket with the best of each group, never against their own group first', () => {
         const groups = [['a1', 'a2', 'a3'], ['b1', 'b2', 'b3'], ['c1', 'c2', 'c3']];
         // the first of each list wins all, the second beats the third
