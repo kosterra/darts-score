@@ -1,4 +1,4 @@
-import { useContext, useEffect } from 'react';
+import { useContext, useEffect, useRef } from 'react';
 import { FaRobot } from 'react-icons/fa6';
 import { InputText } from 'primereact/inputtext';
 import { Button } from 'primereact/button';
@@ -12,6 +12,7 @@ import X01Keypad from './x01.keypad';
 import useEnteringHelp from '../common/score.input.board.help';
 import useInputMode, { INPUTS } from '../common/use.input.mode';
 import useAutoSend from '../common/use.auto.send';
+import useInputFit from '../common/use.input.fit';
 import useWaysOut from './use.ways.out';
 import { t } from '../../../utils/i18n';
 
@@ -39,6 +40,9 @@ const X01ScoreInputBoard = () => {
     // the visit goes by itself after the third dart, when the player wants it (not the bot's)
     useAutoSend(botThrowing ? [] : game.currentThrow);
     const [helpButton, help] = useEnteringHelp(true);
+    // on a phone the board or the keypad fully in view above the bars at the bottom
+    const play = useRef(null);
+    useInputFit(play);
 
     // s, d and t work as well: the dart is written in capitals once typed
     const keyfilterPattern = /^[SDTsdt0-9]{1,3}$/;
@@ -125,7 +129,7 @@ const X01ScoreInputBoard = () => {
     );
 
     return (
-        <div className={`row g-4 x01-play ${botThrowing ? 'is-bot-turn' : ''}`}>
+        <div ref={play} className={`row g-4 x01-play ${botThrowing ? 'is-bot-turn' : ''}`}>
             {/* the board on its own, without a panel around it, or the keypad */}
             <div className="col-12 col-lg-7 x01-board-plain">
                 {input === 'keypad'

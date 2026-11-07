@@ -12,6 +12,7 @@ import DartBoard from '../games/common/dartboard';
 import DartKeypad from '../games/common/dart.keypad';
 import useInputMode, { INPUTS } from '../games/common/use.input.mode';
 import useAutoSend from '../games/common/use.auto.send';
+import useInputFit from '../games/common/use.input.fit';
 import Celebration from '../badges/celebration';
 import NewBadges from '../badges/new.badges';
 import { ClubBadgeNews } from '../badges/club.badges';
@@ -202,6 +203,9 @@ const RulesTraining = () => {
     // the scoreboard reloads after a training is saved
     const [boardVersion, setBoardVersion] = useState(0);
     const toast = useRef(null);
+    // on a phone the board, the keypad or the buttons fully in view above the bars at the bottom
+    const live = useRef(null);
+    useInputFit(live);
     // the rules of the training: open from the start in the setup
     const [rulesButton, rules] = useGameRules(kind);
 
@@ -396,7 +400,7 @@ const RulesTraining = () => {
         };
         return (
             // x01-live: the gutters of a game, so nothing is wider than a phone
-            <div className="container-fluid bg-transparent border-0 x01-game-page x01-live rules-training-live">
+            <div ref={live} className="container-fluid bg-transparent border-0 x01-game-page x01-live rules-training-live">
                 <LiveHero
                     rulesId={kind}
                     title={[definition.title, ...(definition.options ?? []).map(option => option.values.find(value => value.value === replay.settings[option.key])?.label).filter(Boolean)].join(' · ')}

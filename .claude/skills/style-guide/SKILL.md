@@ -86,7 +86,7 @@ Filters above lists are pills (`FilterPills`), one row, the label inside the dro
 
 ## Phone first
 
-Check every change at 390px as well as desktop. Rules: 16px gutter, no horizontal scroll, one column for setup boxes, facts in two columns, KPIs three in a row, header actions wrap under the facts, dropdown labels inside the field. Fonts never go below `$text-xs`.
+Check every change at 390px as well as desktop. Where a score is entered, the board, the keypad or the buttons are fully in view above the floating bars without scrolling: `useInputFit` (`games/common/use.input.fit.js`) makes the header compact (`html.input-tight`) and sizes the input to the room left (keys never under 40px); check at 375×667 (`e2e/phone.fit.e2e.js`). Rules: 16px gutter, no horizontal scroll, one column for setup boxes, facts in two columns, KPIs three in a row, header actions wrap under the facts, dropdown labels inside the field. Fonts never go below `$text-xs`.
 
 ## Words
 

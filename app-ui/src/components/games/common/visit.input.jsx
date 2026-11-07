@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { InputText } from 'primereact/inputtext';
 import { Button } from 'primereact/button';
 import { Panel } from 'primereact/panel';
@@ -7,6 +7,7 @@ import { SelectButton } from 'primereact/selectbutton';
 import useEnteringHelp from './score.input.board.help';
 import { INPUTS } from './use.input.mode';
 import useAutoSend from './use.auto.send';
+import useInputFit from './use.input.fit';
 import { t } from '../../../utils/i18n';
 
 // s, d and t work as well: the dart is written in capitals once typed
@@ -31,6 +32,9 @@ const VisitInput = ({
     // the visit goes by itself after the third dart, when the player wants it
     useAutoSend(darts);
     const [helpButton, help] = useEnteringHelp(true);
+    // on a phone the board or the keypad fully in view above the bars at the bottom
+    const play = useRef(null);
+    useInputFit(play);
     // Enter enters the visit, also after darts were tapped on the board; in a
     // dart field the browser submits the form itself
     useEffect(() => {
@@ -67,9 +71,10 @@ const VisitInput = ({
     );
 
     return (
-        <div className="row g-4 x01-play">
+        <div ref={play} className="row g-4 x01-play">
+            {/* where the board or the keypad would not fit below it, the aside goes below them (input-tight) */}
             {aside && asideFirstOnPhone &&
-                <div className="col-12 d-lg-none">
+                <div className="col-12 x01-aside-first">
                     <Panel header={asideTitle} className="x01-ways-panel">{aside}</Panel>
                 </div>
             }
@@ -146,7 +151,7 @@ const VisitInput = ({
                         </div>
                     </form>
                 </Panel>
-                {aside && <Panel header={asideTitle} className={`x01-ways-panel ${asideFirstOnPhone ? 'd-none d-lg-block' : ''}`}>{aside}</Panel>}
+                {aside && <Panel header={asideTitle} className={`x01-ways-panel ${asideFirstOnPhone ? 'x01-aside-after' : ''}`}>{aside}</Panel>}
             </div>
         </div>
     );
