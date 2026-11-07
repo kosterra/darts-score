@@ -11,6 +11,7 @@ const CHANGELOG = [
     {
         version: 'Next release',
         changes: [
+            t('Smaller things: the doubles of Bob\'s 27 and Doubles around the board in even rows on a phone; tournament and league times in the calendar on the club\'s clock; on a club night someone added later shows when they came; the level filter of the games and trainings lists as a compact dropdown, so the filters fit one line; About → Levels explains the level of a game; a weekly goal on a training\'s score starts and stays where the training can reach (121 Checkout from 121); a training record names its settings (121 Checkout with 30 attempts and 9 darts).'),
             t('Training scoreboards: picking a board there (e.g. T18 in Treble practice) also sets up the next training for it, so what you tap is what you play.'),
             t('Training scoreboards: the same result is ranked by what fits the training – in Bull practice more bullseyes, in Treble practice more points on the number, in the checkout trainings and Catch 40 more checkouts and fewer darts, in Scoring more ton-plus visits, in Shortest leg the better average.'),
             t('Fix: while a global admin looks at a club, the menu is the club\'s alone, as its admins see it; the administration is back with the button in the bar on top.'),
