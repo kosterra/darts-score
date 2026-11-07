@@ -12,6 +12,7 @@ import { Toast } from 'primereact/toast';
 import ClubService from '../../services/club.service';
 import { CLUB_ROLES } from '../../services/user.service';
 import CountryPicker from '../elements/country.picker';
+import TimeZonePicker from '../elements/time.zone.picker';
 import DeletePopup from '../elements/delete.popup';
 import ImageUploader from '../elements/image.uploader';
 import SaveStatus from '../elements/save.status';
@@ -64,6 +65,7 @@ const ClubEditPage = () => {
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
     const [country, setCountry] = useState('');
+    const [timeZone, setTimeZone] = useState('');
     const [accent, setAccent] = useState('green');
     const [logoPreview, setLogoPreview] = useState('');
     const [newAdmin, setNewAdmin] = useState(EMPTY_ADMIN);
@@ -76,7 +78,7 @@ const ClubEditPage = () => {
     // everything saves as you go: what the club is (the name and description a moment after typing),
     // its logo, and its settings (each choice at once, all chosen so far sent together)
     const clubSave = useAutoSave(async (values) => {
-        await ClubService.updateClub(id, { name: values.name.trim(), description: values.description, country: values.country, accent: values.accent === 'green' ? null : values.accent });
+        await ClubService.updateClub(id, { name: values.name.trim(), description: values.description, country: values.country, timeZone: values.timeZone, accent: values.accent === 'green' ? null : values.accent });
         await refreshClubs();
     }, { valid: (values) => values.name.trim().length >= 3 && values.name.trim().length <= 50 });
     const logoSave = useAutoSave(async (file) => {
@@ -97,6 +99,7 @@ const ClubEditPage = () => {
         setName(club.name);
         setDescription(club.description ?? '');
         setCountry(club.country ?? '');
+        setTimeZone(club.timeZone ?? '');
         setAccent(club.accent ?? 'green');
         setLogoPreview(resolveClubLogo(club.logo));
         setShameMinAge(club.shameMinAge ?? 16);
@@ -110,10 +113,11 @@ const ClubEditPage = () => {
 
     // what the club is: shown at once, saved a moment later (a choice at once)
     const changeClub = (patch, options) => {
-        const next = { name, description, country, accent, ...patch };
+        const next = { name, description, country, timeZone, accent, ...patch };
         if ('name' in patch) setName(patch.name);
         if ('description' in patch) setDescription(patch.description);
         if ('country' in patch) setCountry(patch.country);
+        if ('timeZone' in patch) setTimeZone(patch.timeZone);
         if ('accent' in patch) setAccent(patch.accent);
         clubSave.change(next, options);
     };
@@ -217,6 +221,13 @@ const ClubEditPage = () => {
                                 <div className="col d-flex flex-column gap-1 pt-1 club-country">
                                     <CountryPicker value={country} onChange={(value) => changeClub({ country: value ?? '' }, { now: true })} />
                                     <span className="text-faint fs-8">{t('Where the club plays: its flag is shown next to its name in the lists of clubs.')}</span>
+                                </div>
+                            </div>
+                            <p className="setting-title">{t('Time zone')}</p>
+                            <div className="row mx-0 mt-0 setting-body">
+                                <div className="col d-flex flex-column gap-1 pt-1 club-country">
+                                    <TimeZonePicker value={timeZone} onChange={(value) => changeClub({ timeZone: value }, { now: true })} />
+                                    <span className="text-faint fs-8">{t('The club\'s days and weeks, its club nights and league matchdays follow this time zone.')}</span>
                                 </div>
                             </div>
                             <p className="setting-title">{t('Club colour')}</p>

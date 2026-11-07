@@ -1,11 +1,12 @@
 import { randomBytes } from 'node:crypto';
 import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
-import { REASON_MAX, WEEKS_AHEAD, addDays, clubNightsBetween, competitionEvents, dayKey, isClubNight, isDayKey, nightsError } from '../rules/calendar.js';
+import { REASON_MAX, WEEKS_AHEAD, addDays, clubNightsBetween, competitionEvents, isClubNight, isDayKey, nightsError } from '../rules/calendar.js';
 import { getAppUrl } from './mail.utils.js';
 import { deliverQuietly } from './notify.js';
 import { translate } from './translate.js';
 import { eveningReport, gameSummary } from './evenings.js';
+import { dayKeyIn, instantIn, zoneOf } from '../rules/zones.js';
 
 /**
  * The calendar of a club (see rules/calendar.js): its weekly club nights,
@@ -39,7 +40,7 @@ export const saveNights = async (club, nights) => {
     }));
     const problem = nightsError(clean);
     if (problem) throw failure(problem, 422);
-    const since = addDays(dayKey(new Date()), -DAYS_BACK);
+    const since = addDays(dayKeyIn(new Date(), zoneOf(club)), -DAYS_BACK);
     club.calendar = {
         nights: clean.sort((a, b) => ((a.weekday + 6) % 7) - ((b.weekday + 6) % 7)),
         cancelled: (club.calendar?.cancelled ?? []).filter(entry => entry.day >= since),
@@ -53,7 +54,8 @@ export const saveNights = async (club, nights) => {
 const checkNight = (club, day) => {
     if (!isDayKey(day)) throw failure('Choose a day.', 422);
     if (!isClubNight(club.calendar?.nights, day)) throw failure('There is no club night on that day.', 404);
-    if (day < dayKey(new Date())) throw failure('This club night is over.', 409);
+    // over once the day has passed on the club's clock
+    if (day < dayKeyIn(new Date(), zoneOf(club))) throw failure('This club night is over.', 409);
 };
 
 /**
@@ -180,12 +182,12 @@ export const calendarView = async (club, { playerId = null, isAdmin = false, fro
             // everyone sees who comes; who does not only the admins
             return { ...night, coming: yes, notComing: isAdmin ? no : [], notComingCount: no.length, me: mine };
         }),
-        events: competitionEvents({ tournaments, leagues }).filter(event => event.at >= start && event.at < end),
+        events: competitionEvents({ tournaments, leagues, zoneOfClub: () => zoneOf(club) }).filter(event => event.at >= start && event.at < end),
     };
 };
 
 // the days the app shows when it asks for none: from today, some weeks ahead
-export const defaultRange = (today = dayKey(new Date())) => ({ from: today, to: addDays(today, 8 * 7) });
+export const defaultRange = (today = dayKeyIn(new Date())) => ({ from: today, to: addDays(today, 8 * 7) });
 
 // a range asked for, within reason
 export const rangeOf = (query) => {
@@ -232,15 +234,15 @@ const fold = (line) => {
 const pad = (value) => String(value).padStart(2, '0');
 // a moment in UTC: 20261103T183000Z
 const utcStamp = (date) => `${date.getUTCFullYear()}${pad(date.getUTCMonth() + 1)}${pad(date.getUTCDate())}T${pad(date.getUTCHours())}${pad(date.getUTCMinutes())}00Z`;
-// a day and time of the club, without a time zone: the phone shows it as it is (20261103T193000)
-const floating = (day, time) => `${day.replaceAll('-', '')}T${time.replace(':', '')}00`;
+// a day and time on the club's clock, as a moment in UTC: a phone in another zone shows it in its own time
+const clubStamp = (day, time, zone) => utcStamp(instantIn(day, time, zone));
 // the end of a club night: its end, after midnight on the next day, or three hours after it starts
-const nightEnd = (night) => {
-    if (night.end && night.end > night.start) return floating(night.day, night.end);
-    if (night.end) return floating(addDays(night.day, 1), night.end);
+const nightEnd = (night, zone) => {
+    if (night.end && night.end > night.start) return clubStamp(night.day, night.end, zone);
+    if (night.end) return clubStamp(addDays(night.day, 1), night.end, zone);
     const [hours, minutes] = night.start.split(':').map(Number);
     const total = hours * 60 + minutes + 180;
-    return floating(total >= 24 * 60 ? addDays(night.day, 1) : night.day, `${pad(Math.floor(total / 60) % 24)}:${pad(total % 60)}`);
+    return clubStamp(total >= 24 * 60 ? addDays(night.day, 1) : night.day, `${pad(Math.floor(total / 60) % 24)}:${pad(total % 60)}`, zone);
 };
 
 /**
@@ -283,9 +285,9 @@ export const feedOf = async (token) => {
     const say = (text) => translate(language, text);
     const own = await db.player.find({ user: user._id }, 'clubs').lean();
     const clubIds = [...new Set(own.flatMap(player => (player.clubs ?? []).map(String)))];
-    const clubs = await db.club.find({ $or: [{ _id: { $in: clubIds } }, { admins: user._id }] }, 'name calendar').lean();
+    const clubs = await db.club.find({ $or: [{ _id: { $in: clubIds } }, { admins: user._id }] }, 'name calendar timeZone').lean();
     const myPlayers = new Set(own.map(player => String(player._id)));
-    const from = addDays(dayKey(new Date()), -DAYS_BACK);
+    const from = addDays(dayKeyIn(new Date()), -DAYS_BACK);
     const to = addDays(from, DAYS_BACK + 7 * WEEKS_AHEAD);
     const app = getAppUrl();
     const several = clubs.length > 1;
@@ -298,8 +300,8 @@ export const feedOf = async (token) => {
             const title = several ? say(`Club night of ${club.name}`) : say('Club night');
             events.push({
                 uid: `night-${club._id}-${night.day}@legmate`,
-                start: floating(night.day, night.start),
-                end: nightEnd(night),
+                start: clubStamp(night.day, night.start, zoneOf(club)),
+                end: nightEnd(night, zoneOf(club)),
                 summary: night.cancelled ? `${say('Cancelled')}: ${title}` : title,
                 description: [night.note, night.cancelled?.reason && say(`Reason: ${night.cancelled.reason}`), coming.has(`${club._id}:${night.day}`) && say('You said you are coming.')].filter(Boolean).join('\n'),
                 url: app ? `${app}/calendar` : '',
@@ -308,7 +310,8 @@ export const feedOf = async (token) => {
         }
     }
     const { tournaments, leagues } = await competitionsOf(clubs.map(club => club._id));
-    for (const event of competitionEvents({ tournaments, leagues })) {
+    const zones = new Map(clubs.map(club => [String(club._id), zoneOf(club)]));
+    for (const event of competitionEvents({ tournaments, leagues, zoneOfClub: (id) => zones.get(String(id)) })) {
         const summary = {
             registrationEnds: () => `${event.name} · ${say('Registration ends')}`,
             tournamentRound: () => `${event.name} · ${say(roundName(event.round))}`,

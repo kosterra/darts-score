@@ -1,3 +1,5 @@
+import { DEFAULT_TIME_ZONE, instantIn } from '../rules/zones';
+
 /**
  * The club evening of a club night, on this device: who plays tonight (when
  * it differs from those who said they come), and which games were started
@@ -37,11 +39,10 @@ export const noteNightGame = (gameId, day) => {
 };
 export const nightOfGame = (gameId) => read(GAMES_KEY, {})[gameId]?.day ?? null;
 
-// the evening of a night ("YYYY-MM-DD", starting "HH:MM") in the time of this device
-export const eveningWindow = (day, start = '19:00') => {
+// the evening of a night ("YYYY-MM-DD", starting "HH:MM") on the club's clock (zone), whatever the device's
+export const eveningWindow = (day, start = '19:00', zone = DEFAULT_TIME_ZONE) => {
+    const from = new Date(instantIn(day, start, zone).getTime() - 3 * 60 * 60 * 1000);
     const [year, month, date] = day.split('-').map(Number);
-    const [hours, minutes] = start.split(':').map(Number);
-    const from = new Date(year, month - 1, date, hours - 3, minutes);
-    const to = new Date(year, month - 1, date + 1, 6, 0);
-    return { from, to };
+    const next = new Date(Date.UTC(year, month - 1, date + 1, 12)).toISOString().slice(0, 10);
+    return { from, to: instantIn(next, '06:00', zone) };
 };

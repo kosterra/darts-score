@@ -3,7 +3,8 @@ import db from '../models/db.model.js';
 import { RULES_TRAININGS, TRAINING_KINDS } from './rules.kinds.js';
 import { viewOf } from './game.view.js';
 import { deliverQuietly } from './notify.js';
-import { addDays, dayKey, weekRange } from '../rules/calendar.js';
+import { addDays } from '../rules/calendar.js';
+import { dayKeyIn, weekRangeIn } from '../rules/zones.js';
 
 /**
  * The weekly practice goals of a user: up to three of their own, e.g. three
@@ -169,7 +170,7 @@ export const measure = (goal, week, playerIds) => {
         }
         case 'games': return week.games.length;
         case 'num180s': return [...week.games.map(game => game.view), ...week.bot.map(entry => entry.view)].reduce((sum, view) => sum + count180s(view, ids), 0);
-        case 'playDays': return new Set([...week.games, ...week.atc, ...week.rules, ...week.bot].map(entry => dayKey(entry.at))).size;
+        case 'playDays': return new Set([...week.games, ...week.atc, ...week.rules, ...week.bot].map(entry => dayKeyIn(entry.at))).size;
         default: return 0;
     }
 };
@@ -210,7 +211,7 @@ const playerIdsOf = async (userId) => (await db.player.find({ user: userId, gues
  * { week: { from, until, key }, goals: [goalView], playerIds }.
  */
 export const weekProgress = async (user, now = new Date(), { goals = user.practiceGoals ?? [] } = {}) => {
-    const week = weekRange(now);
+    const week = weekRangeIn(now);
     const playerIds = await playerIdsOf(user._id);
     const held = goals.length ? await loadWeek(playerIds, week) : null;
     const record = goals.length ? await db.practiceGoalWeek.findOne({ user: user._id, week: week.key }, 'goals').lean() : null;
@@ -236,7 +237,7 @@ const weekView = (record) => {
  * The past weeks of the user, newest first: [{ week, goals, allReached }].
  */
 export const pastWeeks = async (userId, weeks = 12, now = new Date()) => {
-    const current = weekRange(now).key;
+    const current = weekRangeIn(now).key;
     const records = await db.practiceGoalWeek.find({ user: userId, week: { $lt: current }, closedAt: { $ne: null } }).sort({ week: -1 }).limit(weeks).lean();
     return records.map(weekView);
 };
@@ -361,8 +362,9 @@ export const checkGoalsAfterGame = async (game) => {
 
 // the week before the one of `now`
 const weekBefore = (now) => {
-    const { from } = weekRange(now);
-    return weekRange(new Date(from.getFullYear(), from.getMonth(), from.getDate() - 7));
+    const { from } = weekRangeIn(now);
+    // half a week before its Monday: in the week before, whatever the clocks did
+    return weekRangeIn(new Date(from.getTime() - 3.5 * 24 * 60 * 60 * 1000));
 };
 
 /**

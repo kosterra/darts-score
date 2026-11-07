@@ -95,6 +95,10 @@ CMD ["npm", "run", "dev"]
 # ---------------------------------------------------------------------------
 FROM ${NODE_IMAGE} AS production
 
+# the server's clock for what is not a club's (the hour of the weekly mails, the usage of a day);
+# a club's days and weeks follow its own time zone (see rules/zones.js). Override with -e TZ=…
+ENV TZ=Europe/Zurich
+
 RUN apt-get update && apt-get upgrade -y --no-install-recommends && rm -rf /var/lib/apt/lists/* \
     && mkdir -p /app/data \
     && chown -R node:node /app \

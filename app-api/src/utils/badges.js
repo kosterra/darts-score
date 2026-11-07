@@ -5,6 +5,7 @@ import { withView } from './game.view.js';
 import { gameOf } from '../rules/games.js';
 import { replayGame } from '../rules/engine.js';
 import { legScores, legWinnerOf, partnersOf, sideKeysOf } from '../rules/x01.js';
+import { wallClock } from '../rules/zones.js';
 
 /**
  * Badges players collect. Each group counts one thing (a "metric") and has
@@ -725,7 +726,8 @@ const applyCricket = (metrics, game, model, playerId) => {
     }
 };
 
-const weekOf = (date) => Math.floor((new Date(date).getTime() - FIRST_MONDAY_MS) / WEEK_MS);
+// the week of a moment, Monday to Sunday on the clock of the default zone (Europe/Zurich), not in UTC
+const weekOf = (date) => Math.floor((wallClock(date) - FIRST_MONDAY_MS) / WEEK_MS);
 const dayOf = (date) => Math.floor(new Date(date).getTime() / DAY_MS);
 
 /**

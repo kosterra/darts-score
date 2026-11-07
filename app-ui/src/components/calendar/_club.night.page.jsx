@@ -39,6 +39,7 @@ import MyMatch from '../boards/my.match';
 import SaveStatus from '../elements/save.status';
 import SettingSwitch from '../elements/setting.switch';
 import SetupBox from '../elements/setup.box';
+import { zoneOf } from '../../rules/zones';
 
 // the table follows the games played on the other boards; more often while the player's own match is on a board
 const REFRESH_MS = 20 * 1000;
@@ -113,7 +114,7 @@ const ClubNightPage = () => {
         PlayerService.searchPlayers('').then(list => setMembers(list.filter(member => !member.guest))).catch(() => setMembers([]));
     }, [day, activeClub?.id]);
 
-    const span = useMemo(() => (night ? eveningWindow(day, night.start) : null), [day, night]);
+    const span = useMemo(() => (night ? eveningWindow(day, night.start, zoneOf(activeClub)) : null), [day, night, activeClub]);
     const loadBoards = useCallback(() => BoardService.loadNight(day).then(found => {
         setBoardNight(found);
         if (found?.players?.length) {

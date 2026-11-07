@@ -5,7 +5,8 @@ const API_URL = '/api/clubs';
 
 const loadClubs = () => requestJSON(API_URL);
 
-const createClub = (name) => requestJSON(API_URL, { method: 'POST', body: { name } });
+// a new club plays in the time zone of the browser that makes it (it can be changed under Edit club)
+const createClub = (name) => requestJSON(API_URL, { method: 'POST', body: { name, timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone } });
 
 /**
  * Saves a club's name and what it shows on the public start page:

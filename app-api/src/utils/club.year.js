@@ -2,6 +2,7 @@ import db from '../models/db.model.js';
 import { knownInClub } from '../models/player.model.js';
 import { viewOf } from './game.view.js';
 import { reviewYears, yearSpan } from './year.review.js';
+import { dayKeyIn, zoneOf } from '../rules/zones.js';
 
 /**
  * "The club's year": what a club played in one calendar year, and its
@@ -53,7 +54,8 @@ export const yearAwards = (rows) => {
  * darts, oneEighties, clubNights, awards: [{ id, player: { id, nickname }, value }] }.
  */
 export const clubYear = async (club, year, now = new Date()) => {
-    const { from, to } = yearSpan(year);
+    const zone = zoneOf(club);
+    const { from, to } = yearSpan(year, zone);
     const [players, found, firsts] = await Promise.all([
         db.player.find(knownInClub(club._id), 'nickname guest').lean(),
         Promise.all(GAME_TYPES.map(type => type.model().find({ club: club._id, gameIsRunning: false, hasWinner: true, createdAt: { $gte: from, $lt: to } }).lean()
@@ -72,7 +74,7 @@ export const clubYear = async (club, year, now = new Date()) => {
     let oneEighties = 0;
     for (const game of games) {
         byType[game.kind] = (byType[game.kind] ?? 0) + 1;
-        days.add(new Date(game.createdAt).toISOString().slice(0, 10));
+        days.add(dayKeyIn(game.createdAt, zone));
         const ids = (game.view.players ?? []).map(String);
         ids.forEach(id => active.add(id));
         for (const id of ids) {
@@ -98,7 +100,7 @@ export const clubYear = async (club, year, now = new Date()) => {
     }
 
     // the club nights each member said they came to, up to today
-    const today = now.toISOString().slice(0, 10);
+    const today = dayKeyIn(now, zone);
     const attended = await db.attendance.find({ club: club._id, answer: 'yes', day: { $gte: `${year}-01-01`, $lte: `${year}-12-31` < today ? `${year}-12-31` : today } }, 'player day').lean();
     const nights = new Set();
     for (const entry of attended) {

@@ -1,13 +1,18 @@
 import { Router } from 'express';
 import { body, param, query } from 'express-validator';
 import { validate } from '../utils/validation.js';
+import { isTimeZone } from '../rules/zones.js';
 import * as ClubController from '../controllers/club.controller.js';
 import * as ClubJoinController from '../controllers/club.join.controller.js';
 import * as ClubLinkController from '../controllers/club.link.controller.js';
 import { emailValidator, nameValidators, passwordValidator } from './auth.routes.js';
 import { uploadClubLogo } from '../controllers/file.controller.js';
 
+// the time zone a club plays in, when sent
+const timeZoneValidator = body('timeZone').optional().custom(isTimeZone).withMessage('Choose a time zone like Europe/Zurich.');
+
 const clubValidator = [
+    timeZoneValidator,
     body('name')
         .trim()
         .notEmpty().withMessage('Name is required.')

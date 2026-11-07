@@ -39,6 +39,14 @@ describe('leagues', () => {
         expect(dueOf(league, { day: 2, date: moved })).toEqual(moved);
     });
 
+    it('keeps the matchdays at the same time on the club\'s clock when the clocks change', () => {
+        // Tuesday 13 October 2026, 19:30 in Zurich; summer time ends on 25 October
+        const first = new Date('2026-10-13T17:30:00Z');
+        expect(matchdayDates(first, 7, 3, 'Europe/Zurich').map(date => date.toISOString())).toEqual(['2026-10-13T17:30:00.000Z', '2026-10-20T17:30:00.000Z', '2026-10-27T18:30:00.000Z']);
+        // a club in London keeps its 18:30
+        expect(matchdayDates(first, 14, 2, 'Europe/London').map(date => date.toISOString())).toEqual(['2026-10-13T17:30:00.000Z', '2026-10-27T18:30:00.000Z']);
+    });
+
     it('ranks the table and knows when the season is over', () => {
         const matches = leagueMatches(['a', 'b', 'c'], 1).map(match => ({ ...match, status: 'done', winner: match.players.includes('a') ? 'a' : 'b', score: { legs: [3, 1] } }));
         expect(leagueTable(['a', 'b', 'c'], matches).map(row => row.player)).toEqual(['a', 'b', 'c']);

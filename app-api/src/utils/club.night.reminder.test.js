@@ -53,6 +53,20 @@ describe('the reminder of a club night', () => {
         expect(notices).toHaveLength(0);
     });
 
+    it('reads the start on the club\'s clock, whatever the server\'s time zone', async () => {
+        // 16:00 UTC is 17:00 in Zurich (winter time): two and a half hours before 19:30
+        await remindClubNights(new Date('2026-10-27T16:00:00Z'));
+        expect(notices).toHaveLength(1);
+        // a club in London starts at 19:30 London time: at 15:00 UTC that is still too early
+        notices.length = 0;
+        sentKeys.clear();
+        clubs[0].timeZone = 'Europe/London';
+        await remindClubNights(new Date('2026-10-27T15:00:00Z'));
+        expect(notices).toHaveLength(0);
+        await remindClubNights(new Date('2026-10-27T17:00:00Z'));
+        expect(notices).toHaveLength(1);
+    });
+
     it('not for a cancelled night (that is told when it is cancelled)', async () => {
         clubs[0].calendar.cancelled = [{ day: DAY, reason: 'Room taken' }];
         await remindClubNights(tuesday(17, 0));

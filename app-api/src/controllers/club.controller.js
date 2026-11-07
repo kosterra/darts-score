@@ -10,6 +10,7 @@ import { isGlobalAdmin, canManageClub } from '../middleware/auth.middleware.js';
 import { NO_CLUB_FOR_GLOBAL_ADMINS, isGlobalAdminAccount } from '../utils/global.admins.js';
 import { normalizeLayout } from '../utils/dashboard.layout.js';
 import { ACCENTS, normalizeClubRules } from '../rules/club.rules.js';
+import { isTimeZone } from '../rules/zones.js';
 import { GOAL_METRICS, topClubBadges } from '../utils/club.badges.js';
 import { syncClubBadges } from '../utils/club.badge.service.js';
 import { clubShirtCheck } from '../utils/shirts.js';
@@ -86,7 +87,8 @@ export const findAll = async (req, res) => {
 export const create = async (req, res) => {
     logger.debug('clubs create called');
     if (isGlobalAdmin(req.user)) return res.status(403).json({ message: NO_CLUB_FOR_GLOBAL_ADMINS });
-    const club = await Club.create({ name: req.body.name, admins: [req.user._id] });
+    // the time zone of the browser that made it, else the default
+    const club = await Club.create({ name: req.body.name, admins: [req.user._id], ...(isTimeZone(req.body.timeZone) && { timeZone: req.body.timeZone }) });
     logger.info(`Club "${club.name}" created by ${req.user.email}`);
     checkLater(() => noteCreated(req, 'club', { id: club._id, name: club.name, club }));
     res.status(201).json({ ...(await withAdmins(club)), role: CLUB_ROLES.ADMIN, playerCount: 0 });
@@ -112,6 +114,7 @@ export const update = async (req, res) => {
     club.name = req.body.name;
     if (typeof req.body.description === 'string') club.description = req.body.description;
     if (typeof req.body.country === 'string') club.country = req.body.country.toUpperCase();
+    if (isTimeZone(req.body.timeZone)) club.timeZone = req.body.timeZone;
     if (req.body.accent !== undefined) club.accent = ACCENTS.includes(req.body.accent) ? req.body.accent : null;
     // Visibility settings are optional, so a plain rename leaves them alone
     for (const setting of ['isPublic', 'publicLiveGames', 'publicResults', 'shameBadges', 'shameWithoutChildren', 'connectable']) {

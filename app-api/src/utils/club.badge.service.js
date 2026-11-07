@@ -6,6 +6,7 @@ import { checkLater, noteClubBadges } from './spam.guard.js';
 import { noteRatingChanges } from './player.notices.js';
 import { CLUB_BADGES, GOAL_METRICS, TALLY_VERSION, getClubBadge, goalProgress, publicClubBadge, replayClubBadges, tallyOf } from './club.badges.js';
 import { deliver } from './notify.js';
+import { zoneOf } from '../rules/zones.js';
 
 const GAME_COLLECTIONS = {
     x01: () => db.x01,
@@ -122,7 +123,7 @@ export const syncClubBadges = async (clubOrId, { notify = true } = {}) => {
     const club = await clubOf(clubOrId);
     if (!club) return { fresh: [], metrics: {}, progress: {} };
     const [{ games, trainings, ends, tallies }, members] = await Promise.all([loadClubEvents(club._id), memberCount(club._id)]);
-    const { earned, metrics } = replayClubBadges([...games, ...trainings, ...ends], { members, createdAt: club.createdAt });
+    const { earned, metrics } = replayClubBadges([...games, ...trainings, ...ends], { members, createdAt: club.createdAt, zone: zoneOf(club) });
 
     const known = new Set((club.badges ?? []).map(entry => entry.badge));
     const fresh = earned.filter(entry => !known.has(entry.badge));

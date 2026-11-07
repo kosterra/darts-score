@@ -5,6 +5,7 @@ import { cleanRules, isDecided } from '../rules/tournaments.js';
 import { storedOf } from './game.view.js';
 import { deliverQuietly } from './notify.js';
 import { untilSaved } from './retry.js';
+import { zoneOf } from '../rules/zones.js';
 import { shirtOf } from './shirts.js';
 
 /**
@@ -88,7 +89,9 @@ export const startLeague = async (league) => {
     const matches = leagueMatches(players, league.meetings);
     const days = matchdayCount(players.length, league.meetings);
     league.matches = matches;
-    league.matchdays = matchdayDates(league.firstDay, league.everyDays, days).map((date, index) => ({ day: index + 1, date }));
+    // on the club's clock: the matchdays keep their time when the clocks change
+    const club = await db.club.findById(league.club, 'timeZone').lean();
+    league.matchdays = matchdayDates(league.firstDay, league.everyDays, days, zoneOf(club)).map((date, index) => ({ day: index + 1, date }));
     league.status = 'running';
     league.startedAt = new Date();
     await league.save();

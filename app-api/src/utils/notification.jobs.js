@@ -14,7 +14,8 @@ import { lastWeeks, usageLines } from './usage.stats.js';
 import { runTournamentJobs } from './tournaments.js';
 import { runLeagueJobs } from './leagues.js';
 import { runEveningJobs } from './evenings.js';
-import { clubNightsBetween, dayKey } from '../rules/calendar.js';
+import { clubNightsBetween } from '../rules/calendar.js';
+import { dayKeyIn, instantIn, zoneOf } from '../rules/zones.js';
 import { closePracticeWeeks, lastWeekGoals, nudgeOf, weekProgress } from './practice.goals.js';
 
 /**
@@ -104,13 +105,14 @@ export const remindRunningGames = async (now = new Date()) => {
  * A cancelled night is told when it is cancelled, not reminded of.
  */
 export const remindClubNights = async (now = new Date()) => {
-    const today = dayKey(now);
-    const clubs = await db.club.find({ 'calendar.nights.0': { $exists: true } }, 'calendar').lean();
+    const clubs = await db.club.find({ 'calendar.nights.0': { $exists: true } }, 'calendar timeZone').lean();
     for (const club of clubs) {
+        // today and the start on the club's clock
+        const zone = zoneOf(club);
+        const today = dayKeyIn(now, zone);
         const [night] = clubNightsBetween(club.calendar.nights, club.calendar.cancelled ?? [], today, today);
         if (!night || night.cancelled) continue;
-        const [hours, minutes] = night.start.split(':').map(Number);
-        const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes);
+        const start = instantIn(today, night.start, zone);
         if (now >= start || start - now > CLUB_NIGHT_HOURS * HOUR) continue;
         const coming = await db.attendance.find({ club: club._id, day: today, answer: 'yes' }, 'player').lean();
         const due = [];

@@ -2,13 +2,14 @@ import { randomBytes } from 'node:crypto';
 import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
 import { MAX_BOARDS, boardsView, fill, hold, moveTo, nightItems, setBoards, topUp, tournamentItems } from '../rules/boards.js';
-import { addDays, dayKey, isClubNight, isDayKey } from '../rules/calendar.js';
+import { addDays, isClubNight, isDayKey } from '../rules/calendar.js';
 import { lockedOn, ruleViolations } from '../rules/club.rules.js';
 import { answerOf, storedOf } from './game.view.js';
 import { deliverQuietly } from './notify.js';
 import { untilSaved } from './retry.js';
 import { clubShirtOf } from './shirts.js';
 import { boardCalledTitle, roundName } from './tournaments.js';
+import { dayKeyIn, zoneOf } from '../rules/zones.js';
 
 /**
  * A club night played on boards (see rules/boards.js): its admins set the
@@ -44,7 +45,7 @@ const checkDay = (club, day, now = new Date()) => {
     if (!isDayKey(day)) throw failure('Choose a day.', 422);
     if (!isClubNight(club.calendar?.nights, day)) throw failure('There is no club night on that day.', 404);
     if ((club.calendar?.cancelled ?? []).some(entry => entry.day === day)) throw failure('This club night is cancelled.', 409);
-    if (day < addDays(dayKey(now), -1)) throw failure('This club night is over.', 409);
+    if (day < addDays(dayKeyIn(now, zoneOf(club)), -1)) throw failure('This club night is over.', 409);
 };
 
 // ---------------------------------------------------------------------------
@@ -351,7 +352,7 @@ export const myBoards = async (userId, now = new Date()) => {
             matches: { $elemMatch: { players: { $in: own }, board: { $ne: null }, status: { $in: ['ready', 'running'] } } },
         }, 'club name matches').lean(),
         db.boardNight.find({
-            day: { $gte: addDays(dayKey(now), -1) },
+            day: { $gte: addDays(dayKeyIn(now), -1) },
             entries: { $elemMatch: { players: { $in: own }, board: { $ne: null }, status: { $in: ['called', 'playing'] } } },
         }).lean(),
     ]);

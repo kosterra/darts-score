@@ -2,6 +2,7 @@ import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
 import { reviewYears, yearReview } from '../utils/year.review.js';
 import { clubYear } from '../utils/club.year.js';
+import { yearIn } from '../rules/zones.js';
 
 // the first finished game of a player, in any game: from then on there is a year to look back at
 const firstGameOf = async (playerId) => {
@@ -17,7 +18,7 @@ export const getYearReview = async (req, res) => {
     try {
         const years = reviewYears(await firstGameOf(req.params.id));
         const asked = Number(req.query.year);
-        const year = Number.isInteger(asked) && asked > 2000 && asked <= new Date().getUTCFullYear() ? asked : new Date().getUTCFullYear();
+        const year = Number.isInteger(asked) && asked > 2000 && asked <= yearIn(new Date()) ? asked : yearIn(new Date());
         res.json({ ...(await yearReview(req.params.id, year)), years });
     } catch (err) {
         logger.error(err, 'Failed to make the year in darts');
@@ -32,7 +33,7 @@ export const getYearReview = async (req, res) => {
 export const getClubYear = async (req, res) => {
     try {
         const asked = Number(req.query.year);
-        const year = Number.isInteger(asked) && asked > 2000 && asked <= new Date().getUTCFullYear() ? asked : new Date().getUTCFullYear();
+        const year = Number.isInteger(asked) && asked > 2000 && asked <= yearIn(new Date()) ? asked : yearIn(new Date());
         res.json(await clubYear(req.club, year));
     } catch (err) {
         logger.error(err, 'Failed to make the year of the club');
