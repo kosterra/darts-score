@@ -391,8 +391,11 @@
 
 // the doubles from D1 to the bull, by the room the strip itself has (a result, a row of the
 // scoreboard, the training under way): one row of 21 where every cell keeps about 1.9rem, else
-// three even rows of seven (the bull too); while training two rows, so the board stays in sight
+// three even rows of seven (the bull too); while training two rows of eleven where they keep
+// about 2rem each, so the board stays in sight, three rows of seven on a phone
 .rules-doubles {
+    width: 100%;
+    min-width: 0;
     margin: 0;
     container-type: inline-size;
 
@@ -412,7 +415,9 @@
     padding: 0;
     list-style: none;
 
-    .rules-doubles.is-live & { grid-template-columns: repeat(11, minmax(0, 1fr)); }
+    @container (min-width: 25rem) {
+        .rules-doubles.is-live & { grid-template-columns: repeat(11, minmax(0, 1fr)); }
+    }
 
     @container (min-width: 40rem) {
         &, .rules-doubles.is-live & { grid-template-columns: repeat(21, minmax(0, 1fr)); }
@@ -423,6 +428,8 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    // a cell never pushes the strip wider than its room
+    min-width: 0;
     padding: 0.2rem 0;
     border: 2px solid transparent;
     border-radius: $radius-sm;
