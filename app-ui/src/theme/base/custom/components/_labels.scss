@@ -141,3 +141,11 @@ $labelRed: $accentRed;
 
     .country-flag { top: 0; margin-left: 0; }
 }
+
+// a count out of a whole ("418 / 1710"): the whole after the slash smaller and quieter, so the count stands out
+.figure-of {
+  font-size: 0.6em;
+  font-weight: $weight-semibold;
+  color: var(--text-subtle);
+  white-space: nowrap;
+}

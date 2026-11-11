@@ -9,6 +9,12 @@ import { t } from '../../utils/i18n';
  */
 const CHANGELOG = [
     {
+        version: 'Next release',
+        changes: [
+            t('Figures out of a whole (2 / 30, 418 / 1710) show the whole after the slash smaller, so the count stands out: on the tiles of trainings and games, the badges page and the weekly goals.'),
+        ],
+    },
+    {
         version: '2026.11.7',
         changes: [
             t('On a phone the board, the keypad and the buttons of every game and training are fully in view without scrolling: where space is short the header gets compact and the marks or standings move below the board.'),

@@ -16,6 +16,7 @@ import { addDays } from '../../rules/calendar';
 import { formatDate } from '../../utils/dates';
 import { Lines } from '../elements/skeletons';
 import { t } from '../../utils/i18n';
+import FigureValue from '../elements/figure.value';
 
 const MAX_GOALS = 3;
 
@@ -162,7 +163,7 @@ const PracticeGoalsEditor = ({ onError }) => {
                             <li key={week.week} className="d-flex align-items-start justify-content-between gap-3">
                                 <span className="d-flex flex-column min-w-0">
                                     <span className="text-default fs-7 fw-semibold tabular-nums">{formatDate(week.week, { year: 'none' })}{' – '}{formatDate(addDays(week.week, 6), { year: 'none' })}</span>
-                                    {week.goals.map(goal => <span key={goal.id} className="text-faint fs-8">{goal.description} <span className="tabular-nums">{figureOf(goal)}</span></span>)}
+                                    {week.goals.map(goal => <span key={goal.id} className="text-faint fs-8">{goal.description} <span className="tabular-nums"><FigureValue value={figureOf(goal)} /></span></span>)}
                                 </span>
                                 <Tag value={week.allReached ? t('Reached') : t('Not reached')} severity={week.allReached ? 'success' : 'secondary'} className="flex-shrink-0" />
                             </li>

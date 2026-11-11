@@ -2,6 +2,7 @@ import GoalProgress from '../elements/goal.progress';
 import { figureOf } from './goal.kinds';
 import { formatDate } from '../../utils/dates';
 import { t } from '../../utils/i18n';
+import FigureValue from '../elements/figure.value';
 
 /**
  * The user's weekly goals with how far each is: what it is, the figure
@@ -19,7 +20,7 @@ export const PracticeGoalList = ({ goals = [], compact = false }) => (
                     </span>
                     <span className="practice-goal-figure fs-8 tabular-nums text-nowrap">
                         {goal.reached && <span className="visually-hidden">{t('Reached')}{': '}</span>}
-                        {figureOf(goal)}
+                        <FigureValue value={figureOf(goal)} />
                     </span>
                 </span>
                 <GoalProgress share={goal.share} done={goal.reached} label={goal.description} />

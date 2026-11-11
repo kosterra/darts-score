@@ -6,6 +6,7 @@ import SideBySide from './side.by.side';
 import PlayLevelTag from '../../elements/play.level.tag';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../../utils/image.utils';
 import { t } from '../../../utils/i18n';
+import FigureValue from '../../elements/figure.value';
 
 /**
  * The top of a finished game: what was played ("title", "subtitle"), the
@@ -87,7 +88,7 @@ const GameResultHeader = ({ game, players, title, subtitle, scoreOf, scoreDetail
                             <div key={figure.key} className={[figure.long && 'is-long', figure.record && 'is-record'].filter(Boolean).join(' ') || undefined}>
                                 <dt>{figure.label}</dt>
                                 <dd>
-                                    {value == null ? '–' : figure.format ? figure.format(value, playerFigures) : value}
+                                    {value == null ? '–' : <FigureValue value={figure.format ? figure.format(value, playerFigures) : value} />}
                                     {value != null && figure.detail?.(playerFigures) && <span className="text-faint fs-8 ms-1">({figure.detail(playerFigures)})</span>}
                                 </dd>
                             </div>
@@ -144,7 +145,7 @@ const GameResultHeader = ({ game, players, title, subtitle, scoreOf, scoreDetail
                                         const value = playerFigures[figure.key];
                                         return (
                                             <td key={player.id} className={best != null && value === best ? 'is-best' : ''}>
-                                                {value == null ? '–' : figure.format ? figure.format(value, playerFigures) : value}
+                                                {value == null ? '–' : <FigureValue value={figure.format ? figure.format(value, playerFigures) : value} />}
                                                 {value != null && figure.detail?.(playerFigures) &&
                                                     <span className="text-faint fs-8 ms-1">({figure.detail(playerFigures)})</span>}
                                             </td>
