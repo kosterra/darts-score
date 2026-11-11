@@ -9,7 +9,7 @@ import { t } from '../../utils/i18n';
  */
 const CHANGELOG = [
     {
-        version: 'Next release',
+        version: '2026.11.8',
         changes: [
             t('Fix: figures out of a whole (2 / 30, 418 / 1710) show the whole after the slash smaller, so the count stands out – on the tiles of trainings and games, the badges page and the weekly goals; the pages of a list line up on a phone, and an empty list shows no pages.'),
         ],
