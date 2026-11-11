@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:ba4dcaee-d996-4d1e-b628-f3a7af867222",
+  "serialNumber": "urn:uuid:01a89786-802a-4aca-aa05-25ad8600e0f3",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-11-11T20:27:58.520Z",
+    "timestamp": "2026-11-11T20:56:01.897Z",
     "tools": [
       {
         "vendor": "Legmate security review",
@@ -2502,10 +2502,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/mongoose@9.11.2",
+      "bom-ref": "pkg:npm/mongoose@9.11.4",
       "name": "mongoose",
-      "version": "9.11.2",
-      "purl": "pkg:npm/mongoose@9.11.2",
+      "version": "9.11.4",
+      "purl": "pkg:npm/mongoose@9.11.4",
       "licenses": [
         {
           "license": {
@@ -2516,13 +2516,13 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "845925ff675c7290f9f1ca110326b76bf86df28a00c7d60f2f305fc555fd6c4b2072b8ec364bee5907bc8299467c3766ce9c3645f157d4807f1bc3e2170cafc2"
+          "content": "fb1304d1f76e5e5d6c585f8d66924765a35cc104adf97daf6c9fe1ec645267f96d2f2700906652100061ce2734faadc8305eba2aa174be2104e7e7eb72128201"
         }
       ],
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/mongoose/-/mongoose-9.11.2.tgz"
+          "url": "https://registry.npmjs.org/mongoose/-/mongoose-9.11.4.tgz"
         }
       ]
     },
@@ -2554,10 +2554,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/mquery@6.0.0",
+      "bom-ref": "pkg:npm/mquery@6.0.1",
       "name": "mquery",
-      "version": "6.0.0",
-      "purl": "pkg:npm/mquery@6.0.0",
+      "version": "6.0.1",
+      "purl": "pkg:npm/mquery@6.0.1",
       "licenses": [
         {
           "license": {
@@ -2568,13 +2568,13 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "6f629036c9a0b64b1c7de0e091831c5869fdbd923d6285e1f34d950c4c04eaa739d33c41150d0ea3c44e91ac1b3c0b17098d7f675ca9d0c6a0aac652b4f5898f"
+          "content": "fcd8a39aadc97291f00ccfb90b0069e72125e9f51aea32ec2213eca10cb09465d4fd9aca22f4a90737da1a75bd04ba9c9defc2a14c1dd5c87b311aa9b438054c"
         }
       ],
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/mquery/-/mquery-6.0.0.tgz"
+          "url": "https://registry.npmjs.org/mquery/-/mquery-6.0.1.tgz"
         }
       ]
     },
