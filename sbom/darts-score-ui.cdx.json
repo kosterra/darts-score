@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:024e1a2d-449a-4bde-b1ef-171860a5ac62",
+  "serialNumber": "urn:uuid:a4307021-a792-4d82-b197-c243fb0f6a73",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-11-07T22:30:46.475Z",
+    "timestamp": "2026-11-11T20:56:01.909Z",
     "tools": [
       {
         "vendor": "Legmate security review",
@@ -16,7 +16,7 @@
       "type": "application",
       "bom-ref": "darts-score-ui@0.0.0",
       "name": "darts-score-ui",
-      "version": "2026.11.7",
+      "version": "2026.11.8",
       "purl": "pkg:npm/darts-score-ui@0.0.0"
     },
     "properties": [
@@ -2349,10 +2349,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/react-hook-form@7.90.0",
+      "bom-ref": "pkg:npm/react-hook-form@7.91.0",
       "name": "react-hook-form",
-      "version": "7.90.0",
-      "purl": "pkg:npm/react-hook-form@7.90.0",
+      "version": "7.91.0",
+      "purl": "pkg:npm/react-hook-form@7.91.0",
       "licenses": [
         {
           "license": {
@@ -2363,13 +2363,13 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "f8d746d052f308f8453a9d8d37169460b17d7f2661363c7d153041498585ef5fe5e8106598873f8fac65a770db68758b25b206ed977ca339c0d7dc490a553def"
+          "content": "e41101527081c1adbc0055d84d898e681ffe092a49ffe09654048712f20653315d1f25223c7791846eebe61399f27662d323fba5b1dd14d5cefe9df510a4c915"
         }
       ],
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/react-hook-form/-/react-hook-form-7.90.0.tgz"
+          "url": "https://registry.npmjs.org/react-hook-form/-/react-hook-form-7.91.0.tgz"
         }
       ]
     },
@@ -2791,10 +2791,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/sass@1.105.2",
+      "bom-ref": "pkg:npm/sass@1.106.1",
       "name": "sass",
-      "version": "1.105.2",
-      "purl": "pkg:npm/sass@1.105.2",
+      "version": "1.106.1",
+      "purl": "pkg:npm/sass@1.106.1",
       "licenses": [
         {
           "license": {
@@ -2805,13 +2805,13 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "2b15ba64a66204a58adf3890e18677729aa8f3fd539475c4f2df6704dbc60d91680456e4d8c0fb45a731605b3ccf2f21cde170a456245720216e88b8eee60f11"
+          "content": "903f868baeafc9c65c6c9b7ee36342e33e0f5cd31c09a8d5ac93e1aa828a5f2e5c381326250b74e760b12017118f061778898760ea6eff275658665021e9e5ec"
         }
       ],
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/sass/-/sass-1.105.2.tgz"
+          "url": "https://registry.npmjs.org/sass/-/sass-1.106.1.tgz"
         }
       ]
     },

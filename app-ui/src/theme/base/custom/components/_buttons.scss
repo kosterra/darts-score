@@ -101,6 +101,20 @@ $softGreenTextHover: var(--c-soft-green-text-hover);
   }
 }
 
+// an empty list has nothing to page through: no pages, arrows or rows per page
+.p-datatable:has(.p-datatable-emptymessage) .p-paginator { display: none; }
+
+// the rows per page in line with the pages and arrows: its label centred in its height
+.p-paginator {
+  align-items: center;
+
+  .p-dropdown {
+    align-items: center;
+
+    .p-dropdown-label { display: flex; align-items: center; padding-block: 0; }
+  }
+}
+
 // not available yet: plain grey with faint text, whatever kind of button it is,
 // instead of a faded colour that is hard to read
 :where(.p-button:disabled, .p-button.p-disabled) {

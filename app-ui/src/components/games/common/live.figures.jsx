@@ -1,5 +1,6 @@
 import { PLAYER_COLORS } from '../../stats/charts/chart.theme';
 import { t } from '../../../utils/i18n';
+import FigureValue from '../../elements/figure.value';
 
 /**
  * The key figures of every player in a running game, side by side as on the
@@ -34,7 +35,7 @@ const LiveFigures = ({ players, rows }) => {
                         <tr key={row.label}>
                             <th scope="row">{row.label}</th>
                             {values.map((value, index) => (
-                                <td key={players[index].id} className={best != null && Number(value) === best ? 'is-best' : ''}>{value ?? '–'}</td>
+                                <td key={players[index].id} className={best != null && Number(value) === best ? 'is-best' : ''}>{value == null ? '–' : <FigureValue value={value} />}</td>
                             ))}
                         </tr>
                     );

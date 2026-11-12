@@ -34,6 +34,7 @@ import { judgeLevel } from '../../rules/levels.play';
 import PlayerService from '../../services/player.service';
 import { checkoutRoutes, formatRoute, setupSuggestions } from '../../utils/checkout.routes';
 import useGamePreferences from '../../utils/use.game.preferences';
+import FigureValue from '../elements/figure.value';
 
 // a training under way survives a reload of the page (also once over, until its result is saved)
 const runningKey = (kind) => `oche.rulesTraining.${kind}`;
@@ -60,7 +61,7 @@ const Status = ({ items, changed = [], flash = 0 }) => (
     <div className="rules-status">
         {items.map(([label, value]) => (
             <div key={changed.includes(label) ? `${label}-${flash}` : label} className={`rules-status-item ${changed.includes(label) ? 'is-undone' : ''}`}>
-                <span className="rules-status-value">{value}</span>
+                <span className="rules-status-value"><FigureValue value={value} /></span>
                 <span className="rules-status-label">{label}</span>
             </div>
         ))}
@@ -376,7 +377,7 @@ const RulesTraining = () => {
             <span className="rules-hero-figures">
                 {definition.heroFigures(replay.state, ctx).map(([label, value]) => (
                     <span key={label} className="rules-hero-figure">
-                        <span className="tabular-nums">{value}</span>
+                        <span className="tabular-nums"><FigureValue value={value} /></span>
                         <span className="rules-hero-figure-label">{label}</span>
                     </span>
                 ))}
@@ -392,7 +393,7 @@ const RulesTraining = () => {
             below: <span className="rules-hero-figures">
                 {overFigures.filter(entry => entry !== ownFigure).map(([label, value]) => (
                     <span key={label} className="rules-hero-figure">
-                        <span className="tabular-nums">{value}</span>
+                        <span className="tabular-nums"><FigureValue value={value} /></span>
                         <span className="rules-hero-figure-label">{label}</span>
                     </span>
                 ))}

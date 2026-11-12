@@ -9,6 +9,13 @@ import { t } from '../../utils/i18n';
  */
 const CHANGELOG = [
     {
+        version: '2026.11.8',
+        changes: [
+            t('Fix: X01 shows Match dart (or Set dart) only for the player at the oche on a finish of one dart that wins the match (or the set), such as 40 or the bull, no longer on any finish.'),
+            t('Fix: figures out of a whole (2 / 30, 418 / 1710) show the whole after the slash smaller, so the count stands out – on the tiles of trainings and games, the badges page and the weekly goals; the pages of a list line up on a phone, and an empty list shows no pages.'),
+        ],
+    },
+    {
         version: '2026.11.7',
         changes: [
             t('On a phone the board, the keypad and the buttons of every game and training are fully in view without scrolling: where space is short the header gets compact and the marks or standings move below the board.'),

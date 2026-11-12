@@ -134,8 +134,9 @@ const X01LiveHeader = () => {
                     const plan = setup ?? (tip?.darts ? tip : null);
                     // in doubles the team's leg: its last visit and darts
                     const leg = legSummaryOf(game, team);
-                    // on a finish that wins the match (or the set)
-                    const onTheBrinkOfSet = routes[0] && model.currentSetLegsWon === needed(game.legMode, game.numberOfLegs) - 1;
+                    // a match (or set) dart: at the oche, on a finish of one dart (D20, the bull …) that wins the match (or the set)
+                    const oneDartFinish = isTurn && !busted && checkoutRoutes(score, { ...throwing, dartsLeft: 1 }).length > 0;
+                    const onTheBrinkOfSet = oneDartFinish && model.currentSetLegsWon === needed(game.legMode, game.numberOfLegs) - 1;
                     const matchDart = onTheBrinkOfSet && (game.numberOfSets <= 1 || model.setsWon === needed(game.setMode, game.numberOfSets) - 1);
                     const setDart = onTheBrinkOfSet && !matchDart;
                     return (

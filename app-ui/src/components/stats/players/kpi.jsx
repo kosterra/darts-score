@@ -1,3 +1,4 @@
+import FigureValue from '../../elements/figure.value';
 // Building blocks for a player's key figures: a ring for rates, a big
 // number for averages and small chips for counts. "color" is the colour of
 // the game type, so X01, Cricket and Elimination are told apart at a glance.
@@ -35,7 +36,7 @@ export const KpiRing = ({ label, part, whole, color, detail }) => {
 export const KpiHero = ({ label, value, detail, color }) => (
     <div className="kpi-hero" style={{ '--kpi-color': color }}>
         {/* a long figure ("132 / 145") a size smaller on a phone, so it stays on one line */}
-        <span className={`kpi-hero-value ${String(value ?? '').length > 6 ? 'is-long' : ''}`}>{value ?? '–'}</span>
+        <span className={`kpi-hero-value ${String(value ?? '').length > 6 ? 'is-long' : ''}`}>{value == null ? '–' : <FigureValue value={value} />}</span>
         <span className="kpi-label">{label}</span>
         {detail && <span className="kpi-detail">{detail}</span>}
     </div>
@@ -49,7 +50,7 @@ export const KpiChip = ({ icon: Icon, label, value, color, detail }) => (
     <div className="kpi-chip" style={{ '--kpi-color': color }}>
         <span className="kpi-chip-icon" aria-hidden="true"><Icon /></span>
         <span className="d-flex flex-column min-w-0">
-            <span className="kpi-chip-value">{value ?? '–'}</span>
+            <span className="kpi-chip-value">{value == null ? '–' : <FigureValue value={value} />}</span>
             <span className="kpi-chip-label">{label}</span>
             {detail && <span className="kpi-chip-detail">{detail}</span>}
         </span>
