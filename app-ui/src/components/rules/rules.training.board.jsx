@@ -15,6 +15,7 @@ import { boardKeyOf, boardOf, placesOf } from '../../rules/trainings';
 import { rulesIcon } from './rules.icons';
 import RulesDoubles from './rules.doubles';
 import PlayLevelTag from '../elements/play.level.tag';
+import LevelLadder from '../elements/level.ladder';
 import { playLevelOf } from '../../utils/play.levels';
 import { judgeLevel } from '../../rules/levels.play';
 import FigureValue from '../elements/figure.value';
@@ -237,6 +238,9 @@ const RulesTrainingBoard = ({ definition, version = 0, highlight = null, highlig
                             const firstOf = visits ? visits.map((_, index) => visits.slice(0, index).reduce((sum, visit) => sum + visit.length, 0)) : [];
                             // its figures (points, darts, checkouts …): what ranks it among the same score
                             const facts = open === entry.id ? definition.figures?.(entry.result?.score != null ? entry.result : replayTraining(definition, entry).result ?? {}) ?? [] : [];
+                            // the level of the attempt, what it was judged by and what the next one takes
+                            const replayed = open === entry.id && definition.level && entry.darts?.length ? replayTraining(definition, entry) : null;
+                            const estimate = replayed?.done ? judgeLevel(definition.level, replayed.result, replayed.settings) : null;
                             return (
                                 <Fragment key={entry.id}>
                                 <li
@@ -284,6 +288,7 @@ const RulesTrainingBoard = ({ definition, version = 0, highlight = null, highlig
                                                     <div key={label}><dt>{label}</dt><dd className="tabular-nums"><FigureValue value={value} /></dd></div>
                                                 ))}
                                             </dl>}
+                                        {estimate && <LevelLadder levelDefinition={definition.level} estimate={estimate} args={[replayed.result, replayed.settings]} />}
                                         {/* the darts of the attempt, a numbered line per visit, the darts in columns */}
                                         <ol className="rules-board-visits list-unstyled" aria-label={t('Darts thrown')}>
                                             {visits.map((visit, index) => (

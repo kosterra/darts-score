@@ -991,3 +991,42 @@
     &.is-out { color: var(--c-positive); }
     &.is-missed { color: $accentRed; }
 }
+
+// what a level of play takes, in an opened attempt: the steps with where they start, the one reached
+// in its colour
+.level-ladder {
+    margin: $space-2 0 $space-3;
+
+    .level-ladder-line { margin: 0 0 $space-2; color: var(--text-subtle); font-size: $text-xs; }
+
+    .level-ladder-steps {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(5.6rem, 1fr));
+        gap: 0.3rem;
+        margin: 0;
+    }
+
+    .level-ladder-step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 0.25rem 0.2rem;
+        border: 1px solid transparent;
+        border-radius: $radius-md;
+        background: ink(0.04);
+        color: var(--text-faint);
+        font-size: $text-xs;
+        text-align: center;
+
+        svg { color: color-mix(in srgb, var(--level-color) 60%, transparent); }
+        .level-ladder-name { color: var(--text-subtle); }
+        .level-ladder-from { font-size: $text-xs; }
+
+        &.is-reached {
+            border-color: color-mix(in srgb, var(--level-color) 55%, transparent);
+            background: color-mix(in srgb, var(--level-color) 14%, transparent);
+
+            svg, .level-ladder-name { color: color-mix(in srgb, var(--level-color) 75%, var(--text-default)); font-weight: $weight-semibold; }
+        }
+    }
+}
