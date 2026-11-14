@@ -289,7 +289,7 @@ const RulesTrainingBoard = ({ definition, version = 0, highlight = null, highlig
                                                     <span className="rules-board-visit-number">{index + 1}</span>
                                                     {[0, 1, 2].map(d => {
                                                         const dart = visit[d];
-                                                        return <span key={d} className={`rules-board-dart ${dart === undefined ? 'is-none' : dart === 'H' ? 'is-hit' : dart === 'M' || dart === '0' ? 'is-miss' : ''}`}>{dart === undefined ? '' : (dart === 'H' && hitNames?.[firstOf[index] + d]) || dartLabel(dart)}</span>;
+                                                        return <span key={d} className={`rules-board-dart ${dart === undefined ? 'is-none' : dart === 'H' ? 'is-hit' : dart === 'M' || dart === '0' ? 'is-miss' : definition.dartTone?.(dart) ?? ''}`}>{dart === undefined ? '' : (dart === 'H' && hitNames?.[firstOf[index] + d]) || dartLabel(dart)}</span>;
                                                     })}
                                                     {definition.visitTotal && <span className="rules-board-visit-total tabular-nums">{definition.visitTotal(visit)}</span>}
                                                 </li>

@@ -609,6 +609,8 @@ export const BULLS = {
         t('The share of hits counts; the bullseyes and the points show beside it.'),
     ],
     input: 'buttons',
+    // in an opened attempt: the bullseye in green, the outer bull in amber
+    dartTone: (dart) => (dart === 'D25' ? 'is-hit' : dart === 'S25' ? 'is-near' : null),
     buttons: () => [
         { value: 'D25', label: t('Bullseye'), icon: 'pi pi-check' },
         { value: 'S25', label: '25', severity: 'secondary' },

@@ -562,6 +562,7 @@
         text-align: center;
 
         &.is-hit { color: $accentGreen; }
+        &.is-near { color: $accentAmber; }
         &.is-miss { color: $textFaintColor; }
         &.is-none { background: transparent; }
     }
