@@ -100,7 +100,8 @@ test('Scoring with the board to its last dart: the training ends there, and its 
 
     // 30 darts in the single 20: nine visits entered, the tenth ends the training
     const twenty = page.locator('.dartboard-img [id="S20"]').first();
-    const enter = page.locator('#submitThrows');
+    // the one in view: in the panel on desktop, in the bar at the bottom on a phone
+    const enter = page.getByRole('button', { name: 'Enter score', exact: true });
     for (let visit = 0; visit < 10; visit++) {
         for (let dart = 0; dart < 3; dart++) await twenty.click();
         if (visit < 9) await enter.click();

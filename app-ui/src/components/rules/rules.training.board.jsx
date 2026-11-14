@@ -282,12 +282,13 @@ const RulesTrainingBoard = ({ definition, version = 0, highlight = null, highlig
                                         {/* the darts of the attempt, a numbered line per visit, the darts in columns */}
                                         <ol className="rules-board-visits list-unstyled" aria-label={t('Darts thrown')}>
                                             {visits.map((visit, index) => (
-                                                <li key={index} className="rules-board-visit">
+                                                <li key={index} className={`rules-board-visit ${definition.visitTotal ? 'has-total' : ''}`}>
                                                     <span className="rules-board-visit-number">{index + 1}</span>
                                                     {[0, 1, 2].map(d => {
                                                         const dart = visit[d];
                                                         return <span key={d} className={`rules-board-dart ${dart === undefined ? 'is-none' : dart === 'H' ? 'is-hit' : dart === 'M' || dart === '0' ? 'is-miss' : ''}`}>{dart === undefined ? '' : dartLabel(dart)}</span>;
                                                     })}
+                                                    {definition.visitTotal && <span className="rules-board-visit-total tabular-nums">{definition.visitTotal(visit)}</span>}
                                                 </li>
                                             ))}
                                         </ol>

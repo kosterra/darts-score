@@ -4,7 +4,7 @@
  * around the board, Catch 40, Treble practice, Bull practice, Checkout ladder
  * and Shortest leg.
  */
-import { afterDart, isCheckout } from './darts.js';
+import { afterDart, isCheckout, parseDart } from './darts.js';
 import { replayTraining, settingsOf } from './engine.js';
 import { DOUBLES_BANDS, TREBLES_BANDS } from './levels.play.js';
 import { t, tn } from '../utils/i18n.js';
@@ -366,6 +366,8 @@ export const RANDOM_CHECKOUTS = {
  */
 export const SCORING = {
     id: 'scoring',
+    // the points of a visit, at the end of its line in an opened attempt
+    visitTotal: (visit) => visit.reduce((sum, dart) => sum + parseDart(dart).points, 0),
     title: t('Scoring'),
     description: t('A set number of darts, every point counts: your pure scoring average, without the checkouts.'),
     rules: [

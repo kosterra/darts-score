@@ -270,6 +270,11 @@
     list-style: none;
 }
 
+// with the board or the keypad on a phone the darts of the visit are in the bar at the bottom
+@media (max-width: 767.98px) {
+    .rules-visit.is-staged { display: none; }
+}
+
 .rules-visit-dart {
     display: flex;
     flex-direction: column;
@@ -529,6 +534,16 @@
     grid-template-columns: 1.4rem repeat(3, minmax(0, 1fr));
     align-items: center;
     gap: 0.25rem;
+
+    // Scoring: the points of the visit after its darts
+    &.has-total { grid-template-columns: 1.4rem repeat(3, minmax(0, 1fr)) 2.2rem; }
+
+    .rules-board-visit-total {
+        color: $textDefaultColor;
+        font-size: $text-xs;
+        font-weight: $weight-semibold;
+        text-align: right;
+    }
 
     .rules-board-visit-number {
         color: $textFaintColor;

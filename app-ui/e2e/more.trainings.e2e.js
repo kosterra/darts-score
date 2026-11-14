@@ -128,7 +128,7 @@ test('Checkout ladder: a finish out of reach takes no more darts, an ended attem
     await key('Single 1');
     await expect(page.locator('.rules-visit-dart.is-thrown')).toHaveCount(2);
     // Enter score counts the last dart as a miss: the next attempt, at 61 again (the bottom rung)
-    await page.locator('#submitThrows').click();
+    await page.getByRole('button', { name: 'Enter score', exact: true }).click();
     await expect(verdict).toHaveCount(0);
     await expect(figures).toContainText('2 / 20');
     // T15 and D8 check it out; it stays in view, checked out, until Enter score
@@ -139,7 +139,7 @@ test('Checkout ladder: a finish out of reach takes no more darts, an ended attem
     await expect(verdict).toHaveText('Checked out!');
     await expect(figures).toContainText('2 / 20');
     await page.screenshot({ path: `test-results/ladder-checked-out-${test.info().project.name}.png` });
-    await page.locator('#submitThrows').click();
+    await page.getByRole('button', { name: 'Enter score', exact: true }).click();
     await expect(figures).toContainText('3 / 20');
     await expect(verdict).toHaveCount(0);
 });

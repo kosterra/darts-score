@@ -11,6 +11,8 @@ const CHANGELOG = [
     {
         version: 'Next release',
         changes: [
+            t('Fix: on a phone the trainings with the board or the keypad (e.g. Scoring) show the darts of the visit and Enter score once, in the bar at the bottom, no longer again in the panel below the board.'),
+            t('Scoring: an opened attempt on the scoreboard shows the points of every visit at the end of its line.'),
             t('Fix: the checkout trainings (Random checkouts, 121 Checkout, Catch 40, Checkout ladder) keep a finish the darts of the visit ended in view until Enter score, checked out or not, instead of jumping to the next one; a finish that can no longer be checked out with the darts left takes no more darts, and Enter score counts it as missed.'),
         ],
     },

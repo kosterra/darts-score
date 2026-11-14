@@ -504,7 +504,7 @@ const RulesTraining = () => {
                             {/* the figures of the header again, unless they are all big there */}
                             {!definition.heroFigures && <Status items={status} changed={changed} flash={undone?.count} />}
                             {/* the three darts of the visit: hit or miss (or the field), the next one framed */}
-                            <ol className={`rules-visit ${definition.heroFigures ? '' : 'mt-3'}`} aria-label={t('Darts of this visit')}>
+                            <ol className={`rules-visit ${staged ? 'is-staged' : ''} ${definition.heroFigures ? '' : 'mt-3'}`} aria-label={t('Darts of this visit')}>
                                 {[0, 1, 2].map(index => {
                                     const dart = visitDarts[index];
                                     const kind = dart === 'H' ? 'is-hit' : dart === 'M' ? 'is-miss' : dart ? 'is-thrown' : index === visitDarts.length && !visitFull ? 'is-next' : 'is-empty';
@@ -534,9 +534,10 @@ const RulesTraining = () => {
                             {undone && <p key={undone.count} className="rules-undone" role="status"><i className="pi pi-undo" aria-hidden="true" />{t('Dart {{dart}} undone: {{target}} again', { dart: visitDarts.length + 1, target })}</p>}
                             {ways && <div className="mt-3"><TrainingWaysOut ways={ways} /></div>}
                             <div className="d-flex flex-wrap gap-2 justify-content-center mt-3">
-                                {staged && !over && <Button id="submitThrows" label={t('Enter score')} icon="pi pi-check" disabled={!pending.length && !hopeless} onClick={enterVisit} />}
+                                {/* on a phone the bar at the bottom has the darts of the visit, Enter score and Undo: not twice */}
+                                {staged && !over && <Button id="submitThrows" label={t('Enter score')} icon="pi pi-check" className="d-none d-md-inline-flex" disabled={!pending.length && !hopeless} onClick={enterVisit} />}
                                 {/* once over, Undo is beside Save the result */}
-                                {!over && <Button label={t('Undo dart')} icon="pi pi-undo" severity="secondary" outlined disabled={!canUndo} onClick={undoDart} />}
+                                {!over && <Button label={t('Undo dart')} icon="pi pi-undo" severity="secondary" outlined className={staged ? 'd-none d-md-inline-flex' : ''} disabled={!canUndo} onClick={undoDart} />}
                                 <Button label={t('Stop')} icon="pi pi-stop" severity="danger" outlined onClick={quit} />
                             </div>
                         </Panel>
