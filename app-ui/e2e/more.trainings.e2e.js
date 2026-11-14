@@ -38,7 +38,7 @@ test('Treble practice: Treble, Single, Double and Miss count at once, the treble
 test('Bull practice to its last dart: the hit rate as the result, on the scoreboard', async ({ page }) => {
     test.setTimeout(60_000);
     await start(page, 'bulls');
-    for (let dart = 0; dart < 30; dart++) await tap(page, dart % 2 ? 'Miss' : (dart % 4 ? '25' : 'Bullseye'));
+    for (let dart = 0; dart < 30; dart++) await tap(page, dart % 2 ? 'Miss' : (dart % 4 ? 'Single (25)' : 'Bullseye'));
     // saved once confirmed: the buttons of the darts make way for it
     await expect(page.locator('.rules-hitmiss')).toHaveCount(0);
     const save = page.getByRole('button', { name: 'Save the result' });

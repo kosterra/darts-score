@@ -612,8 +612,9 @@ export const BULLS = {
     // in an opened attempt: the bullseye in green, the outer bull in amber
     dartTone: (dart) => (dart === 'D25' ? 'is-hit' : dart === 'S25' ? 'is-near' : null),
     buttons: () => [
-        { value: 'D25', label: t('Bullseye'), icon: 'pi pi-check' },
-        { value: 'S25', label: '25', severity: 'secondary' },
+        // the target for the bullseye, a ring for the outer bull around it
+        { value: 'D25', label: t('Bullseye'), icon: 'pi pi-bullseye' },
+        { value: 'S25', label: t('Single (25)'), icon: 'pi pi-circle', severity: 'secondary' },
         { value: '0', label: t('Miss'), icon: 'pi pi-times', severity: 'secondary' },
     ],
     options: [{ key: 'darts', label: t('Darts'), values: [{ value: 30, label: t('30 darts') }, { value: 60, label: t('60 darts') }, { value: 99, label: t('99 darts') }], default: 30 }],

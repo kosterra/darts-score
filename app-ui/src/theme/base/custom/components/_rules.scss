@@ -210,6 +210,14 @@
     &.is-4 .p-button {
         min-height: 4.5rem;
     }
+
+    // a phone with little height (the browser's bars): lower buttons, so Undo and Stop fit too
+    @media (max-width: 767.98px) and (max-height: 900px) {
+        gap: $space-3;
+
+        .p-button { min-height: 3.75rem; font-size: $text-xl; }
+        &.is-4 .p-button { min-height: 3.25rem; }
+    }
 }
 
 // the end of a training, where the darts were entered: saved only once confirmed, the last dart can
@@ -273,6 +281,18 @@
 // with the board or the keypad on a phone the darts of the visit are in the bar at the bottom
 @media (max-width: 767.98px) {
     .rules-visit.is-staged { display: none; }
+}
+
+// Hit and Miss (or a training's own buttons) on a phone: the panel under them without its title
+// (there is no board or keypad to switch) and with lower tiles, so it fits without scrolling
+@media (max-width: 767.98px) {
+    .rules-quick-panel.p-panel {
+        .p-panel-header { display: none; }
+        .p-panel-content { padding-top: $space-3; padding-bottom: $space-3; }
+        .rules-visit-dart { flex-direction: row; justify-content: center; gap: 0.4rem; padding: 0.3rem 0.25rem; }
+        .rules-visit + * { margin-top: $space-2 !important; }
+        .d-flex.mt-3 { margin-top: $space-2 !important; }
+    }
 }
 
 .rules-visit-dart {

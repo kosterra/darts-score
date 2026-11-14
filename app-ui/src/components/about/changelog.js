@@ -11,7 +11,8 @@ const CHANGELOG = [
     {
         version: 'Next release',
         changes: [
-            t('Bull practice: an opened attempt on the scoreboard shows the bullseyes in green and the outer bulls in amber.'),
+            t('Bull practice: an opened attempt on the scoreboard shows the bullseyes in green and the outer bulls in amber; the buttons are Bullseye (a target) and Single (25) (a ring).'),
+            t('Trainings with Hit and Miss or their own buttons fit a phone without scrolling: lower buttons where the screen is short, and the darts of the visit with Undo and Stop in a compact panel.'),
             t('Doubles around the board and Bob\'s 27: an opened attempt on the scoreboard names every hit by its double (D5, Bull) instead of just Hit.'),
             t('Ways out on a phone: the header shows one or two other ways beside the usual one for the player at the oche, in X01, Elimination and the checkout trainings, where the list of the ways is below the board.'),
             t('Trainings on a phone: the bar at the bottom shows the visit entered last as a quiet line above the darts of this one, with its points in Scoring, so the two are not mixed up; Stop under the board is no longer hidden behind the bar.'),

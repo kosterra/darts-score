@@ -497,7 +497,7 @@ const RulesTraining = () => {
                     </div>
                     <div className="col-12 col-lg-5 d-flex flex-column gap-4">
                         {/* the board or the keypad in the panel's header, as in the games */}
-                        <Panel header={t('Training')} icons={quick ? null : (
+                        <Panel header={t('Training')} className={quick ? 'rules-quick-panel' : ''} icons={quick ? null : (
                             <SelectButton
                                 value={input}
                                 options={INPUTS}
