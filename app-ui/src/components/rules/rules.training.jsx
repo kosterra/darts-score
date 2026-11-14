@@ -220,6 +220,16 @@ const RulesTraining = () => {
     // where the training stands with the darts of the visit already counted, so the figures and
     // the ways out follow every dart tapped
     const replay = useMemo(() => running && definition ? replayTraining(definition, { ...running, darts: [...running.darts, ...pending] }) : null, [running, pending, definition]);
+    // a checkout attempt the darts of the visit ended (checked out, bust or its last dart): until
+    // Enter score it stays in view as it stood at that dart, not the next finish already
+    const before = useMemo(() => running && definition?.attemptOf && pending.length ? replayTraining(definition, { ...running, darts: [...running.darts, ...pending.slice(0, -1)] }) : null, [running, pending, definition]);
+    const ended = Boolean(before && replay && !replay.done && definition.attemptOf(replay.state, { settings: replay.settings }) !== definition.attemptOf(before.state, { settings: before.settings }));
+    // what the training shows: the ended attempt, or where it stands with the darts of the visit
+    const view = ended ? before : replay;
+    // a finish that can no longer be checked out with the darts the attempt has left (99 with two
+    // darts): no more darts for it, Enter score counts the rest as misses and ends it
+    const dartsLeft = staged && replay && !replay.done && !ended && definition?.attemptDartsLeft ? definition.attemptDartsLeft(replay.state, { settings: replay.settings }) : null;
+    const hopeless = dartsLeft != null && dartsLeft > 0 && dartsLeft <= 3 && !checkoutRoutes(replay.state.left, { dartsLeft, outMode: 'Double Out' }).length;
     // the visit goes by itself after its third dart, when the player wants it (as in a game)
     useAutoSend(staged ? pending : []);
     // Enter enters the visit, also after darts were tapped on the board
@@ -243,7 +253,7 @@ const RulesTraining = () => {
         PlayerService.loadCheckoutProfiles([playerId]).then(profiles => setCheckoutProfile(profiles?.[playerId] ?? null)).catch(() => {});
     }, [checksOut, playerId]);
     const ways = useMemo(() => {
-        if (!replay || replay.done || !definition?.checkout || preferences.waysOut === 'off') return null;
+        if (!replay || replay.done || ended || hopeless || !definition?.checkout || preferences.waysOut === 'off') return null;
         // nothing to check out yet (a leg from 501)
         const out = definition.checkout(replay.state, { settings: replay.settings });
         if (!out) return null;
@@ -251,7 +261,7 @@ const RulesTraining = () => {
         const throwing = { dartsLeft, outMode: 'Double Out', doubles: checkoutProfile?.doubleOrder ?? [] };
         const routes = checkoutRoutes(left, throwing);
         return { routes, setup: routes.length ? null : setupSuggestions(left, throwing)[0] ?? null, profile: checkoutProfile };
-    }, [replay, definition, preferences.waysOut, checkoutProfile]);
+    }, [replay, ended, hopeless, definition, preferences.waysOut, checkoutProfile]);
 
     const saveResult = useCallback(async (done, attempt) => {
         setFinished({ saving: true, result: done.result, player: attempt.player, settings: attempt.settings, darts: attempt.darts });
@@ -307,7 +317,7 @@ const RulesTraining = () => {
     // the darts of the visit so far (an attempt of a checkout training may end before its third)
     const inVisitOf = (state, count) => (definition.inVisit ? definition.inVisit(state, { settings: replay.settings }) : count % 3);
     // the visit is complete: three darts, or the attempt (or the training) ended with fewer
-    const visitFull = staged && pending.length > 0 && (replay.done || inVisitOf(replay.state, running.darts.length + pending.length) === 0);
+    const visitFull = staged && (hopeless || (pending.length > 0 && (replay.done || inVisitOf(replay.state, running.darts.length + pending.length) === 0)));
 
     const throwDart = (value) => {
         if (!running || replay?.done || visitFull) return;
@@ -316,11 +326,12 @@ const RulesTraining = () => {
         if (staged) setRunning({ ...running, pending: [...pending, dart] });
         else setRunning({ ...running, darts: [...running.darts, dart] });
     };
-    // Enter score: the darts of the visit count; the ones not tapped are misses
+    // Enter score: the darts of the visit count; the ones not tapped are misses (also the ones left
+    // for a finish that can no longer be checked out)
     const enterVisit = () => {
-        if (!running || !pending.length) return;
+        if (!running || (!pending.length && !hopeless)) return;
         const darts = [...running.darts, ...pending];
-        while (!visitFull && darts.length - running.darts.length < 3) {
+        while (darts.length - running.darts.length < 3) {
             const after = replayTraining(definition, { ...running, darts });
             if (after.done || inVisitOf(after.state, darts.length) === 0) break;
             darts.push('0');
@@ -330,7 +341,7 @@ const RulesTraining = () => {
     };
     const undoDart = () => {
         if (!running?.darts.length && !pending.length) return;
-        setUndone(last => ({ count: (last?.count ?? 0) + 1, status: definition.status(replay.state, { settings: replay.settings }) }));
+        setUndone(last => ({ count: (last?.count ?? 0) + 1, status: definition.status(view.state, { settings: view.settings }) }));
         if (pending.length) setRunning({ ...running, pending: pending.slice(0, -1) });
         else setRunning({ ...running, darts: running.darts.slice(0, -1) });
     };
@@ -347,16 +358,20 @@ const RulesTraining = () => {
         const ctx = { settings: replay.settings };
         // the darts of this visit: an attempt of a checkout training may end before its third
         const inVisit = definition.inVisit ? definition.inVisit(replay.state, ctx) : running.darts.length % 3;
+        // an ended attempt checked out or not, and a finish out of reach, in place of the way out
+        const verdict = ended
+            ? (view.state.done ?? 0) < (replay.state.done ?? 0) ? { kind: 'is-out', text: t('Checked out!') } : { kind: 'is-missed', text: t('Not checked out') }
+            : hopeless ? { kind: 'is-missed', text: t('No checkout left') } : null;
         // with the board or the keypad: the darts tapped, not entered yet
         const visitDarts = staged ? pending : inVisit ? running.darts.slice(-inVisit) : [];
         // the last darts before this visit, to check a dart entered a moment ago (the tiles are empty again)
         const lastDarts = running.darts.slice(0, running.darts.length - (staged ? 0 : inVisit)).slice(-3);
         const canUndo = running.darts.length > 0 || pending.length > 0;
-        const status = definition.status(replay.state, ctx);
+        const status = definition.status(view.state, ctx);
         const changed = undone ? status.filter(([, value], index) => String(undone.status[index]?.[1]) !== String(value)).map(([label]) => label) : [];
-        const target = definition.target(replay.state, ctx);
-        const doubles = definition.doubles ? definition.doubles(replay.state, ctx) : null;
-        const danger = definition.danger && !over ? definition.danger(replay.state, ctx) : null;
+        const target = definition.target(view.state, ctx);
+        const doubles = definition.doubles ? definition.doubles(view.state, ctx) : null;
+        const danger = definition.danger && !over ? definition.danger(view.state, ctx) : null;
         // the danger zone: Bob's 27 over, or a checkout attempt lost, without a hit in the darts left
         const dangerStrip = (className = '') => danger && (
             <div key={`${danger.double ?? danger.left}`} className={`rules-danger is-left-${danger.dartsLeft} ${className}`} role="status">
@@ -375,7 +390,7 @@ const RulesTraining = () => {
         // the figures of the training big in the header, each on a tile over its name
         const heroFigures = definition.heroFigures &&
             <span className="rules-hero-figures">
-                {definition.heroFigures(replay.state, ctx).map(([label, value]) => (
+                {definition.heroFigures(view.state, ctx).map(([label, value]) => (
                     <span key={label} className="rules-hero-figure">
                         <span className="tabular-nums"><FigureValue value={value} /></span>
                         <span className="rules-hero-figure-label">{label}</span>
@@ -416,8 +431,8 @@ const RulesTraining = () => {
                         // one the figures on their tiles are the big part (Scoring)
                         score: definition.hero
                             ? definition.heroUnit
-                                ? <>{definition.hero(replay.state, ctx)}<span className="rules-hero-unit">{definition.heroUnit(replay.state, ctx)}</span></>
-                                : definition.hero(replay.state, ctx)
+                                ? <>{definition.hero(view.state, ctx)}<span className="rules-hero-unit">{definition.heroUnit(view.state, ctx)}</span></>
+                                : definition.hero(view.state, ctx)
                             : heroFigures || target,
                         // the double to throw at in the accent, played again when it changes (also by an undo)
                         scoreClass: definition.heroTarget ? 'rules-hero-target' : '',
@@ -425,18 +440,19 @@ const RulesTraining = () => {
                         // the way out to throw, as in X01; without one the target (or what the training stands at);
                         // then the figures on their tiles, when the big figure is something else
                         below: <>
-                            {ways?.routes[0] ? <span className="x01-live-route">{formatRoute(ways.routes[0])}</span>
+                            {verdict ? <span className={`x01-live-route rules-attempt-verdict ${verdict.kind}`} role="status">{verdict.text}</span>
+                                : ways?.routes[0] ? <span className="x01-live-route">{formatRoute(ways.routes[0])}</span>
                                 : ways?.setup ? <span className="x01-live-route is-setup">{formatRoute(ways.setup.darts)}</span>
                                     : definition.noteTarget
                                         // the double to throw at under the points, in the accent (played again when it
                                         // changes, also by an undo), and the curve of the points so far
                                         ? <span className="rules-hero-below">
-                                            <span key={`${target}-${undone?.count ?? 0}`} className="rules-hero-double">{definition.heroNote(replay.state, ctx)}</span>
-                                            {definition.progress && <RulesProgress points={definition.progress(replay.state, ctx)} length={definition.progressLength} />}
+                                            <span key={`${target}-${undone?.count ?? 0}`} className="rules-hero-double">{definition.heroNote(view.state, ctx)}</span>
+                                            {definition.progress && <RulesProgress points={definition.progress(view.state, ctx)} length={definition.progressLength} />}
                                         </span>
                                         : definition.heroNote
                                             // the score of the training (e.g. the darts so far): big and white, not a small way out
-                                            ? <span className="x01-live-route rules-hero-note tabular-nums">{definition.heroNote(replay.state, ctx)}</span>
+                                            ? <span className="x01-live-route rules-hero-note tabular-nums">{definition.heroNote(view.state, ctx)}</span>
                                             // nothing more when tiles or the double to throw at are the big part
                                             : !heroFigures && !definition.heroTarget && <span className="x01-live-route">{target}</span>}
                             {definition.hero && heroFigures}
@@ -488,7 +504,7 @@ const RulesTraining = () => {
                             {/* the figures of the header again, unless they are all big there */}
                             {!definition.heroFigures && <Status items={status} changed={changed} flash={undone?.count} />}
                             {/* the three darts of the visit: hit or miss (or the field), the next one framed */}
-                            <ol className={`rules-visit ${definition.heroFigures ? '' : 'mt-3'}`} aria-label={t('Darts of this visit')}>
+                            <ol className={`rules-visit ${staged ? 'is-staged' : ''} ${definition.heroFigures ? '' : 'mt-3'}`} aria-label={t('Darts of this visit')}>
                                 {[0, 1, 2].map(index => {
                                     const dart = visitDarts[index];
                                     const kind = dart === 'H' ? 'is-hit' : dart === 'M' ? 'is-miss' : dart ? 'is-thrown' : index === visitDarts.length && !visitFull ? 'is-next' : 'is-empty';
@@ -518,9 +534,10 @@ const RulesTraining = () => {
                             {undone && <p key={undone.count} className="rules-undone" role="status"><i className="pi pi-undo" aria-hidden="true" />{t('Dart {{dart}} undone: {{target}} again', { dart: visitDarts.length + 1, target })}</p>}
                             {ways && <div className="mt-3"><TrainingWaysOut ways={ways} /></div>}
                             <div className="d-flex flex-wrap gap-2 justify-content-center mt-3">
-                                {staged && !over && <Button id="submitThrows" label={t('Enter score')} icon="pi pi-check" disabled={!pending.length} onClick={enterVisit} />}
+                                {/* on a phone the bar at the bottom has the darts of the visit, Enter score and Undo: not twice */}
+                                {staged && !over && <Button id="submitThrows" label={t('Enter score')} icon="pi pi-check" className="d-none d-md-inline-flex" disabled={!pending.length && !hopeless} onClick={enterVisit} />}
                                 {/* once over, Undo is beside Save the result */}
-                                {!over && <Button label={t('Undo dart')} icon="pi pi-undo" severity="secondary" outlined disabled={!canUndo} onClick={undoDart} />}
+                                {!over && <Button label={t('Undo dart')} icon="pi pi-undo" severity="secondary" outlined className={staged ? 'd-none d-md-inline-flex' : ''} disabled={!canUndo} onClick={undoDart} />}
                                 <Button label={t('Stop')} icon="pi pi-stop" severity="danger" outlined onClick={quit} />
                             </div>
                         </Panel>
@@ -542,7 +559,7 @@ const RulesTraining = () => {
                             {status.map(([label, value], index) => <span key={label}>{index > 0 && ' · '}{label}{' '}<strong>{value}</strong></span>)}
                         </div>
                         <div className="x01-visit-actions">
-                            <Button label={t('Enter score')} icon="pi pi-check" className="justify-content-center x01-enter" disabled={!pending.length} onClick={enterVisit} />
+                            <Button label={t('Enter score')} icon="pi pi-check" className="justify-content-center x01-enter" disabled={!pending.length && !hopeless} onClick={enterVisit} />
                             <Button icon="pi pi-undo" severity="danger" className="x01-undo" aria-label={t('Undo dart')} disabled={!canUndo} onClick={undoDart} />
                         </div>
                     </div>

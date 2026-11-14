@@ -81,7 +81,11 @@ const GameBadges = ({ gameType, gameId, players = [], winner, celebrate = false,
                                     {group.badges.map((badge, index) => (
                                         <li key={badge.id} className={`d-flex align-items-center gap-2 ${celebrate ? 'game-badge-new' : ''}`} style={{ '--delay': `${600 + 150 * (index + groupIndex * 3)}ms` }}>
                                             <BadgeMedal badge={badge} size="sm" animate delay={600 + 150 * (index + groupIndex * 3)} />
-                                            <span className="text-subtle fs-7">{badge.title}</span>
+                                            {/* what it was earned for under its name, so a badge is never a riddle */}
+                                            <span className="d-flex flex-column min-w-0">
+                                                <span className="text-subtle fs-7">{badge.title}</span>
+                                                {badge.description && <span className="text-faint fs-8">{badge.description}</span>}
+                                            </span>
                                             {/* right after the game: just earned */}
                                             {celebrate && <span className="game-badge-new-tag">{t('New')}</span>}
                                         </li>

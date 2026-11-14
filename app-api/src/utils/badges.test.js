@@ -165,6 +165,17 @@ describe('replayBadges', () => {
         expect(result.earned.map(e => e.badge)).toEqual(expect.arrayContaining(['training-1', 'records-1']));
     });
 
+    it('counts only Around the Clock trainings for the Around the Clock series', () => {
+        const other = (kind) => ({ type: 'rulesTraining', id: `t${clock}`, at: at(), data: { kind, score: 10, result: {}, settings: {} } });
+        const atc = { type: 'atc', id: `t${clock}`, at: at(), data: { mode: 'Single', timeMs: 500 } };
+        const others = replayBadges([other('trebles'), other('trebles'), other('bulls')], P);
+        expect(others.metrics).toMatchObject({ trainings: 3, atcTrainings: 0 });
+        expect(others.earned.map(e => e.badge)).not.toContain('training-1');
+        const withAtc = replayBadges([other('trebles'), atc], P);
+        expect(withAtc.metrics).toMatchObject({ trainings: 2, atcTrainings: 1 });
+        expect(withAtc.earned.map(e => e.badge)).toContain('training-1');
+    });
+
     it('keeps the records of times and of fewest darts apart', () => {
         const training = (data) => ({ type: 'atc', id: `t${clock}`, at: at(), data: { mode: 'Double', ...data } });
         const result = replayBadges([training({ timeMs: 500 }), training({ scoring: 'Darts', darts: 40 }), training({ scoring: 'Darts', darts: 35 }), training({ timeMs: 600 })], P);

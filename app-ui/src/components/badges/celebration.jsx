@@ -66,6 +66,7 @@ const Celebration = ({ title, subtitle, player, badgeGroups = [], onClose }) => 
                             <li key={badge.id} className="celebration-badge">
                                 <BadgeMedal badge={badge} animate delay={400 + 220 * index} />
                                 <span className="text-default fs-7 fw-semibold">{badge.title}</span>
+                                {badge.description && <span className="text-faint fs-8">{badge.description}</span>}
                             </li>
                         ))}
                     </ul>

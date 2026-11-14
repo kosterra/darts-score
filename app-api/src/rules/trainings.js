@@ -4,7 +4,7 @@
  * around the board, Catch 40, Treble practice, Bull practice, Checkout ladder
  * and Shortest leg.
  */
-import { afterDart, isCheckout } from './darts.js';
+import { afterDart, isCheckout, parseDart } from './darts.js';
 import { replayTraining, settingsOf } from './engine.js';
 import { DOUBLES_BANDS, TREBLES_BANDS } from './levels.play.js';
 import { t, tn } from '../utils/i18n.js';
@@ -249,6 +249,10 @@ export const CHECKOUT_121 = {
     target: (state) => t('Check out {{left}}', { left: state.left }),
     hero: (state) => state.left,
     checkout: (state, { settings }) => wayOut(state, settings.darts),
+    // which attempt it is and the darts it has left: the page keeps an attempt ended in the darts
+    // of a visit (not entered yet) in view, and ends one that can no longer be checked out
+    attemptOf: (state) => state.attempt,
+    attemptDartsLeft: (state, { settings }) => settings.darts - state.inAttempt,
     // the last visit of an attempt: not checked out, the next target is one lower
     // an attempt ends early when it is checked out or bust: its visits count from its start
     inVisit: (state) => state.inAttempt % 3,
@@ -335,6 +339,8 @@ export const RANDOM_CHECKOUTS = {
     hero: (state) => state.left,
     checkout: (state) => wayOut(state, 3),
     // three darts an attempt: only its last dart
+    attemptOf: (state) => state.index,
+    attemptDartsLeft: (state) => 3 - state.inAttempt,
     inVisit: (state) => state.inAttempt,
     // on tiles under what is left and the way out (instead of the status)
     heroFigures: (state, { settings }) => [[t('Checked out'), state.done], [t('Attempt'), `${state.index + 1} / ${settings.attempts}`], [t('Dart'), `${state.inAttempt + 1} / 3`]],
@@ -360,6 +366,8 @@ export const RANDOM_CHECKOUTS = {
  */
 export const SCORING = {
     id: 'scoring',
+    // the points of a visit, at the end of its line in an opened attempt
+    visitTotal: (visit) => visit.reduce((sum, dart) => sum + parseDart(dart).points, 0),
     title: t('Scoring'),
     description: t('A set number of darts, every point counts: your pure scoring average, without the checkouts.'),
     rules: [
@@ -491,6 +499,8 @@ export const CATCH_40 = {
     target: (state) => t('Check out {{left}}', { left: state.left }),
     hero: (state) => state.left,
     checkout: (state) => wayOut(state, 6),
+    attemptOf: (state) => state.target,
+    attemptDartsLeft: (state) => 6 - state.inAttempt,
     // the second visit of a finish: not checked out, it scores nothing
     inVisit: (state) => state.inAttempt % 3,
     // on tiles under what is left and the way out (instead of the status): which of the 40 finishes
@@ -686,6 +696,8 @@ export const LADDER = {
     hero: (state) => state.left,
     checkout: (state) => wayOut(state, 3),
     inVisit: (state) => state.inAttempt,
+    attemptOf: (state) => state.attempt,
+    attemptDartsLeft: (state) => 3 - state.inAttempt,
     // on tiles under what is left and the way out: the highest so far, the attempt and the dart
     heroFigures: (state, { settings }) => [[t('Highest'), state.best || '–'], [t('Attempt'), `${state.attempt + 1} / ${settings.attempts}`], [t('Dart'), `${state.inAttempt + 1} / 3`]],
     status: (state, { settings }) => [[t('Highest'), state.best || '–'], [t('Attempt'), `${state.attempt + 1} / ${settings.attempts}`], [t('Dart'), `${state.inAttempt + 1} / 3`]],

@@ -306,7 +306,8 @@ export const BADGE_GROUPS = [
         tiers: [[3, 'Three-Mark Player'], [4, 'Marksman'], [5, 'Cricket Machine']],
     },
     {
-        group: 'training', category: 'training', title: 'Around the Clock', metric: 'trainings',
+        // Around the Clock trainings only (the other trainings count for the training days and their own badges)
+        group: 'training', category: 'training', title: 'Around the Clock', metric: 'atcTrainings',
         describe: (n) => n === 1 ? 'Finish an Around the Clock training' : `Finish ${n} Around the Clock trainings`,
         tiers: [[1, 'First Lap'], [10, 'Clock Watcher'], [50, 'Around the World']],
     },
@@ -506,7 +507,7 @@ const newMetrics = () => ({
     games: 0, wins: 0, streak: 0, bestStreak: 0, num180s: 0, highFinishes: 0, bullFinishes: 0, bigFishes: 0,
     whitewashes: 0, shanghaiFinishes: 0, nineDarters: 0, madhouses: 0, bedAndBreakfasts: 0, maxHatTricks: 0, comebacks: 0,
     weekStreak: 0, bestWeekStreak: 0, lastWeek: null, bestAverage: 0, winsX01: 0, winsCricket: 0, winsElimination: 0, winsClock: 0, gameTypesWon: 0,
-    darts: 0, trainings: 0, trainingRecords: 0, bestTrainingTimes: {},
+    darts: 0, trainings: 0, atcTrainings: 0, trainingRecords: 0, bestTrainingTimes: {},
     opponents: 0, opponentIds: new Set(), firstAt: null, daysSinceFirst: 0,
     tonPlusVisits: 0, tonFortyVisits: 0, threeInABeds: 0, bagsOfNuts: 0, bestLegDarts: 0, doubleTops: 0, clutchWins: 0,
     whiteHorses: 0, bullHatTricks: 0, bestMarksPerRound: 0,
@@ -912,6 +913,7 @@ const applyTrainingDay = (metrics, date) => {
 
 const applyTraining = (metrics, entry, date) => {
     metrics.trainings += 1;
+    metrics.atcTrainings += 1;
     applyTrainingDay(metrics, date);
     metrics.trainingKindsDone.add('atc');
     metrics.trainingKinds = metrics.trainingKindsDone.size;
