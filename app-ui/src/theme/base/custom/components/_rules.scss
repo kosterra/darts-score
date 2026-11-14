@@ -588,6 +588,8 @@
 
         &.is-hit { color: $accentGreen; }
         &.is-near { color: $accentAmber; }
+        &.is-single { color: $accentBlue; }
+        &.is-strong { font-weight: $weight-bold; background: soft($accentGreen, 0.14); }
         &.is-miss { color: $textFaintColor; }
         &.is-none { background: transparent; }
     }

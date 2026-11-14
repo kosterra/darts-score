@@ -554,6 +554,8 @@ export const TREBLES = {
     ],
     input: 'buttons',
     // the four ways a dart at the treble can land, quicker than the board
+    // in an opened attempt: the treble in green, a double in amber, a single in blue, a miss grey
+    dartTone: (dart) => ({ T: 'is-hit is-strong', D: 'is-near', S: 'is-single' })[String(dart)[0]] ?? null,
     buttons: (settings) => [
         { value: `T${settings.number}`, label: t('Treble'), icon: 'pi pi-check' },
         { value: `S${settings.number}`, label: t('Single'), severity: 'secondary' },
@@ -600,7 +602,8 @@ export const TREBLES = {
     figures: (result) => [
         [t('Treble rate'), `${result.score} %`],
         [t('Trebles'), `${result.trebles} / ${result.darts}`],
-        [t('On the number'), percent(result.onNumber, result.darts)],
+        // the share with how many it is: 57 % (17 / 30)
+        [t('On the number'), result.darts ? `${percent(result.onNumber, result.darts)} (${result.onNumber} / ${result.darts})` : '–'],
         // only the darts on the number count (a treble 3 ×, a double 2 ×): out of a treble with every dart
         [t('Points on the {{number}}', { number: result.number ?? 20 }), `${result.points} / ${result.darts * (result.number ?? 20) * 3}`],
     ],
