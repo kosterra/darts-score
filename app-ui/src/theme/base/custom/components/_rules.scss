@@ -210,6 +210,14 @@
     &.is-4 .p-button {
         min-height: 4.5rem;
     }
+
+    // a phone with little height (the browser's bars): lower buttons, so Undo and Stop fit too
+    @media (max-width: 767.98px) and (max-height: 900px) {
+        gap: $space-3;
+
+        .p-button { min-height: 3.75rem; font-size: $text-xl; }
+        &.is-4 .p-button { min-height: 3.25rem; }
+    }
 }
 
 // the end of a training, where the darts were entered: saved only once confirmed, the last dart can
@@ -273,6 +281,18 @@
 // with the board or the keypad on a phone the darts of the visit are in the bar at the bottom
 @media (max-width: 767.98px) {
     .rules-visit.is-staged { display: none; }
+}
+
+// Hit and Miss (or a training's own buttons) on a phone: the panel under them without its title
+// (there is no board or keypad to switch) and with lower tiles, so it fits without scrolling
+@media (max-width: 767.98px) {
+    .rules-quick-panel.p-panel {
+        .p-panel-header { display: none; }
+        .p-panel-content { padding-top: $space-3; padding-bottom: $space-3; }
+        .rules-visit-dart { flex-direction: row; justify-content: center; gap: 0.4rem; padding: 0.3rem 0.25rem; }
+        .rules-visit + * { margin-top: $space-2 !important; }
+        .d-flex.mt-3 { margin-top: $space-2 !important; }
+    }
 }
 
 .rules-visit-dart {
@@ -536,13 +556,18 @@
     gap: 0.25rem;
 
     // Scoring: the points of the visit after its darts
-    &.has-total { grid-template-columns: 1.4rem repeat(3, minmax(0, 1fr)) 2.2rem; }
+    &.has-total { grid-template-columns: 1.4rem repeat(3, minmax(0, 1fr)) 2.8rem; }
 
     .rules-board-visit-total {
         color: $textDefaultColor;
         font-size: $text-xs;
         font-weight: $weight-semibold;
         text-align: right;
+
+        // a checkout training: what was left, quiet; checked out green with a tick
+        &.is-left { color: $textFaintColor; font-weight: $weight-regular; }
+        &.is-out { color: $accentGreen; white-space: nowrap; }
+        .pi { margin-right: 0.2rem; font-size: 0.7em; }
     }
 
     .rules-board-visit-number {
@@ -561,7 +586,12 @@
         font-size: $text-xs;
         text-align: center;
 
-        &.is-hit { color: $accentGreen; }
+        // the same in every training: the target hit green on a soft green (a Hit, D5, the bullseye,
+        // the treble), the next best amber (the outer bull, the double of the number), the single of
+        // the number blue, a miss faint
+        &.is-hit { color: $accentGreen; font-weight: $weight-bold; background: soft($accentGreen, 0.14); }
+        &.is-near { color: $accentAmber; }
+        &.is-single { color: $accentBlue; }
         &.is-miss { color: $textFaintColor; }
         &.is-none { background: transparent; }
     }
@@ -803,8 +833,10 @@
     }
 
     .rules-progress-line {
-        stroke-width: 2.5;
+        fill: none;
+        stroke-width: 2.25;
         stroke-linecap: round;
+        stroke-linejoin: round;
         vector-effect: non-scaling-stroke;
 
         &.is-safe { stroke: $accentGreen; }
@@ -915,8 +947,40 @@
         .rules-danger-count { min-width: 1.6rem; font-size: $text-xl; }
     }
 
+    // the visit entered last: one quiet line on top of the bar, no tags, so the darts of this visit
+    // (the tags) are the only bold ones
+    .x01-visit-bar.is-floating.rules-visit-bar {
+        grid-template-areas: "last last" "darts actions" "total actions";
+    }
+
+    .rules-bar-last {
+        grid-area: last;
+        display: flex;
+        align-items: baseline;
+        gap: 0.4rem;
+        margin: 0 0 0.2rem;
+        padding-bottom: 0.3rem;
+        border-bottom: 1px solid ink(0.08);
+        color: var(--text-faint);
+        font-size: $text-xs;
+
+        .rules-bar-last-darts { color: var(--text-subtle); font-variant-numeric: tabular-nums; word-spacing: 0.2rem; }
+        strong { margin-left: auto; color: var(--text-subtle); font-weight: $weight-semibold; }
+    }
+
+    .x01-visit-bar.is-floating .x01-visit-bar-darts .rules-bar-total {
+        align-self: center;
+        margin-left: 0.2rem;
+        font-size: $text-sm;
+    }
+
+    // the last darts are in the bar on a phone
+    .rules-last-darts.is-staged { display: none; }
+    // room for the bar and the menu under the page: Stop stays in view
+    .rules-training-live:has(.rules-visit-bar) { padding-bottom: 12rem; }
+
     .x01-visit-bar.is-floating.has-danger {
-        grid-template-areas: "danger danger" "darts actions" "total actions";
+        grid-template-areas: "danger danger" "last last" "darts actions" "total actions";
 
         .rules-danger { grid-area: danger; margin: 0 0 0.35rem; }
     }
@@ -932,4 +996,43 @@
     font-weight: $weight-bold;
     &.is-out { color: var(--c-positive); }
     &.is-missed { color: $accentRed; }
+}
+
+// what a level of play takes, in an opened attempt: the steps with where they start, the one reached
+// in its colour
+.level-ladder {
+    margin: $space-2 0 $space-3;
+
+    .level-ladder-line { margin: 0 0 $space-2; color: var(--text-subtle); font-size: $text-xs; }
+
+    .level-ladder-steps {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(5.6rem, 1fr));
+        gap: 0.3rem;
+        margin: 0;
+    }
+
+    .level-ladder-step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 0.25rem 0.2rem;
+        border: 1px solid transparent;
+        border-radius: $radius-md;
+        background: ink(0.04);
+        color: var(--text-faint);
+        font-size: $text-xs;
+        text-align: center;
+
+        svg { color: color-mix(in srgb, var(--level-color) 60%, transparent); }
+        .level-ladder-name { color: var(--text-subtle); }
+        .level-ladder-from { font-size: $text-xs; }
+
+        &.is-reached {
+            border-color: color-mix(in srgb, var(--level-color) 55%, transparent);
+            background: color-mix(in srgb, var(--level-color) 14%, transparent);
+
+            svg, .level-ladder-name { color: color-mix(in srgb, var(--level-color) 75%, var(--text-default)); font-weight: $weight-semibold; }
+        }
+    }
 }

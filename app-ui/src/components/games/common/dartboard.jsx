@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { Toast } from 'primereact/toast';
 import Dart from './dart.shape';
 import { t } from '../../../utils/i18n';
 
@@ -409,10 +410,13 @@ const FLIGHT_MS = 320;
  * The field hit lights up and the phone vibrates briefly. With a finger, a
  * magnifier above it shows the field underneath while it is held; the dart is
  * entered when the finger is lifted (outside the board: nothing).
+ * canThrow: false once the visit is complete; a dart tapped then says so
+ * ("No more darts") instead of being entered, as the keypad does.
  */
 const DartBoard = (props) => {
     const {
         handleClick,
+        canThrow = true,
         markers = [],
         withDarts = false,
         flight = { color: '#4aa8ff', pattern: 'plain' }
@@ -456,7 +460,13 @@ const DartBoard = (props) => {
 
     // when a dart was tapped last: its field lit up already
     const tappedAt = useRef(0);
+    const toast = useRef(null);
     const select = (field, point) => {
+        if (!canThrow) {
+            toast.current?.clear();
+            toast.current?.show({ severity: 'error', summary: t('No more darts'), detail: t('This visit is complete: enter the score.'), life: 2500 });
+            return;
+        }
         navigator.vibrate?.(12);
         // with darts the field lights up when the dart lands
         if (!withDarts) {
@@ -577,6 +587,7 @@ const DartBoard = (props) => {
             </div>,
             document.body
         )}
+        <Toast ref={toast} position="bottom-right" />
         </>
     )
 }

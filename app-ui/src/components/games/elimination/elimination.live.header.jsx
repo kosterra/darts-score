@@ -2,7 +2,8 @@ import { useContext, useEffect, useRef, useState } from 'react';
 
 import EliminationContext from '../../../utils/elimination.context';
 import LiveHero from '../common/live.hero';
-import { checkoutRoutes, formatRoute } from '../../../utils/checkout.routes';
+import { checkoutRoutes } from '../../../utils/checkout.routes';
+import RouteLine from '../common/route.line';
 import GameScreenButton from '../../screen/game.screen.button';
 import { knockBacks, liveScores, visitsOf } from './elimination.live';
 import { t } from '../../../utils/i18n';
@@ -41,7 +42,8 @@ const EliminationLiveHeader = () => {
         const last = visits.at(-1);
         const darts = game.playerModels[player.id]?.totalThrow?.darts ?? 0;
         const dartsLeft = isTurn ? (3 - dartsEntered) || 3 : 3;
-        const route = busted ? null : checkoutRoutes(game.targetScore - score, { dartsLeft, outMode: game.gameOutMode })[0];
+        const routes = busted ? [] : checkoutRoutes(game.targetScore - score, { dartsLeft, outMode: game.gameOutMode });
+        const route = routes[0];
         const knock = busted || route ? null : knockBacks(game, scores, player.id)[0];
         const toPass = getPointsToNextPlayer(player.id);
         return {
@@ -58,7 +60,7 @@ const EliminationLiveHeader = () => {
                         className={`x01-live-route ${route ? '' : 'is-setup'}`}
                         title={knock ? t('Lands on {{nickname}}\'s score: back to 0', { nickname: nickname(knock.playerId) }) : undefined}
                     >
-                        {route ? formatRoute(route)
+                        {route ? <RouteLine routes={routes} others={isTurn ? 2 : 0} />
                             : knock ? <>{knock.dart}<span className="x01-route-leaves"><i className="pi pi-arrow-right" aria-hidden="true" />{nickname(knock.playerId)}{' '}{t('back to 0')}</span></>
                             : t('{{value}} to go', { value: game.targetScore - score })}
                     </span>

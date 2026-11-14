@@ -10,6 +10,7 @@ import { describeRules, hasHandicap, outModeOf, rulesOf } from '../../../utils/x
 import { legSummaryOf, nextOfTeam } from '../../../utils/x01.live';
 import { teamsOf } from '../../../rules/x01';
 import { checkoutRoutes, formatRoute, scoringTip, setupSuggestions } from '../../../utils/checkout.routes';
+import RouteLine from '../common/route.line';
 import { heldBy, useClubShame } from '../../badges/hall.of.shame.data';
 import ShameMedal from '../../badges/shame.medal';
 import PlayerFlight from '../../flights/player.flight';
@@ -192,7 +193,8 @@ const X01LiveHeader = () => {
                                     title={plan ? t('No finish: this leaves {{leaves}}', { leaves: plan.leaves }) : tip?.advice ?? undefined}
                                 >
                                     {routes[0]
-                                        ? formatRoute(routes[0])
+                                        // other ways only for the one at the oche: they are the ones to throw now
+                                        ? <RouteLine routes={routes} others={isTurn ? 2 : 0} />
                                         : plan ? <>{formatRoute(plan.darts)}<span className="x01-route-leaves"><i className="pi pi-arrow-right" aria-hidden="true" />{t('leaves')}{' '}{plan.leaves}</span></>
                                         : tip ? t('Stay on {{value}}', { value: profile?.mainTreble === 'T19' || profile?.mainTreble === 'T18' ? profile.mainTreble : 'T20' })
                                         : '\u00a0'}

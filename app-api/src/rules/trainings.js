@@ -128,6 +128,18 @@ const bullsOf = (entry) => {
 // how many doubles a saved attempt played (older ones from their darts: three a double)
 const reachedOf = (entry) => entry.result?.reached ?? Math.floor((entry.darts?.length ?? 0) / 3);
 
+// the doubles hit and the most points on the way of a saved Bob's 27 (older ones without them
+// from their darts), worked out once per attempt
+const bobsFigures = new WeakMap();
+const bobsOf = (entry) => {
+    if (entry.result?.hits != null && entry.result?.peak != null) return { hits: entry.result.hits, peak: entry.result.peak };
+    if (!bobsFigures.has(entry)) {
+        const state = entry.darts?.length ? replayTraining(BOBS_27, entry).state : null;
+        bobsFigures.set(entry, { hits: entry.result?.hits ?? state?.hits ?? 0, peak: state?.peak ?? entry.result?.score ?? 0 });
+    }
+    return bobsFigures.get(entry);
+};
+
 export const BOBS_27 = {
     id: 'bobs27',
     title: t('Bob\'s 27'),
@@ -140,7 +152,9 @@ export const BOBS_27 = {
     ],
     input: 'hitmiss',
     options: [],
-    init: () => ({ score: 27, index: 0, inVisit: 0, hitsInVisit: 0, hits: 0, darts: 0, perDouble: [], failed: false }),
+    init: () => ({ score: 27, peak: 27, index: 0, inVisit: 0, hitsInVisit: 0, hits: 0, darts: 0, perDouble: [], failed: false }),
+    // a hit by the double it was (D5, Bull) in an opened attempt, from where it stood before the dart
+    hitName: (state) => doubleName(DOUBLE_TARGETS[state.index]),
     dart: (state, dart) => {
         const number = DOUBLE_TARGETS[state.index];
         state.darts += 1;
@@ -149,6 +163,7 @@ export const BOBS_27 = {
             state.hitsInVisit += 1;
             state.hits += 1;
             state.score += doubleValue(number);
+            state.peak = Math.max(state.peak ?? 27, state.score);
         }
         if (state.inVisit === 3) {
             if (state.hitsInVisit === 0) state.score -= doubleValue(number);
@@ -180,10 +195,11 @@ export const BOBS_27 = {
     // on tiles under the curve (instead of the status): how far it got and the dart of the visit
     heroFigures: (state) => [[t('Double'), `${Math.min(state.index + 1, 21)} / 21`], [t('Dart'), `${state.inVisit + 1} / 3`]],
     status: (state) => [[t('Points'), state.score], [t('Dart'), `${state.inVisit + 1} / 3`]],
-    result: (state) => ({ score: state.failed ? 0 : state.score, reached: state.index, hits: state.hits, darts: state.darts, failed: state.failed }),
+    result: (state) => ({ score: state.failed ? 0 : state.score, reached: state.index, hits: state.hits, peak: state.peak, darts: state.darts, failed: state.failed }),
     higherIsBetter: true,
-    // the same points (above all 0, out before the bull): the one that got further first
-    tiebreak: (a, b) => reachedOf(b) - reachedOf(a),
+    // the same points (above all 0, out before the bull): the one that got further first, then more
+    // doubles hit, then the most points on the way; only attempts equal in all of them share a place
+    tiebreak: (a, b) => reachedOf(b) - reachedOf(a) || bobsOf(b).hits - bobsOf(a).hits || bobsOf(b).peak - bobsOf(a).peak,
     // where an attempt that failed ended, beside its date on the scoreboard
     entryNote: (entry) => (entry.score === 0 && reachedOf(entry) > 0 ? t('out at {{double}}', { double: doubleName(DOUBLE_TARGETS[reachedOf(entry) - 1]) }) : null),
     format: (score) => tn(score, '{{count}} point', '{{count}} points'),
@@ -257,8 +273,9 @@ export const CHECKOUT_121 = {
     // an attempt ends early when it is checked out or bust: its visits count from its start
     inVisit: (state) => state.inAttempt % 3,
     // on tiles under what is left and the way out (instead of the status)
-    heroFigures: (state, { settings }) => [[t('Target'), state.target], [t('Attempt'), `${state.attempt + 1} / ${settings.attempts}`], [t('Darts'), `${state.inAttempt} / ${settings.darts}`]],
-    status: (state, { settings }) => [[t('Target'), state.target], [t('Left'), state.left], [t('Attempt'), `${state.attempt + 1} / ${settings.attempts}`], [t('Darts'), `${state.inAttempt} / ${settings.darts}`]],
+    // ended: the attempt as it stood before the dart that ended it (until Enter score), that dart counted
+    heroFigures: (state, { settings, ended }) => [[t('Target'), state.target], [t('Attempt'), `${state.attempt + 1} / ${settings.attempts}`], [t('Darts'), `${state.inAttempt + (ended ? 1 : 0)} / ${settings.darts}`]],
+    status: (state, { settings, ended }) => [[t('Target'), state.target], [t('Left'), state.left], [t('Attempt'), `${state.attempt + 1} / ${settings.attempts}`], [t('Darts'), `${state.inAttempt + (ended ? 1 : 0)} / ${settings.darts}`]],
     result: (state) => ({ score: state.best, done: state.done, attempts: state.attempt, darts: state.darts, last: state.target }),
     higherIsBetter: true,
     // the same highest checkout: more checkouts, then fewer darts
@@ -429,6 +446,7 @@ export const DOUBLES_AROUND = {
     input: 'hitmiss',
     options: [],
     init: () => ({ index: 0, darts: 0, perDouble: Array(DOUBLE_TARGETS.length).fill(0) }),
+    hitName: (state) => doubleName(DOUBLE_TARGETS[state.index]),
     dart: (state, dart) => {
         state.darts += 1;
         state.perDouble[state.index] += 1;
@@ -504,8 +522,8 @@ export const CATCH_40 = {
     // the second visit of a finish: not checked out, it scores nothing
     inVisit: (state) => state.inAttempt % 3,
     // on tiles under what is left and the way out (instead of the status): which of the 40 finishes
-    heroFigures: (state) => [[t('Points'), state.points], [t('Finish'), `${state.target - 60} / 40`], [t('Darts'), `${state.inAttempt} / 6`]],
-    status: (state) => [[t('Points'), state.points], [t('Finish'), `${state.target} (${state.target - 60} / 40)`], [t('Darts'), `${state.inAttempt} / 6`]],
+    heroFigures: (state, { ended } = {}) => [[t('Points'), state.points], [t('Finish'), `${state.target - 60} / 40`], [t('Darts'), `${state.inAttempt + (ended ? 1 : 0)} / 6`]],
+    status: (state, { ended } = {}) => [[t('Points'), state.points], [t('Finish'), `${state.target} (${state.target - 60} / 40)`], [t('Darts'), `${state.inAttempt + (ended ? 1 : 0)} / 6`]],
     result: (state) => ({ score: state.points, done: state.done, darts: state.darts }),
     higherIsBetter: true,
     // the same points: more checkouts, then fewer darts
@@ -536,10 +554,13 @@ export const TREBLES = {
     ],
     input: 'buttons',
     // the four ways a dart at the treble can land, quicker than the board
+    // in an opened attempt: the treble in green, a double in amber, a single in blue, a miss grey
+    dartTone: (dart) => ({ T: 'is-hit', D: 'is-near', S: 'is-single' })[String(dart)[0]] ?? null,
     buttons: (settings) => [
-        { value: `T${settings.number}`, label: t('Treble'), icon: 'pi pi-check' },
-        { value: `S${settings.number}`, label: t('Single'), severity: 'secondary' },
-        { value: `D${settings.number}`, label: t('Double'), severity: 'secondary' },
+        // a wedge of the board with the ring hit filled (elements/segment.icon.jsx)
+        { value: `T${settings.number}`, label: t('Treble'), icon: 'segment-T' },
+        { value: `S${settings.number}`, label: t('Single'), icon: 'segment-S', severity: 'secondary' },
+        { value: `D${settings.number}`, label: t('Double'), icon: 'segment-D', severity: 'secondary' },
         { value: '0', label: t('Miss'), icon: 'pi pi-times', severity: 'secondary' },
     ],
     options: [
@@ -582,7 +603,8 @@ export const TREBLES = {
     figures: (result) => [
         [t('Treble rate'), `${result.score} %`],
         [t('Trebles'), `${result.trebles} / ${result.darts}`],
-        [t('On the number'), percent(result.onNumber, result.darts)],
+        // the share with how many it is: 57 % (17 / 30)
+        [t('On the number'), result.darts ? `${percent(result.onNumber, result.darts)} (${result.onNumber} / ${result.darts})` : '–'],
         // only the darts on the number count (a treble 3 ×, a double 2 ×): out of a treble with every dart
         [t('Points on the {{number}}', { number: result.number ?? 20 }), `${result.points} / ${result.darts * (result.number ?? 20) * 3}`],
     ],
@@ -605,9 +627,12 @@ export const BULLS = {
         t('The share of hits counts; the bullseyes and the points show beside it.'),
     ],
     input: 'buttons',
+    // in an opened attempt: the bullseye in green, the outer bull in amber
+    dartTone: (dart) => (dart === 'D25' ? 'is-hit' : dart === 'S25' ? 'is-near' : null),
     buttons: () => [
-        { value: 'D25', label: t('Bullseye'), icon: 'pi pi-check' },
-        { value: 'S25', label: '25', severity: 'secondary' },
+        // the target for the bullseye, a ring for the outer bull around it
+        { value: 'D25', label: t('Bullseye'), icon: 'pi pi-bullseye' },
+        { value: 'S25', label: t('Single (25)'), icon: 'pi pi-circle', severity: 'secondary' },
         { value: '0', label: t('Miss'), icon: 'pi pi-times', severity: 'secondary' },
     ],
     options: [{ key: 'darts', label: t('Darts'), values: [{ value: 30, label: t('30 darts') }, { value: 60, label: t('60 darts') }, { value: 99, label: t('99 darts') }], default: 30 }],

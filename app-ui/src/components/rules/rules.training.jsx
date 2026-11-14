@@ -22,9 +22,11 @@ import RulesTrainingBoard from './rules.training.board';
 import RulesDoubles from './rules.doubles';
 import RulesProgress from './rules.progress';
 import LiveHero from '../games/common/live.hero';
+import RouteLine from '../games/common/route.line';
+import SegmentIcon from '../elements/segment.icon';
 import RulesService from '../../services/rules.service';
 import { trainingOf } from '../../rules/trainings';
-import { replayTraining, settingsOf } from '../../rules/engine';
+import { replayTraining, settingsOf, trainingVisits } from '../../rules/engine';
 import { parseDart } from '../../rules/darts';
 import { clearSetup, loadSetup, saveSetup } from '../../utils/setup.memory';
 import { t } from '../../utils/i18n';
@@ -355,7 +357,8 @@ const RulesTraining = () => {
 
     // the training under way; once over it stays until the result is saved (or the last dart undone)
     if (running && replay) {
-        const ctx = { settings: replay.settings };
+        // ended: the figures of an attempt the visit's darts ended count that last dart too
+        const ctx = { settings: replay.settings, ended };
         // the darts of this visit: an attempt of a checkout training may end before its third
         const inVisit = definition.inVisit ? definition.inVisit(replay.state, ctx) : running.darts.length % 3;
         // an ended attempt checked out or not, and a finish out of reach, in place of the way out
@@ -366,6 +369,10 @@ const RulesTraining = () => {
         const visitDarts = staged ? pending : inVisit ? running.darts.slice(-inVisit) : [];
         // the last darts before this visit, to check a dart entered a moment ago (the tiles are empty again)
         const lastDarts = running.darts.slice(0, running.darts.length - (staged ? 0 : inVisit)).slice(-3);
+        // on a phone, in the bar: the visit entered last, quiet above the darts of this one (with its
+        // points where points count, as in Scoring)
+        const lastVisit = staged && running.darts.length ? trainingVisits(definition, running).at(-1) ?? [] : [];
+        const visitTotal = (darts) => (definition.visitTotal && darts.length ? definition.visitTotal(darts) : null);
         const canUndo = running.darts.length > 0 || pending.length > 0;
         const status = definition.status(view.state, ctx);
         const changed = undone ? status.filter(([, value], index) => String(undone.status[index]?.[1]) !== String(value)).map(([label]) => label) : [];
@@ -441,7 +448,7 @@ const RulesTraining = () => {
                         // then the figures on their tiles, when the big figure is something else
                         below: <>
                             {verdict ? <span className={`x01-live-route rules-attempt-verdict ${verdict.kind}`} role="status">{verdict.text}</span>
-                                : ways?.routes[0] ? <span className="x01-live-route">{formatRoute(ways.routes[0])}</span>
+                                : ways?.routes[0] ? <span className="x01-live-route"><RouteLine routes={ways.routes} /></span>
                                 : ways?.setup ? <span className="x01-live-route is-setup">{formatRoute(ways.setup.darts)}</span>
                                     : definition.noteTarget
                                         // the double to throw at under the points, in the accent (played again when it
@@ -483,15 +490,16 @@ const RulesTraining = () => {
                             </div>
                             : buttons
                                 ? <div className={`rules-hitmiss is-${buttons.length}`}>
-                                    {buttons.map(button => <Button key={button.value} label={button.label} icon={button.icon} severity={button.severity} onClick={() => throwDart(button.value)} />)}
+                                    {/* "segment-T": a wedge of the board with that ring filled (Treble, Double, Single) */}
+                                    {buttons.map(button => <Button key={button.value} label={button.label} icon={button.icon?.startsWith('segment-') ? <SegmentIcon ring={button.icon.slice(8)} className="p-button-icon p-button-icon-left" /> : button.icon} severity={button.severity} onClick={() => throwDart(button.value)} />)}
                                 </div>
                             : input === 'keypad'
                                 ? <DartKeypad canThrow={!visitFull} onDart={throwDart} onClearLast={undoDart} entered={pending.length} />
-                                : <div className="x01-board-plain"><div className="x01-board-col"><DartBoard handleClick={(value) => throwDart(value)} markers={[]} /></div></div>}
+                                : <div className="x01-board-plain"><div className="x01-board-col"><DartBoard handleClick={(value) => throwDart(value)} canThrow={!visitFull} markers={[]} /></div></div>}
                     </div>
                     <div className="col-12 col-lg-5 d-flex flex-column gap-4">
                         {/* the board or the keypad in the panel's header, as in the games */}
-                        <Panel header={t('Training')} icons={quick ? null : (
+                        <Panel header={t('Training')} className={quick ? 'rules-quick-panel' : ''} icons={quick ? null : (
                             <SelectButton
                                 value={input}
                                 options={INPUTS}
@@ -522,7 +530,7 @@ const RulesTraining = () => {
                                 })}
                             </ol>
                             {lastDarts.length > 0 && !over &&
-                                <p className="rules-last-darts" aria-label={t('Last darts')}>
+                                <p className={`rules-last-darts ${staged ? 'is-staged' : ''}`} aria-label={t('Last darts')}>
                                     <span className="text-faint">{t('Last darts')}</span>
                                     {lastDarts.map((dart, index) => (
                                         <span key={`${running.darts.length}-${index}`} className={`rules-last-dart ${dart === 'H' ? 'is-hit' : dart === 'M' ? 'is-miss' : ''}`}>
@@ -552,8 +560,15 @@ const RulesTraining = () => {
                     // the danger zone on top of the bar, one piece with it
                     <div className={`x01-visit-bar is-floating rules-visit-bar d-md-none ${danger ? 'has-danger' : ''}`}>
                         {dangerStrip()}
+                        {lastVisit.length > 0 &&
+                            <p className="rules-bar-last" aria-label={t('Last visit')}>
+                                <span>{t('Last visit')}</span>
+                                <span className="rules-bar-last-darts">{lastVisit.join(' ')}</span>
+                                {visitTotal(lastVisit) != null && <strong className="tabular-nums">{visitTotal(lastVisit)}</strong>}
+                            </p>}
                         <div className="x01-visit-bar-darts" aria-hidden="true">
                             {[0, 1, 2].map(index => <span key={index} className={visitDarts[index] ? '' : 'is-empty'}>{visitDarts[index] ?? '–'}</span>)}
+                            {visitTotal(visitDarts) != null && <strong className="rules-bar-total tabular-nums">{visitTotal(visitDarts)}</strong>}
                         </div>
                         <div className="x01-visit-total" aria-live="polite">
                             {status.map(([label, value], index) => <span key={label}>{index > 0 && ' · '}{label}{' '}<strong>{value}</strong></span>)}

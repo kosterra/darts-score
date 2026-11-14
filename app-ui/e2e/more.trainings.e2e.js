@@ -38,7 +38,7 @@ test('Treble practice: Treble, Single, Double and Miss count at once, the treble
 test('Bull practice to its last dart: the hit rate as the result, on the scoreboard', async ({ page }) => {
     test.setTimeout(60_000);
     await start(page, 'bulls');
-    for (let dart = 0; dart < 30; dart++) await tap(page, dart % 2 ? 'Miss' : (dart % 4 ? '25' : 'Bullseye'));
+    for (let dart = 0; dart < 30; dart++) await tap(page, dart % 2 ? 'Miss' : (dart % 4 ? 'Single (25)' : 'Bullseye'));
     // saved once confirmed: the buttons of the darts make way for it
     await expect(page.locator('.rules-hitmiss')).toHaveCount(0);
     const save = page.getByRole('button', { name: 'Save the result' });
@@ -142,4 +142,13 @@ test('Checkout ladder: a finish out of reach takes no more darts, an ended attem
     await page.getByRole('button', { name: 'Enter score', exact: true }).click();
     await expect(figures).toContainText('3 / 20');
     await expect(verdict).toHaveCount(0);
+});
+
+test('a fourth dart tapped on the board before Enter score says the visit is complete', async ({ page }) => {
+    await page.addInitScript(() => localStorage.setItem('oche.x01Input', 'board'));
+    await start(page, 'scoring');
+    const twenty = page.locator('.dartboard-img [id="S20"]').first();
+    for (let dart = 0; dart < 4; dart++) await twenty.click();
+    await expect(page.getByText('No more darts')).toBeVisible();
+    await expect(page.locator('.rules-visit-dart.is-thrown')).toHaveCount(3);
 });

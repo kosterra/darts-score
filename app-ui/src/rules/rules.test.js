@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { afterDart, isCheckout, isValidDart, parseDart } from './darts';
-import { progressOf, replayGame, replayTraining, trainingVisits, withGameState } from './engine';
+import { progressOf, replayGame, replayTraining, trainingHitNames, trainingVisitDetails, trainingVisits, withGameState } from './engine';
 import { BASEBALL, GAMES, GOLF, HALVE_IT, KILLER, SCRAM, SHANGHAI, TACTICS } from './games';
 import { BOBS_27, bobsDanger, bobsProgress, BULLS, CATCH_40, CHECKOUT_121, DOUBLES_AROUND, LADDER, RANDOM_CHECKOUTS, SCORING, SHORTEST_LEG, TRAININGS, TREBLES, boardKeyOf, boardLabels, boardOf, defaultBoardKey, placesOf, settingsProblem } from './trainings';
 
@@ -243,6 +243,16 @@ describe('trainings', () => {
         expect(sorted.map(entry => entry.result?.reached ?? 'darts')).toEqual([9, 'darts', 6, 5]);
         expect(BOBS_27.entryNote(out(9))).toBe('out at D9');
         expect(BOBS_27.entryNote({ score: 441, result: { reached: 21 } })).toBe(null);
+    });
+
+    it("Bob's 27 out at the same double: more doubles hit first, then the most points on the way", () => {
+        const out = (hits, peak) => ({ score: 0, result: { score: 0, reached: 11, hits, peak, failed: true } });
+        const sorted = [out(2, 40), out(3, 31), out(2, 50)].sort(BOBS_27.tiebreak);
+        expect(sorted.map(entry => `${entry.result.hits}/${entry.result.peak}`)).toEqual(['3/31', '2/50', '2/40']);
+        expect(BOBS_27.tiebreak(out(2, 40), out(2, 40))).toBe(0);
+        // an older attempt without them: from its darts (D1 hit, then misses until out at D6)
+        const older = { score: 0, darts: ['H', 'M', 'M', ...Array(15).fill('M')] };
+        expect(BOBS_27.tiebreak(older, { score: 0, result: { score: 0, reached: 6, hits: 0, peak: 27 } })).toBeLessThan(0);
     });
 
     it("Bob's 27 is in the danger zone when missing the darts left at a double ends it", () => {
@@ -529,5 +539,28 @@ describe('the same score on a training scoreboard', () => {
 
     it('every training has an order for the same score', () => {
         expect(TRAININGS.filter(definition => !definition.tiebreak).map(definition => definition.id)).toEqual(['doublesaround']);
+    });
+});
+
+describe('trainingHitNames', () => {
+    it('names a hit by the double it was, a miss not at all', () => {
+        expect(trainingHitNames(DOUBLES_AROUND, { darts: ['M', 'H', 'M', 'M', 'H', 'H'] })).toEqual([null, 'D1', null, null, 'D2', 'D3']);
+        // Bob's 27: three darts at each double
+        expect(trainingHitNames(BOBS_27, { darts: ['H', 'M', 'M', 'M', 'H', 'H'] })).toEqual(['D1', null, null, null, 'D2', 'D2']);
+        expect(trainingHitNames(SCORING, { darts: ['T20'] })).toBeNull();
+    });
+});
+
+describe('trainingVisitDetails', () => {
+    it('gives a checkout training\'s visits what was left and whether they checked it out', () => {
+        const details = trainingVisitDetails(LADDER, { settings: { attempts: 20 }, darts: ['T15', 'D8', 'S1', 'S1', 'S1', 'S20'] });
+        expect(details).toEqual([
+            { darts: ['T15', 'D8'], left: 61, out: true },
+            { darts: ['S1', 'S1', 'S1'], left: 62, out: false },
+            { darts: ['S20'], left: 61, out: false },
+        ]);
+        // 121 Checkout: what was left at each visit of an attempt
+        expect(trainingVisitDetails(CHECKOUT_121, { darts: ['T20', 'S1', '0', 'T20'] }).map(visit => visit.left)).toEqual([121, 60]);
+        expect(trainingVisitDetails(SCORING, { darts: ['T20'] })[0]).toEqual({ darts: ['T20'], left: null, out: null });
     });
 });

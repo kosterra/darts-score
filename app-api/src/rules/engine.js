@@ -190,22 +190,55 @@ export const replayTraining = (definition, training) => {
  * third dart, or earlier where the training says so (inVisit back at 0, e.g. a
  * checkout attempt over before its third dart). → [[dart, …], …]
  */
-export const trainingVisits = (definition, training) => {
+export const trainingVisits = (definition, training) => trainingVisitDetails(definition, training).map(visit => visit.darts);
+
+/**
+ * The visits of a training with what they stood at: [{ darts, left, out }]. left: what was left
+ * at the visit's first dart in a checkout training (state.left), out: whether the visit checked
+ * it out (state.done went up); both null for the other trainings.
+ */
+export const trainingVisitDetails = (definition, training) => {
     const settings = settingsOf(definition, training.settings);
+    const checkout = Boolean(definition.attemptOf);
     let state = definition.init(settings);
     const visits = [];
-    let visit = [];
+    let visit = null;
     for (const value of training.darts ?? []) {
+        if (!visit) visit = { darts: [], left: checkout ? state.left ?? null : null, done: state.done ?? 0 };
         const dart = definition.input === 'hitmiss' ? (value === 'H' ? 'H' : 'M') : parseDart(value);
         state = definition.dart(clone(state), dart, { settings });
-        visit.push(value);
-        const over = definition.inVisit ? definition.inVisit(state, { settings }) === 0 : visit.length === 3;
-        if (over || visit.length === 3) {
+        visit.darts.push(value);
+        const over = definition.inVisit ? definition.inVisit(state, { settings }) === 0 : visit.darts.length === 3;
+        if (over || visit.darts.length === 3) {
             visits.push(visit);
-            visit = [];
+            visit = null;
         }
         if (definition.done(state, { settings })) break;
     }
-    if (visit.length) visits.push(visit);
-    return visits;
+    if (visit) visits.push(visit);
+    // a visit checked out when the count of checkouts went up during it
+    return visits.map((entry, index) => {
+        const after = visits[index + 1]?.done ?? state.done ?? 0;
+        const out = checkout ? after > entry.done : null;
+        return { darts: entry.darts, left: entry.left, out };
+    });
+};
+
+/**
+ * What every dart of a training hit, by name, for trainings that enter only Hit and Miss but
+ * know what a hit was (hitName: D5, Bull): [name or null, …] in the order of the darts, null
+ * for a miss; null for the other trainings.
+ */
+export const trainingHitNames = (definition, training) => {
+    if (!definition.hitName) return null;
+    const settings = settingsOf(definition, training.settings);
+    let state = definition.init(settings);
+    const names = [];
+    for (const value of training.darts ?? []) {
+        const hit = value === 'H';
+        names.push(hit ? definition.hitName(state, { settings }) : null);
+        state = definition.dart(clone(state), hit ? 'H' : 'M', { settings });
+        if (definition.done(state, { settings })) break;
+    }
+    return names;
 };
