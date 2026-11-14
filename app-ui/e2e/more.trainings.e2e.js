@@ -143,3 +143,12 @@ test('Checkout ladder: a finish out of reach takes no more darts, an ended attem
     await expect(figures).toContainText('3 / 20');
     await expect(verdict).toHaveCount(0);
 });
+
+test('a fourth dart tapped on the board before Enter score says the visit is complete', async ({ page }) => {
+    await page.addInitScript(() => localStorage.setItem('oche.x01Input', 'board'));
+    await start(page, 'scoring');
+    const twenty = page.locator('.dartboard-img [id="S20"]').first();
+    for (let dart = 0; dart < 4; dart++) await twenty.click();
+    await expect(page.getByText('No more darts')).toBeVisible();
+    await expect(page.locator('.rules-visit-dart.is-thrown')).toHaveCount(3);
+});

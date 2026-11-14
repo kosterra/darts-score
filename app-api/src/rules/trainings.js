@@ -257,8 +257,9 @@ export const CHECKOUT_121 = {
     // an attempt ends early when it is checked out or bust: its visits count from its start
     inVisit: (state) => state.inAttempt % 3,
     // on tiles under what is left and the way out (instead of the status)
-    heroFigures: (state, { settings }) => [[t('Target'), state.target], [t('Attempt'), `${state.attempt + 1} / ${settings.attempts}`], [t('Darts'), `${state.inAttempt} / ${settings.darts}`]],
-    status: (state, { settings }) => [[t('Target'), state.target], [t('Left'), state.left], [t('Attempt'), `${state.attempt + 1} / ${settings.attempts}`], [t('Darts'), `${state.inAttempt} / ${settings.darts}`]],
+    // ended: the attempt as it stood before the dart that ended it (until Enter score), that dart counted
+    heroFigures: (state, { settings, ended }) => [[t('Target'), state.target], [t('Attempt'), `${state.attempt + 1} / ${settings.attempts}`], [t('Darts'), `${state.inAttempt + (ended ? 1 : 0)} / ${settings.darts}`]],
+    status: (state, { settings, ended }) => [[t('Target'), state.target], [t('Left'), state.left], [t('Attempt'), `${state.attempt + 1} / ${settings.attempts}`], [t('Darts'), `${state.inAttempt + (ended ? 1 : 0)} / ${settings.darts}`]],
     result: (state) => ({ score: state.best, done: state.done, attempts: state.attempt, darts: state.darts, last: state.target }),
     higherIsBetter: true,
     // the same highest checkout: more checkouts, then fewer darts
@@ -504,8 +505,8 @@ export const CATCH_40 = {
     // the second visit of a finish: not checked out, it scores nothing
     inVisit: (state) => state.inAttempt % 3,
     // on tiles under what is left and the way out (instead of the status): which of the 40 finishes
-    heroFigures: (state) => [[t('Points'), state.points], [t('Finish'), `${state.target - 60} / 40`], [t('Darts'), `${state.inAttempt} / 6`]],
-    status: (state) => [[t('Points'), state.points], [t('Finish'), `${state.target} (${state.target - 60} / 40)`], [t('Darts'), `${state.inAttempt} / 6`]],
+    heroFigures: (state, { ended } = {}) => [[t('Points'), state.points], [t('Finish'), `${state.target - 60} / 40`], [t('Darts'), `${state.inAttempt + (ended ? 1 : 0)} / 6`]],
+    status: (state, { ended } = {}) => [[t('Points'), state.points], [t('Finish'), `${state.target} (${state.target - 60} / 40)`], [t('Darts'), `${state.inAttempt + (ended ? 1 : 0)} / 6`]],
     result: (state) => ({ score: state.points, done: state.done, darts: state.darts }),
     higherIsBetter: true,
     // the same points: more checkouts, then fewer darts

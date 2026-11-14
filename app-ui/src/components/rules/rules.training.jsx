@@ -356,7 +356,8 @@ const RulesTraining = () => {
 
     // the training under way; once over it stays until the result is saved (or the last dart undone)
     if (running && replay) {
-        const ctx = { settings: replay.settings };
+        // ended: the figures of an attempt the visit's darts ended count that last dart too
+        const ctx = { settings: replay.settings, ended };
         // the darts of this visit: an attempt of a checkout training may end before its third
         const inVisit = definition.inVisit ? definition.inVisit(replay.state, ctx) : running.darts.length % 3;
         // an ended attempt checked out or not, and a finish out of reach, in place of the way out
@@ -492,7 +493,7 @@ const RulesTraining = () => {
                                 </div>
                             : input === 'keypad'
                                 ? <DartKeypad canThrow={!visitFull} onDart={throwDart} onClearLast={undoDart} entered={pending.length} />
-                                : <div className="x01-board-plain"><div className="x01-board-col"><DartBoard handleClick={(value) => throwDart(value)} markers={[]} /></div></div>}
+                                : <div className="x01-board-plain"><div className="x01-board-col"><DartBoard handleClick={(value) => throwDart(value)} canThrow={!visitFull} markers={[]} /></div></div>}
                     </div>
                     <div className="col-12 col-lg-5 d-flex flex-column gap-4">
                         {/* the board or the keypad in the panel's header, as in the games */}

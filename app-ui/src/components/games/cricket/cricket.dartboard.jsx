@@ -15,13 +15,15 @@ const CricketDartBoard = () => {
     const { withDarts, flight } = useBoardDarts(game, players);
     const { markers, remember } = useDartMarkers(game.currentThrow, `${game.allThrows.length}-${game.currentPlayerTurn}`);
 
+    // three darts in: a fourth tapped says the visit is complete
+    const canThrow = game.currentThrow.some(dart => dart.trim() === '');
     const handleDartClick = (value, point) => {
-        if (!game.currentThrow.some(dart => dart.trim() === '')) return;
+        if (!canThrow) return;
         remember(value, point);
         updateCurrentThrowDartBoard(value);
     };
 
-    return <DartBoard handleClick={handleDartClick} markers={markers} withDarts={withDarts} flight={flight} />;
+    return <DartBoard handleClick={handleDartClick} canThrow={canThrow} markers={markers} withDarts={withDarts} flight={flight} />;
 };
 
 export default CricketDartBoard;
