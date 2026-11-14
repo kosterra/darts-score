@@ -557,9 +557,10 @@ export const TREBLES = {
     // in an opened attempt: the treble in green, a double in amber, a single in blue, a miss grey
     dartTone: (dart) => ({ T: 'is-hit is-strong', D: 'is-near', S: 'is-single' })[String(dart)[0]] ?? null,
     buttons: (settings) => [
-        { value: `T${settings.number}`, label: t('Treble'), icon: 'pi pi-check' },
-        { value: `S${settings.number}`, label: t('Single'), severity: 'secondary' },
-        { value: `D${settings.number}`, label: t('Double'), severity: 'secondary' },
+        // a wedge of the board with the ring hit filled (elements/segment.icon.jsx)
+        { value: `T${settings.number}`, label: t('Treble'), icon: 'segment-T' },
+        { value: `S${settings.number}`, label: t('Single'), icon: 'segment-S', severity: 'secondary' },
+        { value: `D${settings.number}`, label: t('Double'), icon: 'segment-D', severity: 'secondary' },
         { value: '0', label: t('Miss'), icon: 'pi pi-times', severity: 'secondary' },
     ],
     options: [

@@ -23,6 +23,7 @@ import RulesDoubles from './rules.doubles';
 import RulesProgress from './rules.progress';
 import LiveHero from '../games/common/live.hero';
 import RouteLine from '../games/common/route.line';
+import SegmentIcon from '../elements/segment.icon';
 import RulesService from '../../services/rules.service';
 import { trainingOf } from '../../rules/trainings';
 import { replayTraining, settingsOf, trainingVisits } from '../../rules/engine';
@@ -489,7 +490,8 @@ const RulesTraining = () => {
                             </div>
                             : buttons
                                 ? <div className={`rules-hitmiss is-${buttons.length}`}>
-                                    {buttons.map(button => <Button key={button.value} label={button.label} icon={button.icon} severity={button.severity} onClick={() => throwDart(button.value)} />)}
+                                    {/* "segment-T": a wedge of the board with that ring filled (Treble, Double, Single) */}
+                                    {buttons.map(button => <Button key={button.value} label={button.label} icon={button.icon?.startsWith('segment-') ? <SegmentIcon ring={button.icon.slice(8)} className="p-button-icon p-button-icon-left" /> : button.icon} severity={button.severity} onClick={() => throwDart(button.value)} />)}
                                 </div>
                             : input === 'keypad'
                                 ? <DartKeypad canThrow={!visitFull} onDart={throwDart} onClearLast={undoDart} entered={pending.length} />
