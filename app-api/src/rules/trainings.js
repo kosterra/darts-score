@@ -141,6 +141,8 @@ export const BOBS_27 = {
     input: 'hitmiss',
     options: [],
     init: () => ({ score: 27, index: 0, inVisit: 0, hitsInVisit: 0, hits: 0, darts: 0, perDouble: [], failed: false }),
+    // a hit by the double it was (D5, Bull) in an opened attempt, from where it stood before the dart
+    hitName: (state) => doubleName(DOUBLE_TARGETS[state.index]),
     dart: (state, dart) => {
         const number = DOUBLE_TARGETS[state.index];
         state.darts += 1;
@@ -430,6 +432,7 @@ export const DOUBLES_AROUND = {
     input: 'hitmiss',
     options: [],
     init: () => ({ index: 0, darts: 0, perDouble: Array(DOUBLE_TARGETS.length).fill(0) }),
+    hitName: (state) => doubleName(DOUBLE_TARGETS[state.index]),
     dart: (state, dart) => {
         state.darts += 1;
         state.perDouble[state.index] += 1;

@@ -209,3 +209,22 @@ export const trainingVisits = (definition, training) => {
     if (visit.length) visits.push(visit);
     return visits;
 };
+
+/**
+ * What every dart of a training hit, by name, for trainings that enter only Hit and Miss but
+ * know what a hit was (hitName: D5, Bull): [name or null, …] in the order of the darts, null
+ * for a miss; null for the other trainings.
+ */
+export const trainingHitNames = (definition, training) => {
+    if (!definition.hitName) return null;
+    const settings = settingsOf(definition, training.settings);
+    let state = definition.init(settings);
+    const names = [];
+    for (const value of training.darts ?? []) {
+        const hit = value === 'H';
+        names.push(hit ? definition.hitName(state, { settings }) : null);
+        state = definition.dart(clone(state), hit ? 'H' : 'M', { settings });
+        if (definition.done(state, { settings })) break;
+    }
+    return names;
+};

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { afterDart, isCheckout, isValidDart, parseDart } from './darts';
-import { progressOf, replayGame, replayTraining, trainingVisits, withGameState } from './engine';
+import { progressOf, replayGame, replayTraining, trainingHitNames, trainingVisits, withGameState } from './engine';
 import { BASEBALL, GAMES, GOLF, HALVE_IT, KILLER, SCRAM, SHANGHAI, TACTICS } from './games';
 import { BOBS_27, bobsDanger, bobsProgress, BULLS, CATCH_40, CHECKOUT_121, DOUBLES_AROUND, LADDER, RANDOM_CHECKOUTS, SCORING, SHORTEST_LEG, TRAININGS, TREBLES, boardKeyOf, boardLabels, boardOf, defaultBoardKey, placesOf, settingsProblem } from './trainings';
 
@@ -529,5 +529,14 @@ describe('the same score on a training scoreboard', () => {
 
     it('every training has an order for the same score', () => {
         expect(TRAININGS.filter(definition => !definition.tiebreak).map(definition => definition.id)).toEqual(['doublesaround']);
+    });
+});
+
+describe('trainingHitNames', () => {
+    it('names a hit by the double it was, a miss not at all', () => {
+        expect(trainingHitNames(DOUBLES_AROUND, { darts: ['M', 'H', 'M', 'M', 'H', 'H'] })).toEqual([null, 'D1', null, null, 'D2', 'D3']);
+        // Bob's 27: three darts at each double
+        expect(trainingHitNames(BOBS_27, { darts: ['H', 'M', 'M', 'M', 'H', 'H'] })).toEqual(['D1', null, null, null, 'D2', 'D2']);
+        expect(trainingHitNames(SCORING, { darts: ['T20'] })).toBeNull();
     });
 });

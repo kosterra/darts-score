@@ -10,7 +10,7 @@ import { t } from '../../utils/i18n';
 import { formatDate } from '../../utils/dates';
 import { Lines } from '../elements/skeletons';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
-import { replayTraining, trainingVisits } from '../../rules/engine';
+import { replayTraining, trainingHitNames, trainingVisits } from '../../rules/engine';
 import { boardKeyOf, boardOf, placesOf } from '../../rules/trainings';
 import { rulesIcon } from './rules.icons';
 import RulesDoubles from './rules.doubles';
@@ -230,6 +230,9 @@ const RulesTrainingBoard = ({ definition, version = 0, highlight = null, highlig
                             const opens = canOpen && entry.darts?.length > 0;
                             const doubles = open === entry.id ? doublesOf(entry) : null;
                             const visits = open === entry.id ? trainingVisits(definition, entry) : null;
+                            // a hit by what it was (D5, Bull) where the training knows it
+                            const hitNames = open === entry.id ? trainingHitNames(definition, entry) : null;
+                            const firstOf = visits ? visits.map((_, index) => visits.slice(0, index).reduce((sum, visit) => sum + visit.length, 0)) : [];
                             // its figures (points, darts, checkouts …): what ranks it among the same score
                             const facts = open === entry.id ? definition.figures?.(entry.result?.score != null ? entry.result : replayTraining(definition, entry).result ?? {}) ?? [] : [];
                             return (
@@ -286,7 +289,7 @@ const RulesTrainingBoard = ({ definition, version = 0, highlight = null, highlig
                                                     <span className="rules-board-visit-number">{index + 1}</span>
                                                     {[0, 1, 2].map(d => {
                                                         const dart = visit[d];
-                                                        return <span key={d} className={`rules-board-dart ${dart === undefined ? 'is-none' : dart === 'H' ? 'is-hit' : dart === 'M' || dart === '0' ? 'is-miss' : ''}`}>{dart === undefined ? '' : dartLabel(dart)}</span>;
+                                                        return <span key={d} className={`rules-board-dart ${dart === undefined ? 'is-none' : dart === 'H' ? 'is-hit' : dart === 'M' || dart === '0' ? 'is-miss' : ''}`}>{dart === undefined ? '' : (dart === 'H' && hitNames?.[firstOf[index] + d]) || dartLabel(dart)}</span>;
                                                     })}
                                                     {definition.visitTotal && <span className="rules-board-visit-total tabular-nums">{definition.visitTotal(visit)}</span>}
                                                 </li>

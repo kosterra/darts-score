@@ -11,6 +11,7 @@ const CHANGELOG = [
     {
         version: 'Next release',
         changes: [
+            t('Doubles around the board and Bob\'s 27: an opened attempt on the scoreboard names every hit by its double (D5, Bull) instead of just Hit.'),
             t('Ways out on a phone: the header shows one or two other ways beside the usual one for the player at the oche, in X01, Elimination and the checkout trainings, where the list of the ways is below the board.'),
             t('Trainings on a phone: the bar at the bottom shows the visit entered last as a quiet line above the darts of this one, with its points in Scoring, so the two are not mixed up; Stop under the board is no longer hidden behind the bar.'),
             t('Fix: a fourth dart tapped on the board before Enter score says the visit is complete, in Cricket and the trainings too (as in X01); a checkout attempt ended by its last dart shows that dart in its darts (8 / 9, not 7 / 9).'),
