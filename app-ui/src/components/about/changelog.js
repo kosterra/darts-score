@@ -9,7 +9,7 @@ import { t } from '../../utils/i18n';
  */
 const CHANGELOG = [
     {
-        version: 'Next release',
+        version: '2026.11.9',
         changes: [
             t('Training scoreboards: an opened attempt shows its figures first (e.g. the points on the number), which rank it among the same score, then its visits numbered, the darts in even columns.'),
             t('Fix: the Around the Clock training badges (First Lap, Clock Watcher, Around the World) count Around the Clock trainings only, no longer every training; a badge just earned says what it was for, and About → Badges says what every series counts.'),
