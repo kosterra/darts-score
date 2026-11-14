@@ -831,8 +831,10 @@
     }
 
     .rules-progress-line {
-        stroke-width: 2.5;
+        fill: none;
+        stroke-width: 2.25;
         stroke-linecap: round;
+        stroke-linejoin: round;
         vector-effect: non-scaling-stroke;
 
         &.is-safe { stroke: $accentGreen; }

@@ -11,6 +11,7 @@ const CHANGELOG = [
     {
         version: 'Next release',
         changes: [
+            t('Bob\'s 27: the curve of the points under the double is smooth instead of jagged.'),
             t('Treble practice: the buttons Treble, Single and Double show a wedge of the board with the ring hit filled in.'),
             t('Treble practice: an opened attempt on the scoreboard shows the trebles in green, the doubles in amber and the singles in blue, and On the number with how many it was (73 % (22 / 30)).'),
             t('Training scoreboards: an opened attempt shows what its level was judged by and what the next level takes, with every level and where it starts.'),

@@ -4,6 +4,24 @@ const WIDTH = 100;
 const HEIGHT = 32;
 
 /**
+ * The slopes of a smooth curve through the points that never swings past them (monotone cubic,
+ * Fritsch–Carlson): flat at a peak or a dip, so the curve calms the steps without inventing highs.
+ */
+const slopesOf = (xs, ys) => {
+    const n = xs.length;
+    const d = xs.slice(1).map((x, i) => (ys[i + 1] - ys[i]) / (x - xs[i]));
+    const m = xs.map((_, i) => (i === 0 ? d[0] : i === n - 1 ? d[n - 2] : (d[i - 1] * d[i] <= 0 ? 0 : (d[i - 1] + d[i]) / 2)));
+    d.forEach((slope, i) => {
+        if (slope === 0) { m[i] = 0; m[i + 1] = 0; return; }
+        const a = m[i] / slope;
+        const b = m[i + 1] / slope;
+        const h = Math.hypot(a, b);
+        if (h > 3) { m[i] = (3 * a / h) * slope; m[i + 1] = (3 * b / h) * slope; }
+    });
+    return m;
+};
+
+/**
  * The points of a training so far as a small curve, centred: it grows from
  * the middle to both sides with every step, as wide as the whole way (e.g. D1
  * to the bull) at the end; every stretch in the colour of how close the end was:
@@ -18,11 +36,19 @@ const RulesProgress = ({ points, length }) => {
     const x = (index) => offset + (index / length) * WIDTH;
     const y = (score) => HEIGHT - (Math.max(score, 0) / top) * HEIGHT;
     const now = points.at(-1);
+    const xs = points.map((_, index) => x(index));
+    const ys = points.map(point => y(point.score));
+    const m = slopesOf(xs, ys);
+    // one smooth piece per step, in the colour of that step
+    const piece = (i) => {
+        const dx = (xs[i + 1] - xs[i]) / 3;
+        return `M ${xs[i]} ${ys[i]} C ${xs[i] + dx} ${ys[i] + m[i] * dx}, ${xs[i + 1] - dx} ${ys[i + 1] - m[i + 1] * dx}, ${xs[i + 1]} ${ys[i + 1]}`;
+    };
     return (
         <svg className={`rules-progress is-${now.risk}`} viewBox={`0 0 ${WIDTH} ${HEIGHT}`} preserveAspectRatio="none" role="img" aria-label={t('Points after every double')}>
             <line className="rules-progress-base" x1="0" x2={WIDTH} y1={HEIGHT} y2={HEIGHT} />
             {points.slice(1).map((point, index) => (
-                <line key={index} className={`rules-progress-line is-${point.risk}`} x1={x(index)} y1={y(points[index].score)} x2={x(index + 1)} y2={y(point.score)} />
+                <path key={index} className={`rules-progress-line is-${point.risk}`} d={piece(index)} />
             ))}
         </svg>
     );
