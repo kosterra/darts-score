@@ -909,3 +909,12 @@
     // room at the bottom of the page for the floating danger zone
     .x01-game-page:has(.rules-danger-dock) { padding-bottom: 9rem; }
 }
+
+// a checkout attempt ended by the darts of the visit (until Enter score), or a finish out of reach:
+// said where the way out was, checked out in green, missed in red
+.x01-live-route.rules-attempt-verdict {
+    font-size: $text-md;
+    font-weight: $weight-bold;
+    &.is-out { color: var(--c-positive); }
+    &.is-missed { color: $accentRed; }
+}

@@ -9,6 +9,12 @@ import { t } from '../../utils/i18n';
  */
 const CHANGELOG = [
     {
+        version: 'Next release',
+        changes: [
+            t('Fix: the checkout trainings (Random checkouts, 121 Checkout, Catch 40, Checkout ladder) keep a finish the darts of the visit ended in view until Enter score, checked out or not, instead of jumping to the next one; a finish that can no longer be checked out with the darts left takes no more darts, and Enter score counts it as missed.'),
+        ],
+    },
+    {
         version: '2026.11.9',
         changes: [
             t('Training scoreboards: an opened attempt shows its figures first (e.g. the points on the number), which rank it among the same score, then its visits numbered, the darts in even columns.'),
