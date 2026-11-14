@@ -1630,6 +1630,7 @@
  "Fix": "Correction",
  "Fix: ": "Correction : ",
  "Fix: \"Where the darts land\" now counts hits on the 2 and on the bull; they were left out on the profile, in the comparison and on the X01 game statistics.": "Correction : « Où atterrissent les fléchettes » compte maintenant les touches sur le 2 et sur le bull ; elles manquaient sur le profil, dans la comparaison et dans les statistiques de partie X01.",
+ "Fix: Bob's 27 attempts out at the same double no longer share a place: more doubles hit rank first, then the most points on the way.": "Correction : les tentatives de Bob's 27 éliminées au même double ne partagent plus une place : plus de doubles touchés passent devant, puis le plus de points en route.",
  "Fix: Double In and Master In now really require the double (or treble) to start; before, every dart counted from the start.": "Correction : Double In et Master In exigent maintenant vraiment le double (ou triple) pour commencer ; avant, chaque fléchette comptait dès le début.",
  "Fix: Play again in X01, Cricket and Elimination keeps the dart animation the game was set up with; it went back to each player's own choice.": "Correction : Rejouer en X01, Cricket et Elimination garde l'animation des fléchettes choisie à la configuration ; elle revenait au choix de chaque joueur.",
  "Fix: Undo of a visit close to the finish in X01 no longer fails.": "Correction : Annuler une volée proche de la finition en X01 n'échoue plus.",

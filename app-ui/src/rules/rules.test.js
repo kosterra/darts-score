@@ -245,6 +245,16 @@ describe('trainings', () => {
         expect(BOBS_27.entryNote({ score: 441, result: { reached: 21 } })).toBe(null);
     });
 
+    it("Bob's 27 out at the same double: more doubles hit first, then the most points on the way", () => {
+        const out = (hits, peak) => ({ score: 0, result: { score: 0, reached: 11, hits, peak, failed: true } });
+        const sorted = [out(2, 40), out(3, 31), out(2, 50)].sort(BOBS_27.tiebreak);
+        expect(sorted.map(entry => `${entry.result.hits}/${entry.result.peak}`)).toEqual(['3/31', '2/50', '2/40']);
+        expect(BOBS_27.tiebreak(out(2, 40), out(2, 40))).toBe(0);
+        // an older attempt without them: from its darts (D1 hit, then misses until out at D6)
+        const older = { score: 0, darts: ['H', 'M', 'M', ...Array(15).fill('M')] };
+        expect(BOBS_27.tiebreak(older, { score: 0, result: { score: 0, reached: 6, hits: 0, peak: 27 } })).toBeLessThan(0);
+    });
+
     it("Bob's 27 is in the danger zone when missing the darts left at a double ends it", () => {
         const at = (darts) => bobsDanger(train(BOBS_27, darts).state);
         // 27 → 25 → 21 → 15 → 7 after missing D1 to D4: D5 (10) has to be hit

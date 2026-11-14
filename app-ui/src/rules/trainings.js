@@ -128,6 +128,18 @@ const bullsOf = (entry) => {
 // how many doubles a saved attempt played (older ones from their darts: three a double)
 const reachedOf = (entry) => entry.result?.reached ?? Math.floor((entry.darts?.length ?? 0) / 3);
 
+// the doubles hit and the most points on the way of a saved Bob's 27 (older ones without them
+// from their darts), worked out once per attempt
+const bobsFigures = new WeakMap();
+const bobsOf = (entry) => {
+    if (entry.result?.hits != null && entry.result?.peak != null) return { hits: entry.result.hits, peak: entry.result.peak };
+    if (!bobsFigures.has(entry)) {
+        const state = entry.darts?.length ? replayTraining(BOBS_27, entry).state : null;
+        bobsFigures.set(entry, { hits: entry.result?.hits ?? state?.hits ?? 0, peak: state?.peak ?? entry.result?.score ?? 0 });
+    }
+    return bobsFigures.get(entry);
+};
+
 export const BOBS_27 = {
     id: 'bobs27',
     title: t('Bob\'s 27'),
@@ -140,7 +152,7 @@ export const BOBS_27 = {
     ],
     input: 'hitmiss',
     options: [],
-    init: () => ({ score: 27, index: 0, inVisit: 0, hitsInVisit: 0, hits: 0, darts: 0, perDouble: [], failed: false }),
+    init: () => ({ score: 27, peak: 27, index: 0, inVisit: 0, hitsInVisit: 0, hits: 0, darts: 0, perDouble: [], failed: false }),
     // a hit by the double it was (D5, Bull) in an opened attempt, from where it stood before the dart
     hitName: (state) => doubleName(DOUBLE_TARGETS[state.index]),
     dart: (state, dart) => {
@@ -151,6 +163,7 @@ export const BOBS_27 = {
             state.hitsInVisit += 1;
             state.hits += 1;
             state.score += doubleValue(number);
+            state.peak = Math.max(state.peak ?? 27, state.score);
         }
         if (state.inVisit === 3) {
             if (state.hitsInVisit === 0) state.score -= doubleValue(number);
@@ -182,10 +195,11 @@ export const BOBS_27 = {
     // on tiles under the curve (instead of the status): how far it got and the dart of the visit
     heroFigures: (state) => [[t('Double'), `${Math.min(state.index + 1, 21)} / 21`], [t('Dart'), `${state.inVisit + 1} / 3`]],
     status: (state) => [[t('Points'), state.score], [t('Dart'), `${state.inVisit + 1} / 3`]],
-    result: (state) => ({ score: state.failed ? 0 : state.score, reached: state.index, hits: state.hits, darts: state.darts, failed: state.failed }),
+    result: (state) => ({ score: state.failed ? 0 : state.score, reached: state.index, hits: state.hits, peak: state.peak, darts: state.darts, failed: state.failed }),
     higherIsBetter: true,
-    // the same points (above all 0, out before the bull): the one that got further first
-    tiebreak: (a, b) => reachedOf(b) - reachedOf(a),
+    // the same points (above all 0, out before the bull): the one that got further first, then more
+    // doubles hit, then the most points on the way; only attempts equal in all of them share a place
+    tiebreak: (a, b) => reachedOf(b) - reachedOf(a) || bobsOf(b).hits - bobsOf(a).hits || bobsOf(b).peak - bobsOf(a).peak,
     // where an attempt that failed ended, beside its date on the scoreboard
     entryNote: (entry) => (entry.score === 0 && reachedOf(entry) > 0 ? t('out at {{double}}', { double: doubleName(DOUBLE_TARGETS[reachedOf(entry) - 1]) }) : null),
     format: (score) => tn(score, '{{count}} point', '{{count}} points'),
