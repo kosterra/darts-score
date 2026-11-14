@@ -243,10 +243,12 @@ describe('the levels of the trainings', () => {
     });
 
     it('judges them by their result', () => {
-        expect(trainingLevel(BOBS_27, { score: 0 })).toBe('beginner');
-        expect(trainingLevel(BOBS_27, { score: 120 })).toBe('semiPro');
-        expect(trainingLevel(BOBS_27, { score: 399 })).toBe('worldClass');
-        expect(trainingLevel(BOBS_27, { score: 800 })).toBe('elite');
+        // Bob's 27: how far a run got, then its points once through
+        expect(trainingLevel(BOBS_27, { score: 0, failed: true, reached: 2 })).toBe('beginner');
+        expect(trainingLevel(BOBS_27, { score: 0, failed: true, reached: 11 })).toBe('semiPro');
+        expect(trainingLevel(BOBS_27, { score: 120, reached: 21 })).toBe('pro');
+        expect(trainingLevel(BOBS_27, { score: 399, reached: 21 })).toBe('worldClass');
+        expect(trainingLevel(BOBS_27, { score: 800, reached: 21 })).toBe('elite');
         // every dart at T20: higher than an X01 average
         expect(trainingLevel(SCORING, { score: 76.2 })).toBe('pro');
         expect(trainingLevel(DOUBLES_AROUND, { score: 84 })).toBe('pro');

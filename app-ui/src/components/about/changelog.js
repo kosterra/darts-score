@@ -11,6 +11,7 @@ const CHANGELOG = [
     {
         version: 'Next release',
         changes: [
+            t('Fix: the level of a Bob\'s 27 is judged by how far you got and, once through to the bull, by the points: going out at D6 is Hobby, D10 Semi-pro, D18 Pro (before, every run that went out was Beginner).'),
             t('Fix: the Hall of Shame tells you once that you landed there, not again for every bust (e.g. in Bob\'s 27) until you washed it off.'),
             t('Fair play: the details of a training show its darts visit by visit, as tags in the colours of its scoreboard.'),
         ],

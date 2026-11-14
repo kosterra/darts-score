@@ -208,11 +208,17 @@ export const BOBS_27 = {
         [t('Hit rate'), percent(result.hits, result.darts)],
         [t('Doubles played'), `${result.reached} / 21`],
     ],
-    // the points of a run that gets through, as the doubles of the simulated thrower make them (see
-    // levels.play.js): about 100 for a 50 average, 285 for 75, 455 for 90. Getting through at all is
-    // rare below a 50 average (one run in six there, half of them at 60), so any points are hobby
-    // and a run that ends early (0) is the lowest step
-    level: { by: t('the points'), of: (result) => result.score, bands: [1, 60, 100, 160, 285, 455] },
+    // how far a run got, and once through to the bull its points: one figure, the double it went out
+    // at (1 to 20) or 21 and the points. At the hit rates on doubles of each step (DOUBLES_BANDS:
+    // 5, 11, 16, 22, 30, 39 %) a run typically goes out at D6, D7, D10 and D18, and gets through
+    // with about 300 and 470 points at world class and elite (getting through at all: 1 % of the
+    // runs at 11 %, 13 % at 16 %, 44 % at 22 %, 84 % at 30 %)
+    level: {
+        by: t('how far you got, then the points'),
+        of: (result) => (result.failed || !result.score ? Math.min(Number(result.reached) || 0, 20) : 21 + result.score),
+        bands: [6, 7, 10, 18, 21 + 300, 21 + 470],
+        format: (value) => (value <= 20 ? doubleName(DOUBLE_TARGETS[Math.max(value, 1) - 1]) : tn(value - 21, '{{count}} point', '{{count}} points')),
+    },
 };
 
 /**

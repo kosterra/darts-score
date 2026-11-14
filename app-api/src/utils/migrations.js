@@ -347,22 +347,33 @@ const migrations = [
             return true;
         },
     },
+    {
+        id: '2026-11-14-bobs27-levels',
+        description: 'Work out the level of every Bob\'s 27 training again: judged by how far it got, then by the points, instead of the points alone',
+        run: async () => {
+            const counts = await recomputePlayLevels({ rulesTraining: { kind: 'bobs27' } });
+            logger.info(`Bob's 27 play levels: ${counts.rulesTraining ?? 0} trainings`);
+            return true;
+        },
+    },
 ];
 
 /**
  * The level every player played at (playLevels) worked out again for every
  * game and training, one at a time, also those that have one (it may be of
  * an older scale). Writes that field alone: nothing else, and "last updated"
- * stays. Safe to run again.
+ * stays. Safe to run again. only: { [kind]: query } to work out just those (e.g. one
+ * training whose levels changed); without it all of them.
  * → { [kind]: documents written }
  */
-export const recomputePlayLevels = async () => {
+export const recomputePlayLevels = async (only = null) => {
     const { PLAY_LEVEL_KINDS } = await import('./play.levels.js');
     const counts = {};
     for (const [kind, levelsOf] of Object.entries(PLAY_LEVEL_KINDS)) {
+        if (only && !only[kind]) continue;
         const Model = db[kind];
         counts[kind] = 0;
-        const cursor = Model.find({}).lean().cursor();
+        const cursor = Model.find(only?.[kind] ?? {}).lean().cursor();
         for await (const doc of cursor) {
             await Model.updateOne({ _id: doc._id }, { $set: { playLevels: levelsOf(doc) } }, { timestamps: false });
             counts[kind] += 1;

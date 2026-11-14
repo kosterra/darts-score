@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { afterDart, isCheckout, isValidDart, parseDart } from './darts';
+import { judgeLevel } from './levels.play';
 import { progressOf, replayGame, replayTraining, trainingHitNames, trainingVisitDetails, trainingVisits, withGameState } from './engine';
 import { BASEBALL, GAMES, GOLF, HALVE_IT, KILLER, SCRAM, SHANGHAI, TACTICS } from './games';
 import { BOBS_27, bobsDanger, bobsProgress, BULLS, CATCH_40, CHECKOUT_121, DOUBLES_AROUND, LADDER, RANDOM_CHECKOUTS, SCORING, SHORTEST_LEG, TRAININGS, TREBLES, boardKeyOf, boardLabels, boardOf, defaultBoardKey, placesOf, settingsProblem } from './trainings';
@@ -562,5 +563,19 @@ describe('trainingVisitDetails', () => {
         // 121 Checkout: what was left at each visit of an attempt
         expect(trainingVisitDetails(CHECKOUT_121, { darts: ['T20', 'S1', '0', 'T20'] }).map(visit => visit.left)).toEqual([121, 60]);
         expect(trainingVisitDetails(SCORING, { darts: ['T20'] })[0]).toEqual({ darts: ['T20'], left: null, out: null });
+    });
+});
+
+describe("Bob's 27 level", () => {
+    it('judges a run by how far it got, then by its points once through', () => {
+        const level = (result) => judgeLevel(BOBS_27.level, result)?.level;
+        expect(level({ score: 0, failed: true, reached: 3 })).toBe('beginner');
+        expect(level({ score: 0, failed: true, reached: 6 })).toBe('hobby');
+        expect(level({ score: 0, failed: true, reached: 10 })).toBe('semiPro');
+        expect(level({ score: 0, failed: true, reached: 19 })).toBe('pro');
+        expect(level({ score: 120, failed: false, reached: 21 })).toBe('pro');
+        expect(level({ score: 300, failed: false, reached: 21 })).toBe('worldClass');
+        expect(level({ score: 480, failed: false, reached: 21 })).toBe('elite');
+        expect(judgeLevel(BOBS_27.level, { score: 0, failed: true, reached: 19 }).value).toBe('D19');
     });
 });
