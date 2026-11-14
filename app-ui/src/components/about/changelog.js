@@ -9,19 +9,19 @@ import { t } from '../../utils/i18n';
  */
 const CHANGELOG = [
     {
-        version: 'Next release',
+        version: '2026.11.10',
         changes: [
             t('Bob\'s 27: the curve of the points under the double is smooth instead of jagged.'),
             t('Treble practice: the buttons Treble, Single and Double show a wedge of the board with the ring hit filled in.'),
             t('Treble practice: an opened attempt on the scoreboard shows the trebles in green, the doubles in amber and the singles in blue, and On the number with how many it was (73 % (22 / 30)).'),
             t('Training scoreboards: an opened attempt shows what its level was judged by and what the next level takes, with every level and where it starts.'),
-            t('Fix: Bob\'s 27 attempts out at the same double no longer share a place: more doubles hit rank first, then the most points on the way.'),
             t('Checkout trainings: an opened attempt on the scoreboard shows at the end of every visit what was left, in green with a tick where it was checked out.'),
             t('Bull practice: an opened attempt on the scoreboard shows the bullseyes in green and the outer bulls in amber; the buttons are Bullseye (a target) and Single (25) (a ring).'),
             t('Trainings with Hit and Miss or their own buttons fit a phone without scrolling: lower buttons where the screen is short, and the darts of the visit with Undo and Stop in a compact panel.'),
             t('Doubles around the board and Bob\'s 27: an opened attempt on the scoreboard names every hit by its double (D5, Bull) instead of just Hit.'),
             t('Ways out on a phone: the header shows one or two other ways beside the usual one for the player at the oche, in X01, Elimination and the checkout trainings, where the list of the ways is below the board.'),
             t('Trainings on a phone: the bar at the bottom shows the visit entered last as a quiet line above the darts of this one, with its points in Scoring, so the two are not mixed up; Stop under the board is no longer hidden behind the bar.'),
+            t('Fix: Bob\'s 27 attempts out at the same double no longer share a place: more doubles hit rank first, then the most points on the way.'),
             t('Fix: a fourth dart tapped on the board before Enter score says the visit is complete, in Cricket and the trainings too (as in X01); a checkout attempt ended by its last dart shows that dart in its darts (8 / 9, not 7 / 9).'),
             t('Fix: with favourite doubles the usual way out keeps to the checkout table unless a favourite comes after a treble or a single (T18 D12 for 78, no longer D19 D20); a double is no longer suggested to set up a finish.'),
         ],
