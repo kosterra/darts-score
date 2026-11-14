@@ -9,6 +9,12 @@ import { t } from '../../utils/i18n';
  */
 const CHANGELOG = [
     {
+        version: 'Next release',
+        changes: [
+            t('Fix: the Around the Clock training badges (First Lap, Clock Watcher, Around the World) count Around the Clock trainings only, no longer every training; a badge just earned says what it was for, and About → Badges says what every series counts.'),
+        ],
+    },
+    {
         version: '2026.11.8',
         changes: [
             t('Fix: X01 shows Match dart (or Set dart) only for the player at the oche on a finish of one dart that wins the match (or the set), such as 40 or the bull, no longer on any finish.'),

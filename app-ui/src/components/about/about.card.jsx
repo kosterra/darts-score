@@ -178,11 +178,12 @@ const AboutCard = () => {
                                                 <BadgeMedal badge={badges.at(-1)} size="sm" />
                                                 <div className="d-flex flex-column min-w-0">
                                                     <span className="text-default fs-7 fw-semibold">{badges[0].groupTitle}</span>
-                                                    <span className="text-faint fs-8">
-                                                        {badges.length === 1
-                                                            ? badges[0].description
-                                                            : badges.map(badge => `${badge.title} (${badge.targetLabel ?? new Intl.NumberFormat(locale()).format(badge.target)})`).join(' · ')}
-                                                    </span>
+                                                    {/* what the series counts (its first step), then its steps */}
+                                                    <span className="text-subtle fs-8">{badges[0].description}</span>
+                                                    {badges.length > 1 &&
+                                                        <span className="text-faint fs-8">
+                                                            {badges.map(badge => `${badge.title} (${badge.targetLabel ?? new Intl.NumberFormat(locale()).format(badge.target)})`).join(' · ')}
+                                                        </span>}
                                                 </div>
                                             </li>
                                         ))}
