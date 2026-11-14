@@ -20,12 +20,14 @@ const doubleRank = (number) => {
     return index < 0 ? DOUBLE_ORDER.length : index;
 };
 
-// how natural a dart is on the way to the finish: big trebles first, then singles
+// how natural a dart is on the way to the finish: big trebles first, then singles; the bull
+// now and then (Bull D16 for 82), a double hardly ever: a miss outside scores nothing, so even
+// one's favourite double after it does not make D19 D20 the way for 78 (T18 D12 is)
 const setupCost = (dart) => {
     if (dart.ring === 'T') return [20, 19, 18, 17].includes(dart.number) ? 0 : 2;
-    if (dart.number === 25) return dart.ring === 'D' ? 4 : 3;
+    if (dart.number === 25) return dart.ring === 'D' ? 5 : 3;
     if (dart.ring === 'S') return 1;
-    return 3;
+    return 8;
 };
 
 // how good the last dart is: the player's own doubles first (best first), then
@@ -44,11 +46,11 @@ const finishesWith = (dart, outMode) => {
     return true;
 };
 
-// "T20  -  T20  -  D25" from the checkout table as ["T20", "T20", "D25"]
-const tableRoute = (score) => {
-    const entry = checkout[score]?.[0];
-    if (!entry || entry.trim().startsWith('---')) return null;
-    return entry.trim().split(/\s*-\s*/);
+// "T20  -  T20  -  D25" from the checkout table as ["T20", "T20", "D25"], its other ways after it
+const tableRoutes = (score) => {
+    const entries = checkout[score] ?? [];
+    if (!entries.length || entries[0].trim().startsWith('---')) return [];
+    return entries.map(entry => entry.trim().split(/\s*-\s*/));
 };
 
 /**
@@ -97,9 +99,16 @@ const findRoutes = (score, dartsLeft, outMode, doubles) => {
         .sort((a, b) => a.sort[0] - b.sort[0] || a.sort[1] - b.sort[1] || a.sort[2] - b.sort[2] || a.darts.join().localeCompare(b.darts.join()))
         .map(route => route.darts);
 
-    // the familiar route first, when it can be thrown with the darts left; the
-    // player's own doubles decide instead when they are known
-    const preferred = outMode === 'Double Out' && !doubles.length ? tableRoute(score) : null;
+    // the familiar route of the checkout table first, when it can be thrown with the darts left.
+    // With the player's own doubles: for the best of them a way of the table onto it (Bull D16 for
+    // 82), or else one with only trebles and singles (the single bull too) before it and no more darts (T8 D16 for 56);
+    // never a double to set it up (T18 D12 for 78, not D19 D20)
+    const table = outMode === 'Double Out' ? tableRoutes(score).filter(route => route.length <= dartsLeft) : [];
+    const setUp = (route, bull) => route.slice(0, -1).every(name => !/^D/.test(name) || (bull && name === 'D25'));
+    const ownWay = (double) => table.find(route => route.at(-1) === double && setUp(route, true))
+        ?? routes.find(route => route.at(-1) === double && setUp(route, false) && route.length <= (table[0]?.length ?? dartsLeft));
+    const own = table.length ? doubles.map(ownWay).find(Boolean) : null;
+    const preferred = own ?? table[0];
     if (preferred && preferred.length <= dartsLeft) {
         const key = (darts) => [...darts.slice(0, -1)].sort().join(' ') + ' > ' + darts.at(-1);
         const index = routes.findIndex(route => key(route) === key(preferred));

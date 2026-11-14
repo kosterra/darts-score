@@ -106,6 +106,18 @@ describe('the player\'s own doubles and treble', () => {
         expect(checkoutRoutes(40, { doubles: ['D16'] })[1]).toEqual(['S8', 'D16']);
     });
 
+    it('reach the player\'s doubles by the table or by trebles and singles, never by another double', () => {
+        // to end on D20, 78 would need D19 first: the table's T18 D12 instead
+        expect(checkoutRoutes(78, { dartsLeft: 2, doubles: ['D20'] })[0]).toEqual(['T18', 'D12']);
+        expect(checkoutRoutes(62, { doubles: ['D20'] })[0]).toEqual(['T10', 'D16']);
+        expect(checkoutRoutes(80, { doubles: ['D20'] })[0]).toEqual(['T20', 'D10']);
+        // a way of the table onto one's double, also over the bull
+        expect(checkoutRoutes(70, { doubles: ['D20'] })[0]).toEqual(['T10', 'D20']);
+        expect(checkoutRoutes(82, { doubles: ['D16'] })[0]).toEqual(['D25', 'D16']);
+        // or a treble before it, with no more darts than the table's
+        expect(checkoutRoutes(56, { doubles: ['D16'] })[0]).toEqual(['T8', 'D16']);
+    });
+
     it('set up one of the player\'s doubles', () => {
         expect(setupSuggestions(169, { doubles: ['D16'] })[0].leaves).toBe(32);
     });
