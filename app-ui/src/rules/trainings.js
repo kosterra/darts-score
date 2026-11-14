@@ -19,12 +19,13 @@ const levelPercent = (value) => `${Math.round(value)} %`;
 // training, from the simulated thrower of levels.play.js (where hobby, amateur, semi-pro, pro,
 // world class and elite start).
 // 121 Checkout by darts per attempt and attempts
+// (simulated again on 2026-11-14 with the bot's model of each average: the steps were too hard)
 const CHECKOUT_121_BANDS = {
-    9: { 10: [1, 120, 122, 124, 127, 128], 20: [1, 120, 122, 126, 133, 138], 30: [1, 120, 122, 129, 138, 146], 50: [1, 120, 123, 134, 150, 160] },
-    6: { 10: [1, 115, 119, 120, 122, 125], 20: [1, 115, 119, 121, 123, 129], 30: [1, 116, 119, 121, 124, 133], 50: [1, 115, 119, 121, 126, 140] },
+    9: { 10: [1, 119, 121, 122, 126, 128], 20: [1, 119, 121, 124, 130, 134], 30: [1, 119, 121, 126, 134, 142], 50: [1, 119, 121, 128, 143, 154] },
+    6: { 10: [1, 113, 118, 120, 122, 124], 20: [1, 113, 118, 120, 123, 127], 30: [1, 113, 118, 120, 123, 130], 50: [1, 113, 118, 120, 124, 135] },
 };
 // Shortest leg by the legs played: the best of ten comes easier than the best of three
-const SHORTEST_LEG_BANDS = { 3: [42, 31, 24, 20, 17, 14], 5: [40, 28, 23, 19, 16, 13], 10: [35, 26, 21, 18, 15, 13] };
+const SHORTEST_LEG_BANDS = { 3: [46, 31, 25, 21, 17, 14], 5: [43, 29, 23, 19, 16, 13], 10: [40, 27, 22, 18, 15, 12] };
 
 /**
  * The doubles of a training around the board as cells, D1 to the bull: the
@@ -209,14 +210,12 @@ export const BOBS_27 = {
         [t('Doubles played'), `${result.reached} / 21`],
     ],
     // how far a run got, and once through to the bull its points: one figure, the double it went out
-    // at (1 to 20) or 21 and the points. At the hit rates on doubles of each step (DOUBLES_BANDS:
-    // 5, 11, 16, 22, 30, 39 %) a run typically goes out at D6, D7, D10 and D18, and gets through
-    // with about 300 and 470 points at world class and elite (getting through at all: 1 % of the
-    // runs at 11 %, 13 % at 16 %, 44 % at 22 %, 84 % at 30 %)
+    // at (1 to 20) or 21 and the points. The bot's thrower of each average typically goes out at
+    // D7, D7, D8 and D12 (25 to 60), and gets through with about 220 and 400 points at 75 and 90
     level: {
         by: t('how far you got, then the points'),
         of: (result) => (result.failed || !result.score ? Math.min(Number(result.reached) || 0, 20) : 21 + result.score),
-        bands: [6, 7, 10, 18, 21 + 300, 21 + 470],
+        bands: [6, 7, 8, 12, 21 + 220, 21 + 400],
         format: (value) => (value <= 20 ? doubleName(DOUBLE_TARGETS[Math.max(value, 1) - 1]) : tn(value - 21, '{{count}} point', '{{count}} points')),
     },
 };
@@ -541,7 +540,7 @@ export const CATCH_40 = {
     ],
     // six darts at each of 61 to 100, aimed at the usual way out: about 21 points for a 50 average,
     // 43 for 75 and 56 for 90
-    level: { by: t('the points'), of: (result) => result.score, bands: [3, 12, 21, 30, 43, 56] },
+    level: { by: t('the points'), of: (result) => result.score, bands: [3, 9, 18, 26, 40, 52] },
 };
 
 /**
@@ -673,7 +672,9 @@ export const BULLS = {
     // the outer bull or the bullseye: a round target as wide as a treble is long, so it takes more
     // darts than one would think: about 37 % for a 50 average, 70 % for 75, 85 % for 90 (the
     // bullseye alone about a third of that at the top, as the pros' checkouts on it)
-    level: { by: t('the hit rate on the bull'), of: (result) => result.score, bands: [10, 25, 37, 50, 70, 85], format: levelPercent },
+    // the bot's thrower hits the bull area with 27 to 57 % of its darts (25 to 90); its model is rough at
+    // both ends, so the steps lie between it and what players manage (even pros miss a third of them)
+    level: { by: t('the hit rate on the bull'), of: (result) => result.score, bands: [15, 25, 35, 45, 55, 65], format: levelPercent },
 };
 
 // the rungs of the checkout ladder
@@ -749,7 +750,7 @@ export const LADDER = {
     level: {
         by: t('the checkout rate'),
         of: (result) => (result.attempts ? result.done / result.attempts * 100 : null),
-        bands: [3, 11, 18, 25, 37, 48],
+        bands: [3, 10, 15, 25, 35, 45],
         format: levelPercent,
     },
 };

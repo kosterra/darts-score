@@ -348,11 +348,11 @@ const migrations = [
         },
     },
     {
-        id: '2026-11-14-bobs27-levels',
-        description: 'Work out the level of every Bob\'s 27 training again: judged by how far it got, then by the points, instead of the points alone',
+        id: '2026-11-14-play-levels-easier',
+        description: 'Work out the level every player played at again for every game and training: the steps of the trainings and of the doubles were simulated again and are easier (Bob\'s 27 judged by how far a run got, then its points)',
         run: async () => {
-            const counts = await recomputePlayLevels({ rulesTraining: { kind: 'bobs27' } });
-            logger.info(`Bob's 27 play levels: ${counts.rulesTraining ?? 0} trainings`);
+            const counts = await recomputePlayLevels();
+            logger.info(`Play levels: ${Object.entries(counts).map(([kind, count]) => `${count} ${kind}`).join(', ')}`);
             return true;
         },
     },
