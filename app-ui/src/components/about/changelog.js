@@ -11,6 +11,7 @@ const CHANGELOG = [
     {
         version: 'Next release',
         changes: [
+            t('Ways out on a phone: the header shows one or two other ways beside the usual one for the player at the oche, in X01, Elimination and the checkout trainings, where the list of the ways is below the board.'),
             t('Fix: with favourite doubles the usual way out keeps to the checkout table unless a favourite comes after a treble or a single (T18 D12 for 78, no longer D19 D20); a double is no longer suggested to set up a finish.'),
             t('Trainings on a phone: the bar at the bottom shows the visit entered last as a quiet line above the darts of this one, with its points in Scoring, so the two are not mixed up; Stop under the board is no longer hidden behind the bar.'),
         ],

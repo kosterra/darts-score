@@ -22,6 +22,7 @@ import RulesTrainingBoard from './rules.training.board';
 import RulesDoubles from './rules.doubles';
 import RulesProgress from './rules.progress';
 import LiveHero from '../games/common/live.hero';
+import RouteLine from '../games/common/route.line';
 import RulesService from '../../services/rules.service';
 import { trainingOf } from '../../rules/trainings';
 import { replayTraining, settingsOf, trainingVisits } from '../../rules/engine';
@@ -445,7 +446,7 @@ const RulesTraining = () => {
                         // then the figures on their tiles, when the big figure is something else
                         below: <>
                             {verdict ? <span className={`x01-live-route rules-attempt-verdict ${verdict.kind}`} role="status">{verdict.text}</span>
-                                : ways?.routes[0] ? <span className="x01-live-route">{formatRoute(ways.routes[0])}</span>
+                                : ways?.routes[0] ? <span className="x01-live-route"><RouteLine routes={ways.routes} /></span>
                                 : ways?.setup ? <span className="x01-live-route is-setup">{formatRoute(ways.setup.darts)}</span>
                                     : definition.noteTarget
                                         // the double to throw at under the points, in the accent (played again when it

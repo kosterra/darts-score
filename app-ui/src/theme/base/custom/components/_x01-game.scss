@@ -192,6 +192,31 @@
 // no finish: what to set up instead, quieter than a finish, and what it leaves
 .x01-live-route.is-setup { color: rgba(233, 172, 47, 0.7); font-weight: $weight-semibold; }
 
+// other ways after the usual one, on a phone only (the list of the ways is below the board there):
+// smaller and quieter, each whole or not at all (one that does not fit wraps onto a hidden line)
+.x01-live-route { max-width: 100%; min-width: 0; }
+.x01-route-main { flex-shrink: 0; }
+.x01-route-others { display: none; }
+
+@media (max-width: 767.98px) {
+  .x01-route-others {
+    display: flex;
+    flex-wrap: wrap;
+    flex: 0 1 auto;
+    min-width: 0;
+    height: 1.3em;
+    overflow: hidden;
+    column-gap: 0.45rem;
+    margin-left: 0.45rem;
+    padding-left: 0.45rem;
+    border-left: 1px solid ink(0.14);
+    color: rgba(233, 172, 47, 0.62);
+    font-size: 0.85em;
+    font-weight: $weight-regular;
+    line-height: 1.3em;
+  }
+}
+
 .x01-route-leaves {
   display: inline-flex;
   align-items: center;
