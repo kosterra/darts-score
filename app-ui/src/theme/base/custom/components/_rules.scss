@@ -915,8 +915,40 @@
         .rules-danger-count { min-width: 1.6rem; font-size: $text-xl; }
     }
 
+    // the visit entered last: one quiet line on top of the bar, no tags, so the darts of this visit
+    // (the tags) are the only bold ones
+    .x01-visit-bar.is-floating.rules-visit-bar {
+        grid-template-areas: "last last" "darts actions" "total actions";
+    }
+
+    .rules-bar-last {
+        grid-area: last;
+        display: flex;
+        align-items: baseline;
+        gap: 0.4rem;
+        margin: 0 0 0.2rem;
+        padding-bottom: 0.3rem;
+        border-bottom: 1px solid ink(0.08);
+        color: var(--text-faint);
+        font-size: $text-xs;
+
+        .rules-bar-last-darts { color: var(--text-subtle); font-variant-numeric: tabular-nums; word-spacing: 0.2rem; }
+        strong { margin-left: auto; color: var(--text-subtle); font-weight: $weight-semibold; }
+    }
+
+    .x01-visit-bar.is-floating .x01-visit-bar-darts .rules-bar-total {
+        align-self: center;
+        margin-left: 0.2rem;
+        font-size: $text-sm;
+    }
+
+    // the last darts are in the bar on a phone
+    .rules-last-darts.is-staged { display: none; }
+    // room for the bar and the menu under the page: Stop stays in view
+    .rules-training-live:has(.rules-visit-bar) { padding-bottom: 12rem; }
+
     .x01-visit-bar.is-floating.has-danger {
-        grid-template-areas: "danger danger" "darts actions" "total actions";
+        grid-template-areas: "danger danger" "last last" "darts actions" "total actions";
 
         .rules-danger { grid-area: danger; margin: 0 0 0.35rem; }
     }

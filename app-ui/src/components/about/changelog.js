@@ -9,6 +9,12 @@ import { t } from '../../utils/i18n';
  */
 const CHANGELOG = [
     {
+        version: 'Next release',
+        changes: [
+            t('Trainings on a phone: the bar at the bottom shows the visit entered last as a quiet line above the darts of this one, with its points in Scoring, so the two are not mixed up; Stop under the board is no longer hidden behind the bar.'),
+        ],
+    },
+    {
         version: '2026.11.9',
         changes: [
             t('Training scoreboards: an opened attempt shows its figures first (e.g. the points on the number), which rank it among the same score, then its visits numbered, the darts in even columns.'),

@@ -24,7 +24,7 @@ import RulesProgress from './rules.progress';
 import LiveHero from '../games/common/live.hero';
 import RulesService from '../../services/rules.service';
 import { trainingOf } from '../../rules/trainings';
-import { replayTraining, settingsOf } from '../../rules/engine';
+import { replayTraining, settingsOf, trainingVisits } from '../../rules/engine';
 import { parseDart } from '../../rules/darts';
 import { clearSetup, loadSetup, saveSetup } from '../../utils/setup.memory';
 import { t } from '../../utils/i18n';
@@ -366,6 +366,10 @@ const RulesTraining = () => {
         const visitDarts = staged ? pending : inVisit ? running.darts.slice(-inVisit) : [];
         // the last darts before this visit, to check a dart entered a moment ago (the tiles are empty again)
         const lastDarts = running.darts.slice(0, running.darts.length - (staged ? 0 : inVisit)).slice(-3);
+        // on a phone, in the bar: the visit entered last, quiet above the darts of this one (with its
+        // points where points count, as in Scoring)
+        const lastVisit = staged && running.darts.length ? trainingVisits(definition, running).at(-1) ?? [] : [];
+        const visitTotal = (darts) => (definition.visitTotal && darts.length ? definition.visitTotal(darts) : null);
         const canUndo = running.darts.length > 0 || pending.length > 0;
         const status = definition.status(view.state, ctx);
         const changed = undone ? status.filter(([, value], index) => String(undone.status[index]?.[1]) !== String(value)).map(([label]) => label) : [];
@@ -522,7 +526,7 @@ const RulesTraining = () => {
                                 })}
                             </ol>
                             {lastDarts.length > 0 && !over &&
-                                <p className="rules-last-darts" aria-label={t('Last darts')}>
+                                <p className={`rules-last-darts ${staged ? 'is-staged' : ''}`} aria-label={t('Last darts')}>
                                     <span className="text-faint">{t('Last darts')}</span>
                                     {lastDarts.map((dart, index) => (
                                         <span key={`${running.darts.length}-${index}`} className={`rules-last-dart ${dart === 'H' ? 'is-hit' : dart === 'M' ? 'is-miss' : ''}`}>
@@ -552,8 +556,15 @@ const RulesTraining = () => {
                     // the danger zone on top of the bar, one piece with it
                     <div className={`x01-visit-bar is-floating rules-visit-bar d-md-none ${danger ? 'has-danger' : ''}`}>
                         {dangerStrip()}
+                        {lastVisit.length > 0 &&
+                            <p className="rules-bar-last" aria-label={t('Last visit')}>
+                                <span>{t('Last visit')}</span>
+                                <span className="rules-bar-last-darts">{lastVisit.join(' ')}</span>
+                                {visitTotal(lastVisit) != null && <strong className="tabular-nums">{visitTotal(lastVisit)}</strong>}
+                            </p>}
                         <div className="x01-visit-bar-darts" aria-hidden="true">
                             {[0, 1, 2].map(index => <span key={index} className={visitDarts[index] ? '' : 'is-empty'}>{visitDarts[index] ?? '–'}</span>)}
+                            {visitTotal(visitDarts) != null && <strong className="rules-bar-total tabular-nums">{visitTotal(visitDarts)}</strong>}
                         </div>
                         <div className="x01-visit-total" aria-live="polite">
                             {status.map(([label, value], index) => <span key={label}>{index > 0 && ' · '}{label}{' '}<strong>{value}</strong></span>)}
