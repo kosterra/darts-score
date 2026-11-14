@@ -10,7 +10,8 @@ import { t } from '../../utils/i18n';
 import { formatDate } from '../../utils/dates';
 import { Lines } from '../elements/skeletons';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
-import { replayTraining, trainingHitNames, trainingVisitDetails } from '../../rules/engine';
+import { replayTraining } from '../../rules/engine';
+import TrainingVisits from './training.visits';
 import { boardKeyOf, boardOf, placesOf } from '../../rules/trainings';
 import { rulesIcon } from './rules.icons';
 import RulesDoubles from './rules.doubles';
@@ -180,8 +181,6 @@ const RulesTrainingBoard = ({ definition, version = 0, highlight = null, highlig
     // an attempt with its darts opens to them, visit by visit (and Bob's 27's hits per double)
     const canOpen = true;
     const doublesOf = (entry) => (entry.darts?.length && definition.doubles ? definition.doubles(replayTraining(definition, entry).state) : null);
-    // a dart as the visits of a game show it: Hit and Miss, a miss of the board as Miss
-    const dartLabel = (dart) => (dart === 'H' ? t('Hit') : dart === 'M' || dart === '0' ? t('Miss') : dart);
     // the level each attempt was played at, as the API keeps it; one saved before it did is judged
     // here from its darts, the same way
     const levelOf = (entry) => {
@@ -230,12 +229,6 @@ const RulesTrainingBoard = ({ definition, version = 0, highlight = null, highlig
                             const arriving = entry.id === highlight && phase;
                             const opens = canOpen && entry.darts?.length > 0;
                             const doubles = open === entry.id ? doublesOf(entry) : null;
-                            // the visits, with what a checkout training stood at (61, and whether it was checked out)
-                            const details = open === entry.id ? trainingVisitDetails(definition, entry) : null;
-                            const visits = details?.map(visit => visit.darts) ?? null;
-                            // a hit by what it was (D5, Bull) where the training knows it
-                            const hitNames = open === entry.id ? trainingHitNames(definition, entry) : null;
-                            const firstOf = visits ? visits.map((_, index) => visits.slice(0, index).reduce((sum, visit) => sum + visit.length, 0)) : [];
                             // its figures (points, darts, checkouts …): what ranks it among the same score
                             const facts = open === entry.id ? definition.figures?.(entry.result?.score != null ? entry.result : replayTraining(definition, entry).result ?? {}) ?? [] : [];
                             // the level of the attempt, what it was judged by and what the next one takes
@@ -290,24 +283,7 @@ const RulesTrainingBoard = ({ definition, version = 0, highlight = null, highlig
                                             </dl>}
                                         {estimate && <LevelLadder levelDefinition={definition.level} estimate={estimate} args={[replayed.result, replayed.settings]} />}
                                         {/* the darts of the attempt, a numbered line per visit, the darts in columns */}
-                                        <ol className="rules-board-visits list-unstyled" aria-label={t('Darts thrown')}>
-                                            {visits.map((visit, index) => (
-                                                <li key={index} className={`rules-board-visit ${definition.visitTotal || details[index].left != null ? 'has-total' : ''}`}>
-                                                    <span className="rules-board-visit-number">{index + 1}</span>
-                                                    {[0, 1, 2].map(d => {
-                                                        const dart = visit[d];
-                                                        return <span key={d} className={`rules-board-dart ${dart === undefined ? 'is-none' : dart === 'H' ? 'is-hit' : dart === 'M' || dart === '0' ? 'is-miss' : definition.dartTone?.(dart) ?? ''}`}>{dart === undefined ? '' : (dart === 'H' && hitNames?.[firstOf[index] + d]) || dartLabel(dart)}</span>;
-                                                    })}
-                                                    {definition.visitTotal && <span className="rules-board-visit-total tabular-nums">{definition.visitTotal(visit)}</span>}
-                                                    {/* what was left at the visit, green with a tick where it was checked out */}
-                                                    {details[index].left != null &&
-                                                        <span className={`rules-board-visit-total tabular-nums ${details[index].out ? 'is-out' : 'is-left'}`} title={details[index].out ? t('Checked out!') : undefined}>
-                                                            {details[index].out && <i className="pi pi-check" aria-hidden="true" />}
-                                                            {details[index].left}
-                                                        </span>}
-                                                </li>
-                                            ))}
-                                        </ol>
+                                        <TrainingVisits definition={definition} training={entry} />
                                     </li>}
                                 </Fragment>
                             );

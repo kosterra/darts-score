@@ -9,6 +9,12 @@ import { t } from '../../utils/i18n';
  */
 const CHANGELOG = [
     {
+        version: 'Next release',
+        changes: [
+            t('Fair play: the details of a training show its darts visit by visit, as tags in the colours of its scoreboard.'),
+        ],
+    },
+    {
         version: '2026.11.10',
         changes: [
             t('Bob\'s 27: the curve of the points under the double is smooth instead of jagged.'),

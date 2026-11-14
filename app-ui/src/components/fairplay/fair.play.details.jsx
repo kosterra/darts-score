@@ -4,6 +4,8 @@ import dayjs from 'dayjs';
 import IntegrityService from '../../services/integrity.service';
 import { LEVELS } from './fair.play.lists';
 import { Lines } from '../elements/skeletons';
+import TrainingVisits from '../rules/training.visits';
+import { trainingOf } from '../../rules/trainings';
 import { t } from '../../utils/i18n';
 
 // the worst finding at each place: 'set|leg|visit' (X01) or 'visit' → level
@@ -111,6 +113,8 @@ const FairPlayDetails = ({ entry }) => {
     if (!details) return <div className="fair-play-details"><Lines count={3} /></div>;
 
     const nameOf = (id) => entry.players.find(player => player.id === id)?.nickname ?? t('Unknown player');
+    // a training's darts visit by visit, as on its scoreboard
+    const training = details.training && trainingOf(details.training.kind) ? details.training : null;
     const flags = flagsOf(details.findings ?? []);
 
     return (
@@ -127,6 +131,7 @@ const FairPlayDetails = ({ entry }) => {
                     ))}
                 </dl>
             }
+            {training && training.darts.length > 0 && <TrainingVisits definition={trainingOf(training.kind)} training={training} />}
             {details.repairReason && <p className="text-faint fs-8 m-0">{t('No repair:')}{' '}{details.repairReason.charAt(0).toLowerCase() + details.repairReason.slice(1)}.</p>}
         </div>
     );
