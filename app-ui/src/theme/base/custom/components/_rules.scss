@@ -586,10 +586,12 @@
         font-size: $text-xs;
         text-align: center;
 
-        &.is-hit { color: $accentGreen; }
+        // the same in every training: the target hit green on a soft green (a Hit, D5, the bullseye,
+        // the treble), the next best amber (the outer bull, the double of the number), the single of
+        // the number blue, a miss faint
+        &.is-hit { color: $accentGreen; font-weight: $weight-bold; background: soft($accentGreen, 0.14); }
         &.is-near { color: $accentAmber; }
         &.is-single { color: $accentBlue; }
-        &.is-strong { font-weight: $weight-bold; background: soft($accentGreen, 0.14); }
         &.is-miss { color: $textFaintColor; }
         &.is-none { background: transparent; }
     }

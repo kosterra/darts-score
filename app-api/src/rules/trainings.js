@@ -555,7 +555,7 @@ export const TREBLES = {
     input: 'buttons',
     // the four ways a dart at the treble can land, quicker than the board
     // in an opened attempt: the treble in green, a double in amber, a single in blue, a miss grey
-    dartTone: (dart) => ({ T: 'is-hit is-strong', D: 'is-near', S: 'is-single' })[String(dart)[0]] ?? null,
+    dartTone: (dart) => ({ T: 'is-hit', D: 'is-near', S: 'is-single' })[String(dart)[0]] ?? null,
     buttons: (settings) => [
         // a wedge of the board with the ring hit filled (elements/segment.icon.jsx)
         { value: `T${settings.number}`, label: t('Treble'), icon: 'segment-T' },
