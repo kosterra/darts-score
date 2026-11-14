@@ -556,13 +556,18 @@
     gap: 0.25rem;
 
     // Scoring: the points of the visit after its darts
-    &.has-total { grid-template-columns: 1.4rem repeat(3, minmax(0, 1fr)) 2.2rem; }
+    &.has-total { grid-template-columns: 1.4rem repeat(3, minmax(0, 1fr)) 2.8rem; }
 
     .rules-board-visit-total {
         color: $textDefaultColor;
         font-size: $text-xs;
         font-weight: $weight-semibold;
         text-align: right;
+
+        // a checkout training: what was left, quiet; checked out green with a tick
+        &.is-left { color: $textFaintColor; font-weight: $weight-regular; }
+        &.is-out { color: $accentGreen; white-space: nowrap; }
+        .pi { margin-right: 0.2rem; font-size: 0.7em; }
     }
 
     .rules-board-visit-number {

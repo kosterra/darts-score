@@ -10,7 +10,7 @@ import { t } from '../../utils/i18n';
 import { formatDate } from '../../utils/dates';
 import { Lines } from '../elements/skeletons';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
-import { replayTraining, trainingHitNames, trainingVisits } from '../../rules/engine';
+import { replayTraining, trainingHitNames, trainingVisitDetails } from '../../rules/engine';
 import { boardKeyOf, boardOf, placesOf } from '../../rules/trainings';
 import { rulesIcon } from './rules.icons';
 import RulesDoubles from './rules.doubles';
@@ -229,7 +229,9 @@ const RulesTrainingBoard = ({ definition, version = 0, highlight = null, highlig
                             const arriving = entry.id === highlight && phase;
                             const opens = canOpen && entry.darts?.length > 0;
                             const doubles = open === entry.id ? doublesOf(entry) : null;
-                            const visits = open === entry.id ? trainingVisits(definition, entry) : null;
+                            // the visits, with what a checkout training stood at (61, and whether it was checked out)
+                            const details = open === entry.id ? trainingVisitDetails(definition, entry) : null;
+                            const visits = details?.map(visit => visit.darts) ?? null;
                             // a hit by what it was (D5, Bull) where the training knows it
                             const hitNames = open === entry.id ? trainingHitNames(definition, entry) : null;
                             const firstOf = visits ? visits.map((_, index) => visits.slice(0, index).reduce((sum, visit) => sum + visit.length, 0)) : [];
@@ -285,13 +287,19 @@ const RulesTrainingBoard = ({ definition, version = 0, highlight = null, highlig
                                         {/* the darts of the attempt, a numbered line per visit, the darts in columns */}
                                         <ol className="rules-board-visits list-unstyled" aria-label={t('Darts thrown')}>
                                             {visits.map((visit, index) => (
-                                                <li key={index} className={`rules-board-visit ${definition.visitTotal ? 'has-total' : ''}`}>
+                                                <li key={index} className={`rules-board-visit ${definition.visitTotal || details[index].left != null ? 'has-total' : ''}`}>
                                                     <span className="rules-board-visit-number">{index + 1}</span>
                                                     {[0, 1, 2].map(d => {
                                                         const dart = visit[d];
                                                         return <span key={d} className={`rules-board-dart ${dart === undefined ? 'is-none' : dart === 'H' ? 'is-hit' : dart === 'M' || dart === '0' ? 'is-miss' : definition.dartTone?.(dart) ?? ''}`}>{dart === undefined ? '' : (dart === 'H' && hitNames?.[firstOf[index] + d]) || dartLabel(dart)}</span>;
                                                     })}
                                                     {definition.visitTotal && <span className="rules-board-visit-total tabular-nums">{definition.visitTotal(visit)}</span>}
+                                                    {/* what was left at the visit, green with a tick where it was checked out */}
+                                                    {details[index].left != null &&
+                                                        <span className={`rules-board-visit-total tabular-nums ${details[index].out ? 'is-out' : 'is-left'}`} title={details[index].out ? t('Checked out!') : undefined}>
+                                                            {details[index].out && <i className="pi pi-check" aria-hidden="true" />}
+                                                            {details[index].left}
+                                                        </span>}
                                                 </li>
                                             ))}
                                         </ol>

@@ -11,6 +11,7 @@ const CHANGELOG = [
     {
         version: 'Next release',
         changes: [
+            t('Checkout trainings: an opened attempt on the scoreboard shows at the end of every visit what was left, in green with a tick where it was checked out.'),
             t('Bull practice: an opened attempt on the scoreboard shows the bullseyes in green and the outer bulls in amber; the buttons are Bullseye (a target) and Single (25) (a ring).'),
             t('Trainings with Hit and Miss or their own buttons fit a phone without scrolling: lower buttons where the screen is short, and the darts of the visit with Undo and Stop in a compact panel.'),
             t('Doubles around the board and Bob\'s 27: an opened attempt on the scoreboard names every hit by its double (D5, Bull) instead of just Hit.'),

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { afterDart, isCheckout, isValidDart, parseDart } from './darts';
-import { progressOf, replayGame, replayTraining, trainingHitNames, trainingVisits, withGameState } from './engine';
+import { progressOf, replayGame, replayTraining, trainingHitNames, trainingVisitDetails, trainingVisits, withGameState } from './engine';
 import { BASEBALL, GAMES, GOLF, HALVE_IT, KILLER, SCRAM, SHANGHAI, TACTICS } from './games';
 import { BOBS_27, bobsDanger, bobsProgress, BULLS, CATCH_40, CHECKOUT_121, DOUBLES_AROUND, LADDER, RANDOM_CHECKOUTS, SCORING, SHORTEST_LEG, TRAININGS, TREBLES, boardKeyOf, boardLabels, boardOf, defaultBoardKey, placesOf, settingsProblem } from './trainings';
 
@@ -538,5 +538,19 @@ describe('trainingHitNames', () => {
         // Bob's 27: three darts at each double
         expect(trainingHitNames(BOBS_27, { darts: ['H', 'M', 'M', 'M', 'H', 'H'] })).toEqual(['D1', null, null, null, 'D2', 'D2']);
         expect(trainingHitNames(SCORING, { darts: ['T20'] })).toBeNull();
+    });
+});
+
+describe('trainingVisitDetails', () => {
+    it('gives a checkout training\'s visits what was left and whether they checked it out', () => {
+        const details = trainingVisitDetails(LADDER, { settings: { attempts: 20 }, darts: ['T15', 'D8', 'S1', 'S1', 'S1', 'S20'] });
+        expect(details).toEqual([
+            { darts: ['T15', 'D8'], left: 61, out: true },
+            { darts: ['S1', 'S1', 'S1'], left: 62, out: false },
+            { darts: ['S20'], left: 61, out: false },
+        ]);
+        // 121 Checkout: what was left at each visit of an attempt
+        expect(trainingVisitDetails(CHECKOUT_121, { darts: ['T20', 'S1', '0', 'T20'] }).map(visit => visit.left)).toEqual([121, 60]);
+        expect(trainingVisitDetails(SCORING, { darts: ['T20'] })[0]).toEqual({ darts: ['T20'], left: null, out: null });
     });
 });
