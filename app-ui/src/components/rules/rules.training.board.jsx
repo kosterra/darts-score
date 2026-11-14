@@ -17,6 +17,7 @@ import RulesDoubles from './rules.doubles';
 import PlayLevelTag from '../elements/play.level.tag';
 import { playLevelOf } from '../../utils/play.levels';
 import { judgeLevel } from '../../rules/levels.play';
+import FigureValue from '../elements/figure.value';
 
 const MEDALS = ['gold', 'silver', 'bronze'];
 
@@ -229,6 +230,8 @@ const RulesTrainingBoard = ({ definition, version = 0, highlight = null, highlig
                             const opens = canOpen && entry.darts?.length > 0;
                             const doubles = open === entry.id ? doublesOf(entry) : null;
                             const visits = open === entry.id ? trainingVisits(definition, entry) : null;
+                            // its figures (points, darts, checkouts …): what ranks it among the same score
+                            const facts = open === entry.id ? definition.figures?.(entry.result?.score != null ? entry.result : replayTraining(definition, entry).result ?? {}) ?? [] : [];
                             return (
                                 <Fragment key={entry.id}>
                                 <li
@@ -270,14 +273,24 @@ const RulesTrainingBoard = ({ definition, version = 0, highlight = null, highlig
                                 {open === entry.id &&
                                     <li className="rules-board-doubles">
                                         {doubles && <RulesDoubles cells={doubles} label={definition.doublesLabel} />}
-                                        {/* the darts of the attempt, visit by visit, as tags */}
-                                        <div className="rules-board-visits" aria-label={t('Darts thrown')}>
+                                        {facts.length > 0 &&
+                                            <dl className="rules-board-facts">
+                                                {facts.map(([label, value]) => (
+                                                    <div key={label}><dt>{label}</dt><dd className="tabular-nums"><FigureValue value={value} /></dd></div>
+                                                ))}
+                                            </dl>}
+                                        {/* the darts of the attempt, a numbered line per visit, the darts in columns */}
+                                        <ol className="rules-board-visits list-unstyled" aria-label={t('Darts thrown')}>
                                             {visits.map((visit, index) => (
-                                                <span key={index} className="x01-visit-darts">
-                                                    {visit.map((dart, d) => <span key={d} className={dart === 'H' ? 'is-hit' : dart === 'M' || dart === '0' ? 'is-miss' : ''}>{dartLabel(dart)}</span>)}
-                                                </span>
+                                                <li key={index} className="rules-board-visit">
+                                                    <span className="rules-board-visit-number">{index + 1}</span>
+                                                    {[0, 1, 2].map(d => {
+                                                        const dart = visit[d];
+                                                        return <span key={d} className={`rules-board-dart ${dart === undefined ? 'is-none' : dart === 'H' ? 'is-hit' : dart === 'M' || dart === '0' ? 'is-miss' : ''}`}>{dart === undefined ? '' : dartLabel(dart)}</span>;
+                                                    })}
+                                                </li>
                                             ))}
-                                        </div>
+                                        </ol>
                                     </li>}
                                 </Fragment>
                             );

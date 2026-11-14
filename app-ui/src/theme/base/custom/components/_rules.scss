@@ -516,13 +516,52 @@
 
 // the darts of an attempt opened on the scoreboard: a group of tags per visit
 .rules-board-visits {
+    display: grid;
+    // as many visits side by side as fit, each the same width: the darts stand in columns
+    grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
+    gap: 0.3rem $space-3;
+    margin: $space-2 0 0;
+}
+
+// a visit: its number, then its three darts as tags of the same width
+.rules-board-visit {
+    display: grid;
+    grid-template-columns: 1.4rem repeat(3, minmax(0, 1fr));
+    align-items: center;
+    gap: 0.25rem;
+
+    .rules-board-visit-number {
+        color: $textFaintColor;
+        font-size: $text-xs;
+        font-variant-numeric: tabular-nums;
+        text-align: right;
+        padding-right: 0.15rem;
+    }
+
+    .rules-board-dart {
+        padding: 0.05rem 0;
+        border-radius: $radius-md;
+        background: ink(0.06);
+        color: var(--text-subtle);
+        font-size: $text-xs;
+        text-align: center;
+
+        &.is-hit { color: $accentGreen; }
+        &.is-miss { color: $textFaintColor; }
+        &.is-none { background: transparent; }
+    }
+}
+
+// the figures of an opened attempt: what ranks it among the same score
+.rules-board-facts {
     display: flex;
     flex-wrap: wrap;
-    gap: $space-2 $space-3;
-    margin-top: $space-2;
+    gap: $space-2 $space-4;
+    margin: $space-2 0 0;
 
-    .is-hit { color: $accentGreen; }
-    .is-miss { color: $textFaintColor; }
+    > div { display: flex; flex-direction: column; }
+    dt { color: $textFaintColor; font-size: $text-xs; font-weight: $weight-regular; }
+    dd { margin: 0; color: var(--text-default); font-size: $text-sm; font-weight: $weight-semibold; }
 }
 
 // the rules of a game in its header: a quiet button, the rules opening below it
