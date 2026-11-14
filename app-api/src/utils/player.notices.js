@@ -45,7 +45,16 @@ export const progressNotices = (player, { fresh = [], shameBefore = [], shameAft
         });
     }
     const had = new Set(shameBefore.map(key));
-    for (const entry of shameAfter.filter(item => !had.has(key(item)))) {
+    // still in the Hall of Shame for this badge (an earlier one not washed off since): not told
+    // again, so a beginner who busts Bob's 27 again and again hears it once, until it is washed off
+    const stillIn = (entry) => {
+        const at = new Date(entry.at).getTime();
+        const earlier = shameAfter.filter(item => item.badge === entry.badge && item !== entry && new Date(item.at).getTime() < at);
+        if (!earlier.length) return false;
+        const last = Math.max(...earlier.map(item => new Date(item.at).getTime()));
+        return !washesAfter.some(wash => wash.badge === entry.badge && new Date(wash.at).getTime() >= last && new Date(wash.at).getTime() <= at);
+    };
+    for (const entry of shameAfter.filter(item => !had.has(key(item)) && !stillIn(item))) {
         const badge = getShameBadge(entry.badge);
         if (!badge) continue;
         notices.push({
