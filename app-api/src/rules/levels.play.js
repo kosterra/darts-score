@@ -81,8 +81,8 @@ export const AVERAGE_BANDS = LEVEL_STEPS.slice(1).map(step => step.average);
 export const MARKS_BANDS = [1.5, 2.1, 2.7, 3.3, 4.1, 5];
 // hit rate on doubles (Doubles around the board, Killer, Around the Clock on
 // doubles): the share of darts at a double that land in it (a 90 average about
-// 39 %, near the checkout rate of the pros)
-export const DOUBLES_BANDS = [5, 11, 16, 22, 30, 39];
+// 35 %, near the checkout rate of the pros; simulated again on 2026-11-14)
+export const DOUBLES_BANDS = [6, 8, 13, 19, 27, 35];
 // hit rate on trebles (Treble practice, Around the Clock on trebles): about 13 %
 // of the darts at T20 for a 50 average, 27 % for 75 and 38 % for 90; the same
 // with the bot's own model of the average

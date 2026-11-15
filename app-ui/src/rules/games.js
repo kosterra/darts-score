@@ -19,7 +19,7 @@ const levelPercent = (value) => `${Math.round(value)} %`;
 // the number count, its neighbours nothing
 const ONE_NUMBER_MARKS = [1.25, 2.2, 2.8, 3.4, 4.3, 5.2];
 // hit rate on doubles, as Doubles around the board (DOUBLES_BANDS of levels.play.js)
-const DOUBLES_BANDS = [5, 11, 16, 22, 30, 39];
+const DOUBLES_BANDS = [6, 8, 13, 19, 27, 35];
 
 /**
  * Shanghai: round 1 on the 1s, round 2 on the 2s, and so on. Only the number

@@ -151,7 +151,7 @@ describe('the levels of the older games', () => {
         expect(judgeLevel(CLOCK_LEVEL, result, 'Single').level).toBe('hobby');
         expect(judgeLevel(CLOCK_LEVEL, result, 'Double').level).toBe('elite');
         expect(judgeLevel(CLOCK_LEVEL, result, 'Triple').level).toBe('elite');
-        expect(judgeLevel(CLOCK_LEVEL, { darts: 60, hitRate: 35 }, 'Double').level).toBe('worldClass');
+        expect(judgeLevel(CLOCK_LEVEL, { darts: 60, hitRate: 30 }, 'Double').level).toBe('worldClass');
         expect(judgeLevel(CLOCK_LEVEL, { darts: 22, hitRate: 95 }, 'All').level).toBe('elite');
         expect(judgeLevel(CLOCK_LEVEL, { darts: 5, hitRate: 100 }, 'All')).toBeNull();
         expect(judgeLevel(CLOCK_LEVEL, result, 'Unknown')).toBeNull();
@@ -243,27 +243,30 @@ describe('the levels of the trainings', () => {
     });
 
     it('judges them by their result', () => {
-        expect(trainingLevel(BOBS_27, { score: 0 })).toBe('beginner');
-        expect(trainingLevel(BOBS_27, { score: 120 })).toBe('semiPro');
-        expect(trainingLevel(BOBS_27, { score: 399 })).toBe('worldClass');
-        expect(trainingLevel(BOBS_27, { score: 800 })).toBe('elite');
+        // Bob's 27: how far a run got, then its points once through
+        expect(trainingLevel(BOBS_27, { score: 0, failed: true, reached: 2 })).toBe('beginner');
+        expect(trainingLevel(BOBS_27, { score: 0, failed: true, reached: 11 })).toBe('semiPro');
+        expect(trainingLevel(BOBS_27, { score: 120, reached: 21 })).toBe('pro');
+        expect(trainingLevel(BOBS_27, { score: 399, reached: 21 })).toBe('worldClass');
+        expect(trainingLevel(BOBS_27, { score: 800, reached: 21 })).toBe('elite');
         // every dart at T20: higher than an X01 average
         expect(trainingLevel(SCORING, { score: 76.2 })).toBe('pro');
         expect(trainingLevel(DOUBLES_AROUND, { score: 84 })).toBe('pro');
         expect(trainingLevel(DOUBLES_AROUND, { score: 300 })).toBe('hobby');
         expect(trainingLevel(RANDOM_CHECKOUTS, { score: 30 })).toBe('worldClass');
-        expect(trainingLevel(CATCH_40, { score: 40 })).toBe('pro');
+        expect(trainingLevel(CATCH_40, { score: 35 })).toBe('pro');
         expect(trainingLevel(TREBLES, { score: 40 })).toBe('elite');
-        expect(trainingLevel(BULLS, { score: 10 })).toBe('hobby');
-        expect(trainingLevel(LADDER, { score: 64, done: 9, attempts: 20 })).toBe('worldClass');
+        expect(trainingLevel(BULLS, { score: 20 })).toBe('hobby');
+        expect(trainingLevel(BULLS, { score: 60 })).toBe('worldClass');
+        expect(trainingLevel(LADDER, { score: 64, done: 8, attempts: 20 })).toBe('worldClass');
         expect(trainingLevel(LADDER, { score: 0, done: 0, attempts: 20 })).toBe('beginner');
     });
 
     it('judges Shortest leg by the best leg, easier to get low in more legs', () => {
-        expect(trainingLevel(SHORTEST_LEG, { score: 25 }, { legs: 3 })).toBe('amateur');
+        expect(trainingLevel(SHORTEST_LEG, { score: 28 }, { legs: 3 })).toBe('amateur');
         expect(trainingLevel(SHORTEST_LEG, { score: 15 }, { legs: 3 })).toBe('worldClass');
         expect(trainingLevel(SHORTEST_LEG, { score: 12 }, { legs: 3 })).toBe('elite');
-        expect(trainingLevel(SHORTEST_LEG, { score: 21 }, { legs: 3 })).toBe('semiPro');
+        expect(trainingLevel(SHORTEST_LEG, { score: 23 }, { legs: 3 })).toBe('semiPro');
         expect(trainingLevel(SHORTEST_LEG, { score: 21 }, { legs: 10 })).toBe('semiPro');
         expect(trainingLevel(SHORTEST_LEG, { score: 24 }, { legs: 10 })).toBe('amateur');
     });
@@ -271,8 +274,8 @@ describe('the levels of the trainings', () => {
     it('raises the bands of 121 Checkout with more attempts and fewer darts', () => {
         expect(trainingLevel(CHECKOUT_121, { score: 0 }, { darts: 9, attempts: 10 })).toBe('beginner');
         expect(trainingLevel(CHECKOUT_121, { score: 118 }, { darts: 9, attempts: 10 })).toBe('hobby');
-        expect(trainingLevel(CHECKOUT_121, { score: 118 }, { darts: 6, attempts: 10 })).toBe('amateur');
-        expect(trainingLevel(CHECKOUT_121, { score: 121 }, { darts: 9, attempts: 10 })).toBe('amateur');
+        expect(trainingLevel(CHECKOUT_121, { score: 118 }, { darts: 6, attempts: 10 })).toBe('semiPro');
+        expect(trainingLevel(CHECKOUT_121, { score: 120 }, { darts: 9, attempts: 10 })).toBe('amateur');
         expect(trainingLevel(CHECKOUT_121, { score: 140 }, { darts: 9, attempts: 10 })).toBe('elite');
         expect(trainingLevel(CHECKOUT_121, { score: 140 }, { darts: 9, attempts: 50 })).toBe('pro');
     });

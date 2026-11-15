@@ -9,6 +9,15 @@ import { t } from '../../utils/i18n';
  */
 const CHANGELOG = [
     {
+        version: '2026.11.11',
+        changes: [
+            t('Treble practice: the count after On the number, e.g. (20 / 30), is small and quiet like the whole after a slash.'),
+            t('Fix: the levels of the trainings were simulated again and are easier where they were too hard: Bob\'s 27 judged by how far you got (out at D8 is Semi-pro, D12 Pro), then by the points; Bull practice, Doubles around the board, Catch 40, the Checkout ladder, 121 Checkout and Shortest leg lower.'),
+            t('Fix: the Hall of Shame tells you once that you landed there, not again for every bust (e.g. in Bob\'s 27) until you washed it off.'),
+            t('Fair play: the details of a training show its darts visit by visit, as tags in the colours of its scoreboard.'),
+        ],
+    },
+    {
         version: '2026.11.10',
         changes: [
             t('Bob\'s 27: the curve of the points under the double is smooth instead of jagged.'),

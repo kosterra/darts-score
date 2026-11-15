@@ -350,7 +350,8 @@ export const review = async (req, res) => {
  * A closer look at a game or training: what was thrown, so an admin can see
  * the finding for themselves. X01: { legs } with each visit's rest as saved,
  * as it should be and as a repair would save it; Cricket and Elimination:
- * { visits }; Around the Clock and trainings: { facts }.
+ * { visits }; Around the Clock and trainings: { facts }, the trainings also { training: { kind,
+ * settings, darts } } to show their darts visit by visit.
  */
 export const details = async (req, res) => {
     const { type } = req.params;
@@ -391,10 +392,11 @@ export const details = async (req, res) => {
         result.facts = [
             ['Training', RULES_TRAININGS[plain.kind]?.title ?? plain.kind],
             ['Score', String(plain.score)],
-            ['Darts', `${darts.length}: ${darts.slice(0, 60).join(' ')}${darts.length > 60 ? ' …' : ''}`],
+            ['Darts', String(darts.length)],
             ...(plain.startedAt ? [['Started', new Date(plain.startedAt).toISOString()]] : []),
             ['Saved', new Date(plain.createdAt).toISOString()],
         ];
+        result.training = { kind: plain.kind, settings: plain.settings ?? {}, darts };
     } else if (type === 'cricket' || type === 'elimination') {
         result.visits = (withView(type, plain).allThrows ?? []).map(visit => ({
             playerId: visit?.playerId ?? null,

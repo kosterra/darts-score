@@ -18,7 +18,7 @@ vi.mock('../locales/server.texts.json', () => ({
 }));
 vi.mock('../models/logger.model.js', () => ({ default: { info: vi.fn(), error: vi.fn(), warn: vi.fn(), debug: vi.fn() } }));
 
-const { trainingOnBoard } = await import('./player.notices.js');
+const { progressNotices, trainingOnBoard } = await import('./player.notices.js');
 const { translate } = await import('./translate.js');
 const { boardLabels, trainingOf } = await import('../rules/trainings.js');
 
@@ -35,5 +35,22 @@ describe('a training record names the board it is on', () => {
             .toBe('Neue persönliche Bestleistung in 121 Checkout mit 30 Versuche und 9 Darts: 135');
         expect(translate('de', `Anna beat your club record in ${trainingOnBoard('Scoring', ['60 darts'])}`))
             .toBe('Anna hat deinen Clubrekord in Scoring mit 60 Darts geknackt');
+    });
+});
+
+describe('the Hall of Shame is told once until washed off', () => {
+    const player = { _id: 'p1', nickname: 'Anna', clubs: ['c1'] };
+    const bust = (sourceId, day) => ({ badge: 'bobsBust', sourceId, at: new Date(Date.UTC(2026, 10, day)) });
+    const shameOf = (notices) => notices.filter(notice => notice.kind === 'shameGot');
+
+    it('tells the first bust, not the next ones while it is not washed off', () => {
+        expect(shameOf(progressNotices(player, { shameBefore: [], shameAfter: [bust('t1', 1)] }))).toHaveLength(1);
+        expect(shameOf(progressNotices(player, { shameBefore: [bust('t1', 1)], shameAfter: [bust('t1', 1), bust('t2', 2)] }))).toHaveLength(0);
+    });
+
+    it('tells it again once it was washed off in between', () => {
+        const wash = { badge: 'bobsBust', sourceId: 't2', at: new Date(Date.UTC(2026, 10, 2)) };
+        const notices = progressNotices(player, { shameBefore: [bust('t1', 1)], shameAfter: [bust('t1', 1), bust('t3', 3)], washesBefore: [wash], washesAfter: [wash] });
+        expect(shameOf(notices)).toHaveLength(1);
     });
 });
