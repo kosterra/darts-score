@@ -21,7 +21,7 @@ info:
 
 
     **Global admins** look after the installation (`/api/admin`, `/api/users`) and belong to no club.
-  version: 2026.11.11
+  version: 2026.11.12
   license:
     name: AGPL-3.0-only
     url: https://www.gnu.org/licenses/agpl-3.0.html
@@ -5052,10 +5052,10 @@ paths:
     get:
       tags:
         - Statistics
-      summary: The games the user's player played most in the last 90 days (same game, settings and opponents), the most played first, at most three
+      summary: The games (same game, settings and opponents) and trainings (same training and settings) the user's player played most in the last 90 days, the most played first; two games and two trainings, the other filling up when one has fewer
       responses:
         '200':
-          description: '[{ id, type, kind, settings, players, opponents, count, lastAt, lastSettings }]'
+          description: '[{ id, type, kind, settings, players, opponents, count, lastAt, lastSettings }]; a training has type training, kind the training (atc for Around the Clock), no opponents, and is started on the device'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':

@@ -105,6 +105,23 @@ test('Random checkouts with the board: the number to check out stays big', async
     await page.screenshot({ path: 'test-results/phone-fit-randomcheckouts.png' });
 });
 
+test('Scoring with the board: the page ends just above the bar, no empty space to scroll to', async ({ page }) => {
+    await loggedIn(page, 'board');
+    await startTraining(page, '/training/scoring');
+    await page.getByRole('button', { name: 'Start training' }).click();
+    await fits(page);
+    // scrolled to its end: the last panel close above the bar (the room kept is the bar's own height)
+    const gap = () => page.evaluate(async () => {
+        window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' });
+        await new Promise(done => requestAnimationFrame(() => requestAnimationFrame(done)));
+        const panels = [...document.querySelectorAll('.x01-game-page .p-panel')].filter(el => el.getBoundingClientRect().height > 0);
+        const last = Math.max(...panels.map(el => el.getBoundingClientRect().bottom));
+        return Math.round(document.querySelector('.x01-visit-bar.is-floating').getBoundingClientRect().top - last);
+    });
+    await expect.poll(gap, { message: 'the space between the end of the page and the bar' }).toBeLessThanOrEqual(32);
+    expect(await gap()).toBeGreaterThanOrEqual(0);
+});
+
 test('Treble practice: its four buttons in view', async ({ page }) => {
     await loggedIn(page);
     await startTraining(page, '/training/trebles');

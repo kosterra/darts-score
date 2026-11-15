@@ -2,18 +2,22 @@ import { createHash } from 'node:crypto';
 import db from '../models/db.model.js';
 import { GAME_SETTINGS, ruleViolations } from '../rules/club.rules.js';
 import { gameOf } from '../rules/games.js';
+import { trainingOf } from '../rules/trainings.js';
 import { withGameState } from '../rules/engine.js';
 import { storedOf } from './game.view.js';
 import { partnersOf, teamsOf } from '../rules/x01.js';
 
 /**
  * A player's favourites in a club: the games they played most lately, each
- * the same game with the same settings against the same opponents, to start
- * again with one tap from their dashboard.
+ * the same game with the same settings against the same opponents, and the
+ * trainings they trained most lately with the same settings, to start again
+ * with one tap from their dashboard.
  */
 
 export const FAVOURITE_DAYS = 90;
-export const FAVOURITE_COUNT = 3;
+// two games and two trainings; when one has fewer, the other fills up
+export const FAVOURITE_COUNT = 4;
+const EACH = 2;
 
 const MODELS = {
     x01: () => db.x01,
@@ -40,13 +44,13 @@ const settingsOf = (type, game) => {
 const idOf = (key) => createHash('sha256').update(key).digest('base64url').slice(0, 16);
 
 /**
- * The favourites of a player in a club: the finished games of the last
+ * The favourite games of a player in a club: the finished games of the last
  * FAVOURITE_DAYS days (without tournament matches, handicaps and games alone)
  * grouped by game, settings and opponents, the most played first, the more
  * recent on a tie. Opponents no longer in the club drop out.
  * → [{ id, type, kind, settings, players, opponents, count, lastAt, lastSettings }]
  */
-export const favouritesOf = async (clubId, playerId, now = new Date()) => {
+export const favouriteGamesOf = async (clubId, playerId, now = new Date()) => {
     const me = String(playerId);
     const since = new Date(now - FAVOURITE_DAYS * 24 * 60 * 60 * 1000);
     const groups = new Map();
@@ -74,19 +78,65 @@ export const favouritesOf = async (clubId, playerId, now = new Date()) => {
     return [...groups.values()]
         .filter(group => group.opponents.every(id => members.has(id)))
         .sort((a, b) => b.count - a.count || b.lastAt - a.lastAt)
-        .slice(0, FAVOURITE_COUNT)
         // the players in the order of the last game, and its settings (a newer game's prepared ones)
         .map(({ last, ...group }) => ({ ...group, players: (last.players ?? []).map(String), lastSettings: last.settings ?? null }));
 };
 
+// the same key of a group as the same settings, whatever their order
+const keyOf = (parts, settings) => JSON.stringify([...parts, Object.entries(settings).sort(([a], [b]) => a.localeCompare(b))]);
+
 /**
- * Starts a favourite again: the same game and settings against the same
+ * The favourite trainings of a player in a club: the trainings of the last
+ * FAVOURITE_DAYS days (Around the Clock and the trainings of the rules
+ * engine) grouped by training and settings, the most trained first, the more
+ * recent on a tie. They start on the player's device (a training is saved
+ * only once it is over), so they carry what its page needs to start.
+ * → [{ id, type: 'training', kind, settings, players: [me], opponents: [], count, lastAt }]
+ */
+export const favouriteTrainingsOf = async (clubId, playerId, now = new Date()) => {
+    const me = String(playerId);
+    const since = new Date(now - FAVOURITE_DAYS * 24 * 60 * 60 * 1000);
+    const query = { club: clubId, 'player.id': me, createdAt: { $gte: since } };
+    const groups = new Map();
+    const add = (kind, settings, at) => {
+        const key = keyOf(['training', kind], settings);
+        const group = groups.get(key) ?? { id: idOf(key), type: 'training', kind, settings, players: [me], opponents: [], count: 0, lastAt: at };
+        group.count += 1;
+        if (at > group.lastAt) group.lastAt = at;
+        groups.set(key, group);
+    };
+    for (const training of await db.rulesTraining.find(query, 'kind settings createdAt').lean()) {
+        const definition = trainingOf(training.kind);
+        if (!definition) continue;
+        // the options the player chose, not what the training prepared from them
+        const keys = (definition.options ?? []).map(option => option.key);
+        add(training.kind, Object.fromEntries(keys.filter(key => training.settings?.[key] !== undefined).map(key => [key, training.settings[key]])), new Date(training.createdAt));
+    }
+    for (const entry of await db.atc.find(query, 'mode scoring createdAt').lean()) {
+        add('atc', { mode: entry.mode ?? 'All', scoring: entry.scoring ?? 'Time' }, new Date(entry.createdAt));
+    }
+    return [...groups.values()].sort((a, b) => b.count - a.count || b.lastAt - a.lastAt);
+};
+
+/**
+ * The favourites of a player in a club, for their dashboard: the favourite
+ * games first, then the trainings, EACH of both, and more of one when the
+ * other has fewer.
+ */
+export const favouritesOf = async (clubId, playerId, now = new Date()) => {
+    const [games, trainings] = await Promise.all([favouriteGamesOf(clubId, playerId, now), favouriteTrainingsOf(clubId, playerId, now)]);
+    const gameCount = Math.min(games.length, Math.max(EACH, FAVOURITE_COUNT - trainings.length));
+    return [...games.slice(0, gameCount), ...trainings.slice(0, FAVOURITE_COUNT - gameCount)];
+};
+
+/**
+ * Starts a favourite game again: the same game and settings against the same
  * opponents, the player who threw first last time now last. Refused when the
  * club's rules no longer allow it (the setup is the way then).
  * → { type, kind, id, path }
  */
 export const startFavourite = async (club, playerId, favouriteId) => {
-    const favourite = (await favouritesOf(club._id, playerId)).find(entry => entry.id === favouriteId);
+    const favourite = (await favouriteGamesOf(club._id, playerId)).find(entry => entry.id === favouriteId);
     if (!favourite) throw Object.assign(new Error('This favourite is no longer there.'), { status: 404 });
     const [first, ...rest] = favourite.players;
     const players = [...rest, first];

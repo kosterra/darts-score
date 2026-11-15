@@ -9,6 +9,13 @@ import { t } from '../../utils/i18n';
  */
 const CHANGELOG = [
     {
+        version: '2026.11.12',
+        changes: [
+            t('Your favourites on the dashboard: also the trainings you train most (the same training with the same settings), two games and two trainings; Train starts one at once.'),
+            t('Fix: on a phone, games and trainings with the board or the keypad no longer scroll on into empty space below their end (e.g. Scoring): the room kept for the bar at the bottom is as high as the bar.'),
+        ],
+    },
+    {
         version: '2026.11.11',
         changes: [
             t('Treble practice: the count after On the number, e.g. (20 / 30), is small and quiet like the whole after a slash.'),

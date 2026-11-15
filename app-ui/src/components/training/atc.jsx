@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Panel } from 'primereact/panel';
 import { Toast } from 'primereact/toast';
 import { Button } from 'primereact/button';
@@ -51,9 +52,13 @@ const ATC = () => {
     // a round with the fewest darts survives a reload: the page comes back to it
     const roundState = useAtcRound();
     const active = roundState.active;
+    // a favourite on the dashboard starts the training at once: { startAs: the player }, its setup remembered
+    const location = useLocation();
+    const navigate = useNavigate();
+    const startAs = active ? null : location.state?.startAs ?? null;
     // the page starts set up like the last training
     const [remembered, setRemembered] = useState(() => active ? null : loadSetup('atc'));
-    const [players, setPlayers] = useState(() => active?.players ?? []);
+    const [players, setPlayers] = useState(() => active?.players ?? (startAs ? [startAs] : []));
     const [scoring, setScoring] = useState(() => active ? 'Darts' : remembered?.settings?.scoring ?? 'Time');
     const [mode, setMode] = useState(() => active?.mode ?? remembered?.settings?.mode ?? ATCConfigOptions.modeOptions.default);
     const [atcEntries, setATCEntries] = useState([]);
@@ -96,7 +101,11 @@ const ATC = () => {
     const player = players[0];
     // the setup, then the training: it stays after a time is saved or a round is
     // over, for the next attempt, until "Settings" goes back
-    const [stage, setStage] = useState(() => active ? 'training' : 'setup');
+    const [stage, setStage] = useState(() => active || startAs ? 'training' : 'setup');
+    // started once: a reload or the way back does not start it again
+    useEffect(() => {
+        if (location.state?.startAs) navigate(location.pathname, { replace: true, state: null });
+    }, [location, navigate]);
     const playing = stage === 'training' || inProgress || Boolean(finished);
     const panelRef = useRef(null);
 

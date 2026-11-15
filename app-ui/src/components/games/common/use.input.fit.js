@@ -26,8 +26,21 @@ const roomBelow = () => {
     return limit;
 };
 
+// the room the page keeps at its end for the bars over it: from the top of the highest bar to the
+// bottom of the screen, less what the app's frame keeps for the menu bar, and a little air, so its
+// end scrolls up just above the bars and not further (--bar-room)
+const BAR_AIR = 12;
+const barRoom = (root) => {
+    const shell = document.querySelector('.app-shell');
+    const kept = shell ? parseFloat(getComputedStyle(shell).paddingBottom) || 0 : 0;
+    const room = Math.ceil(window.innerHeight - roomBelow() - kept + BAR_AIR);
+    if (room > BAR_AIR) root.style.setProperty('--bar-room', `${room}px`);
+    else root.style.removeProperty('--bar-room');
+};
+
 const clear = (root) => {
     root.classList.remove('input-tight');
+    root.style.removeProperty('--bar-room');
     root.style.removeProperty('--fit-board');
     root.style.removeProperty('--fit-key');
 };
@@ -59,7 +72,9 @@ const useInputFit = (ref) => {
                 tight = false;
                 clear(root);
             }
-            if (!input || !phone?.matches) return;
+            if (!phone?.matches) return;
+            barRoom(root);
+            if (!input) return;
             // as if the page were scrolled to the top
             const top = input.getBoundingClientRect().top + window.scrollY;
             const bottom = input.getBoundingClientRect().bottom + window.scrollY;
