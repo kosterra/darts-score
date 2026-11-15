@@ -674,8 +674,9 @@
     .x01-undo.p-button { width: 2.5rem; height: 2.5rem; }
   }
 
-  // room at the bottom of the page for the floating bar
-  .x01-game-page:has(.x01-visit-bar.is-floating) { padding-bottom: 9rem; }
+  // room at the bottom of the page for the floating bar: as high as it is (--bar-room, measured by
+  // useInputFit), so there is no empty space to scroll to below the page
+  .x01-game-page:has(.x01-visit-bar.is-floating) { padding-bottom: var(--bar-room, 9rem); }
 
 }
 
