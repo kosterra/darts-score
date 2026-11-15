@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:bc66a660-358f-4e40-a7dd-2e26b74ae62d",
+  "serialNumber": "urn:uuid:0a0869c8-fa3a-4ab9-9af1-8370b612dc35",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-11-14T21:05:02.294Z",
+    "timestamp": "2026-11-15T07:20:47.724Z",
     "tools": [
       {
         "vendor": "Legmate security review",
@@ -16,7 +16,7 @@
       "type": "application",
       "bom-ref": "darts-score-ui@0.0.0",
       "name": "darts-score-ui",
-      "version": "2026.11.10",
+      "version": "2026.11.11",
       "purl": "pkg:npm/darts-score-ui@0.0.0"
     },
     "properties": [
