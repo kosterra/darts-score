@@ -23,7 +23,6 @@ import RulesDoubles from './rules.doubles';
 import RulesProgress from './rules.progress';
 import LiveHero from '../games/common/live.hero';
 import RouteLine from '../games/common/route.line';
-import SegmentIcon from '../elements/segment.icon';
 import RulesService from '../../services/rules.service';
 import { trainingOf } from '../../rules/trainings';
 import { replayTraining, settingsOf, trainingVisits } from '../../rules/engine';
@@ -502,8 +501,13 @@ const RulesTraining = () => {
                             </div>
                             : buttons
                                 ? <div className={`rules-hitmiss is-${buttons.length}`}>
-                                    {/* "segment-T": a wedge of the board with that ring filled (Treble, Double, Single) */}
-                                    {buttons.map(button => <Button key={button.value} label={button.label} icon={button.icon?.startsWith('segment-') ? <SegmentIcon ring={button.icon.slice(8)} className="p-button-icon p-button-icon-left" /> : button.icon} severity={button.severity} onClick={() => throwDart(button.value)} />)}
+                                    {/* with a dart: the dart big, its word under it; otherwise an icon and the word */}
+                                    {buttons.map(button => (button.dart
+                                        ? <Button key={button.value} severity={button.severity} aria-label={button.label} className="rules-dart-button" onClick={() => throwDart(button.value)}>
+                                            <span className="rules-dart-button-dart" aria-hidden="true">{button.dart}</span>
+                                            <span className="rules-dart-button-word" aria-hidden="true">{button.label}</span>
+                                        </Button>
+                                        : <Button key={button.value} label={button.label} icon={button.icon} severity={button.severity} onClick={() => throwDart(button.value)} />))}
                                 </div>
                             : input === 'keypad'
                                 ? <DartKeypad canThrow={!visitFull} onDart={throwDart} onClearLast={undoDart} entered={pending.length} />

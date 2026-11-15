@@ -211,6 +211,25 @@
         min-height: 4.5rem;
     }
 
+    // a dart's button (Treble practice): the dart big (T20), its word small under it
+    .rules-dart-button.p-button {
+        flex-direction: column;
+        gap: 0;
+        line-height: 1.1;
+    }
+
+    .rules-dart-button-dart {
+        font-size: $text-2xl;
+        font-weight: $weight-heavy;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .rules-dart-button-word {
+        font-size: $text-sm;
+        font-weight: $weight-semibold;
+        opacity: 0.8;
+    }
+
     // a phone with little height (the browser's bars): lower buttons, so Undo and Stop fit too
     @media (max-width: 767.98px) and (max-height: 900px) {
         gap: $space-3;
@@ -588,10 +607,10 @@
 
         // the same in every training: the target hit green on a soft green (a Hit, D5, the bullseye,
         // the treble), the next best amber (the outer bull, the double of the number), the single of
-        // the number blue, a miss faint
+        // the number in the text colour, a miss faint
         &.is-hit { color: $accentGreen; font-weight: $weight-bold; background: soft($accentGreen, 0.14); }
         &.is-near { color: $accentAmber; }
-        &.is-single { color: $accentBlue; }
+        &.is-single { color: var(--text-default); }
         &.is-miss { color: $textFaintColor; }
         &.is-none { background: transparent; }
     }
