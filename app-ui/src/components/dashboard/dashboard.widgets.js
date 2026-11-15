@@ -64,7 +64,7 @@ const integer = (value) => new Intl.NumberFormat(locale()).format(value);
 
 export const DASHBOARD_WIDGETS = [
     { id: 'upNext', title: t('Up next'), description: t('What waits for you: tournaments to enter and your matches, games left running, requests to answer'), kind: 'upNext', size: 'F', personal: true },
-    { id: 'favourites', title: t('Your favourites'), description: t('The games you play most lately, to start again with one tap'), kind: 'favourites', size: 'L', personal: true },
+    { id: 'favourites', title: t('Your favourites'), description: t('The games and trainings you play most lately, to start again with one tap'), kind: 'favourites', size: 'L', personal: true },
     { id: 'training', title: t('Your training'), description: t('Average and checkout rate against the bot, compared with your games, and how regularly you train'), kind: 'training', size: 'M', personal: true },
     // the user's own weekly goals, in all their clubs (see components/goals)
     { id: 'practiceGoals', title: t('Your goals this week'), description: t('Your goals for the week: trainings, scores and games, in all your clubs'), kind: 'practiceGoals', size: 'S', personal: true },

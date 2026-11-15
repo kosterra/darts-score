@@ -188,7 +188,8 @@ http.createServer((req, res) => {
         if (path === '/api/stats/favourites') return send(res, 200, [
             { id: 'fav1aaaaaaaa', type: 'x01', kind: null, settings: { startingScore: 501, legInMode: 'Straight In', legOutMode: 'Double Out', setMode: 'Best of', numberOfSets: 1, legMode: 'Best of', numberOfLegs: 5, legStarter: 'rotate', roundLimit: 0, bull: 'split' }, players: ['p1', 'p2'], opponents: ['p2'], count: 14, lastAt: new Date(Date.now() - 2 * 864e5) },
             { id: 'fav2bbbbbbbb', type: 'cricket', kind: null, settings: { variant: 'Standard', roundLimit: 0 }, players: ['p3', 'p1', 'p4'], opponents: ['p3', 'p4'], count: 6, lastAt: new Date(Date.now() - 5 * 864e5) },
-            { id: 'fav3cccccccc', type: 'rules', kind: 'shanghai', settings: {}, players: ['p1', 'p5'], opponents: ['p5'], count: 3, lastAt: new Date(Date.now() - 9 * 864e5) },
+            { id: 'fav4dddddddd', type: 'training', kind: 'checkout121', settings: { attempts: 20 }, players: ['p1'], opponents: [], count: 9, lastAt: new Date(Date.now() - 1 * 864e5) },
+            { id: 'fav5eeeeeeee', type: 'training', kind: 'atc', settings: { mode: 'Double', scoring: 'Time' }, players: ['p1'], opponents: [], count: 4, lastAt: new Date(Date.now() - 3 * 864e5) },
         ]);
         if (path.startsWith('/api/stats/favourites/') && req.method === 'POST') return send(res, 201, { type: 'x01', kind: null, id: 'x9', path: '/x01/x9' });
         if (path === '/api/public/support' || path === '/api/admin/support') {

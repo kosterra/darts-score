@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Navigate, useParams } from 'react-router-dom';
+import { Navigate, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Panel } from 'primereact/panel';
 import { Button } from 'primereact/button';
 import { SelectButton } from 'primereact/selectbutton';
@@ -213,6 +213,18 @@ const RulesTraining = () => {
     const [rulesButton, rules] = useGameRules(kind);
 
     useEffect(() => writeRunning(kind, running), [kind, running]);
+
+    // a favourite on the dashboard starts the training at once: { startAs: the player }, with
+    // its setup remembered; once only, so a reload or the way back does not start it again
+    const location = useLocation();
+    const navigate = useNavigate();
+    const startAs = location.state?.startAs;
+    useEffect(() => {
+        if (!startAs) return;
+        navigate(location.pathname, { replace: true, state: null });
+        if (definition && !running) start(startAs);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [startAs]);
 
     // with the board or the keypad a visit is entered as a whole ("Enter score"); Hit and Miss (or the
     // training's own buttons) count at once
