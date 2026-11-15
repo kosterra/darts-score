@@ -9,7 +9,7 @@ import { t } from '../../utils/i18n';
  */
 const CHANGELOG = [
     {
-        version: 'Next release',
+        version: '2026.11.12',
         changes: [
             t('Your favourites on the dashboard: also the trainings you train most (the same training with the same settings), two games and two trainings; Train starts one at once.'),
             t('Fix: on a phone, games and trainings with the board or the keypad no longer scroll on into empty space below their end (e.g. Scoring): the room kept for the bar at the bottom is as high as the bar.'),
