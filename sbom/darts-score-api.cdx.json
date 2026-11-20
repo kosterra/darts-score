@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:264c4c20-ecfc-449a-b5fc-884c1598c7bd",
+  "serialNumber": "urn:uuid:de87edc4-cf5e-4846-885f-3d0717353d15",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-11-15T16:14:44.821Z",
+    "timestamp": "2026-11-20T10:33:45.432Z",
     "tools": [
       {
         "vendor": "Legmate security review",
@@ -16,7 +16,7 @@
       "type": "application",
       "bom-ref": "darts-score-api@0.0.0",
       "name": "darts-score-api",
-      "version": "2026.11.12",
+      "version": "2026.11.13",
       "purl": "pkg:npm/darts-score-api@0.0.0"
     },
     "properties": [
@@ -1592,10 +1592,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/express-rate-limit@8.7.1",
+      "bom-ref": "pkg:npm/express-rate-limit@8.7.2",
       "name": "express-rate-limit",
-      "version": "8.7.1",
-      "purl": "pkg:npm/express-rate-limit@8.7.1",
+      "version": "8.7.2",
+      "purl": "pkg:npm/express-rate-limit@8.7.2",
       "licenses": [
         {
           "license": {
@@ -1606,13 +1606,13 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "d855dbaa4ca08a5de66625f312d33422313f501981368b7427518456b253e096ebbf0392a04b6ab4efb01db88c4042d67b578dbc7a18460d9d9233a277ee8990"
+          "content": "53549ca1cc430fd588d3d2da055ca9bcd90eb4d479c9602664b92e289740cc872103860a15817a193e4828447b7a91b9f285ed8ef1a5574ffa8a2d05f3713266"
         }
       ],
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/express-rate-limit/-/express-rate-limit-8.7.1.tgz"
+          "url": "https://registry.npmjs.org/express-rate-limit/-/express-rate-limit-8.7.2.tgz"
         }
       ]
     },
@@ -2497,6 +2497,32 @@
         {
           "type": "distribution",
           "url": "https://registry.npmjs.org/mongodb/-/mongodb-7.7.0.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/mongodb@7.8.0",
+      "name": "mongodb",
+      "version": "7.8.0",
+      "purl": "pkg:npm/mongodb@7.8.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "a7634a6a06d0e35f9d680086fd94af853cde028f83a04c9613d0a6a5ffd2c8fde94c2e37f97d26c0a13fe383e92ad0b1a79c0ec675f3fadda95c46514a4b7d62"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/mongodb/-/mongodb-7.8.0.tgz"
         }
       ]
     },

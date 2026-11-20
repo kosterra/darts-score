@@ -9,7 +9,7 @@ import { t } from '../../utils/i18n';
  */
 const CHANGELOG = [
     {
-        version: 'Next release',
+        version: '2026.11.13',
         changes: [
             t('Treble practice: the buttons show the dart they enter (T20, 20, D20) with its word under it instead of a picture of the board; singles in the darts of a training are in the text colour instead of blue.'),
             t('Bull practice: the buttons show what the dart scores (50, 25) with its word under it, as in Treble practice.'),

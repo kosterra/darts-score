@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:d97a90ef-3857-437a-8b83-e5c4669f0556",
+  "serialNumber": "urn:uuid:a8ba61e6-458c-44c6-9d77-751eaada2938",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-11-15T16:14:44.836Z",
+    "timestamp": "2026-11-20T10:33:45.441Z",
     "tools": [
       {
         "vendor": "Legmate security review",
@@ -16,7 +16,7 @@
       "type": "application",
       "bom-ref": "darts-score-ui@0.0.0",
       "name": "darts-score-ui",
-      "version": "2026.11.12",
+      "version": "2026.11.13",
       "purl": "pkg:npm/darts-score-ui@0.0.0"
     },
     "properties": [
@@ -2479,10 +2479,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/react-router-dom@7.18.4",
+      "bom-ref": "pkg:npm/react-router-dom@7.18.5",
       "name": "react-router-dom",
-      "version": "7.18.4",
-      "purl": "pkg:npm/react-router-dom@7.18.4",
+      "version": "7.18.5",
+      "purl": "pkg:npm/react-router-dom@7.18.5",
       "licenses": [
         {
           "license": {
@@ -2493,22 +2493,22 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "cab7e62472290c6eed682a6a2a34f51b907aab73b62be44df3f7e035fd254e30b088f6d0d1e8babd75fd663411fbb95df13afb679c66c8c9d9f1826ba6159053"
+          "content": "f4771f0cc53a249fdfa7a8096581b0344e919275464b89018c7d4790dc3de7d982262ef44d5c1d8a9416bf6144a25f6e1a98be4994c5b55a493ed1107dac9e3b"
         }
       ],
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/react-router-dom/-/react-router-dom-7.18.4.tgz"
+          "url": "https://registry.npmjs.org/react-router-dom/-/react-router-dom-7.18.5.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/react-router@7.18.4",
+      "bom-ref": "pkg:npm/react-router@7.18.5",
       "name": "react-router",
-      "version": "7.18.4",
-      "purl": "pkg:npm/react-router@7.18.4",
+      "version": "7.18.5",
+      "purl": "pkg:npm/react-router@7.18.5",
       "licenses": [
         {
           "license": {
@@ -2519,13 +2519,13 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "3d43d070c84c19102c94b72fb653f3fe49b304458f84b7602c5acbee92cd7a904be9d5f49568f8583d9c518560602b93de3c6f82160583cd5c0d38f8e0385eb5"
+          "content": "75382f7170ceacb3eb94b1eb71902a5af7a22b584c4aa37eac6009cde80ff07b663647d1c4ea2c846581357dd92747198ce1e445d95426d68885930b2f21b23f"
         }
       ],
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/react-router/-/react-router-7.18.4.tgz"
+          "url": "https://registry.npmjs.org/react-router/-/react-router-7.18.5.tgz"
         }
       ]
     },
@@ -2791,10 +2791,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/sass@1.106.1",
+      "bom-ref": "pkg:npm/sass@1.107.1",
       "name": "sass",
-      "version": "1.106.1",
-      "purl": "pkg:npm/sass@1.106.1",
+      "version": "1.107.1",
+      "purl": "pkg:npm/sass@1.107.1",
       "licenses": [
         {
           "license": {
@@ -2805,13 +2805,13 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "903f868baeafc9c65c6c9b7ee36342e33e0f5cd31c09a8d5ac93e1aa828a5f2e5c381326250b74e760b12017118f061778898760ea6eff275658665021e9e5ec"
+          "content": "689d7f2efc4e39bd386219a2063cd99f78d5c1d1caa25f8e561a0c57a7c5974d9f17d4f78bee4c83d97f0a7ceab4cf8d5f9267e68de501bb3f6498af4c22c77d"
         }
       ],
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/sass/-/sass-1.106.1.tgz"
+          "url": "https://registry.npmjs.org/sass/-/sass-1.107.1.tgz"
         }
       ]
     },
@@ -2869,10 +2869,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/set-cookie-parser@2.7.2",
+      "bom-ref": "pkg:npm/set-cookie-parser@2.7.3",
       "name": "set-cookie-parser",
-      "version": "2.7.2",
-      "purl": "pkg:npm/set-cookie-parser@2.7.2",
+      "version": "2.7.3",
+      "purl": "pkg:npm/set-cookie-parser@2.7.3",
       "licenses": [
         {
           "license": {
@@ -2883,13 +2883,13 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "a1e33596953f52f853c70fa0ddc21fc571f225173fba275ddf22b53f6e368331ddb34b9d401633b37cbc8f8802096f9927b69dd3272d95df1160ef9b76eae5bf"
+          "content": "8ab647b53aaeacb9dae7b2901bfb3e7f33b0bff27a5d21f872cf0cfefb2b637b82690dd2ebe40982e007d1674de3b497964f36be8319e276963107fc7dd12822"
         }
       ],
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/set-cookie-parser/-/set-cookie-parser-2.7.2.tgz"
+          "url": "https://registry.npmjs.org/set-cookie-parser/-/set-cookie-parser-2.7.3.tgz"
         }
       ]
     },
