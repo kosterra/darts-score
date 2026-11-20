@@ -334,10 +334,11 @@
         gap: 0.3rem;
         min-height: 1.6rem;
         color: $textFaintColor;
-        font-size: $text-lg;
-        font-weight: $weight-bold;
+        // as a tag: quiet, not louder than the dart's number beside it
+        font-size: $text-sm;
+        font-weight: $weight-semibold;
 
-        .pi { font-size: 1rem; font-weight: $weight-bold; }
+        .pi { font-size: 0.8rem; }
     }
 
     &.is-hit {
@@ -356,7 +357,6 @@
         border-radius: $radius-md;
         background: ink(0.1);
         color: $textDefaultColor;
-        font-size: $text-base;
     }
 
     // the dart to throw now: lighter than the others, no frame
@@ -393,7 +393,8 @@
         @include label-shape;
         @include label-neutral;
         color: var(--text-subtle);
-        font-weight: $weight-semibold;
+        font-size: $text-xs;
+        font-weight: $weight-regular;
 
         &.is-hit { color: var(--c-positive); }
         &.is-miss { color: $accentRed; }
