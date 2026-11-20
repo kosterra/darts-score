@@ -13,6 +13,7 @@ const CHANGELOG = [
         changes: [
             t('Treble practice: the buttons show the dart they enter (T20, 20, D20) with its word under it instead of a picture of the board; singles in the darts of a training are in the text colour instead of blue.'),
             t('Bull practice: the buttons show what the dart scores (50, 25) with its word under it, as in Treble practice.'),
+            t('Fix: Treble practice on a phone: the count of On the number, e.g. (18 / 30), goes under the percentage, so the tile no longer runs over its edges.'),
         ],
     },
     {

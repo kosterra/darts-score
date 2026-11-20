@@ -803,6 +803,15 @@
             font-size: 1.6rem;
         }
     }
+
+    // a share's count ("60 % (18 / 30)") under the share on a phone, where the tiles share the width
+    @media (max-width: 575.98px) {
+        .figure-count {
+            display: block;
+            margin-top: $space-1;
+            font-size: 0.55em;
+        }
+    }
 }
 
 .rules-hero-figure-label {

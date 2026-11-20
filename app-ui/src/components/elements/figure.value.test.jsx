@@ -12,7 +12,7 @@ describe('a figure out of a whole', () => {
     });
 
     it('shows the count of a share in brackets as small and quiet', () => {
-        expect(html('67 % (20 / 30)')).toBe('67 %<span class="figure-of"> (20 / 30)</span>');
+        expect(html('67 % (20 / 30)')).toBe('67 %<span class="figure-of figure-count"> (20 / 30)</span>');
     });
 
     it('leaves anything else as it is', () => {
