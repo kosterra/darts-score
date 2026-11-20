@@ -9,11 +9,11 @@ const WITH_COUNT = /^\s*([\d.,'\u2019\u2009\u00a0]+\s*%)\s*\(\s*([\d.,'\u2019\u2
  * A figure as it is shown: a count out of a whole with the whole smaller and
  * quieter after the slash ("418" big, "/ 1710" small), so the number that
  * counts stands out; a share with its count ("67 % (20 / 30)") with the count in brackets
- * as small and quiet; anything else as it is ("Straight In / Double Out" too).
+ * as small and quiet (.figure-count: on a narrow tile on a line of its own); anything else as it is ("Straight In / Double Out" too).
  */
 const FigureValue = ({ value }) => {
     const counted = typeof value === 'string' ? value.match(WITH_COUNT) : null;
-    if (counted) return createElement(Fragment, null, counted[1].trim(), createElement('span', { className: 'figure-of' }, ` (${counted[2].trim().replace(/\s*\/\s*/, ' / ')})`));
+    if (counted) return createElement(Fragment, null, counted[1].trim(), createElement('span', { className: 'figure-of figure-count' }, ` (${counted[2].trim().replace(/\s*\/\s*/, ' / ')})`));
     const match = typeof value === 'string' ? value.match(OUT_OF) : null;
     if (!match) return value ?? null;
     return createElement(Fragment, null, match[1].trim(), createElement('span', { className: 'figure-of' }, ` / ${match[2].trim()}`));

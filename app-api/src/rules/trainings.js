@@ -562,11 +562,11 @@ export const TREBLES = {
     // in an opened attempt: the treble in green, a double in amber, a single in blue, a miss grey
     dartTone: (dart) => ({ T: 'is-hit', D: 'is-near', S: 'is-single' })[String(dart)[0]] ?? null,
     buttons: (settings) => [
-        // a wedge of the board with the ring hit filled (elements/segment.icon.jsx)
-        { value: `T${settings.number}`, label: t('Treble'), icon: 'segment-T' },
-        { value: `S${settings.number}`, label: t('Single'), icon: 'segment-S', severity: 'secondary' },
-        { value: `D${settings.number}`, label: t('Double'), icon: 'segment-D', severity: 'secondary' },
-        { value: '0', label: t('Miss'), icon: 'pi pi-times', severity: 'secondary' },
+        // the dart big (T20, 20, D20), its word under it
+        { value: `T${settings.number}`, label: t('Treble'), dart: `T${settings.number}` },
+        { value: `S${settings.number}`, label: t('Single'), dart: String(settings.number), severity: 'secondary' },
+        { value: `D${settings.number}`, label: t('Double'), dart: `D${settings.number}`, severity: 'secondary' },
+        { value: '0', label: t('Miss'), dart: '✕', severity: 'secondary' },
     ],
     options: [
         { key: 'number', label: t('Treble'), values: [{ value: 20, label: 'T20' }, { value: 19, label: 'T19' }, { value: 18, label: 'T18' }], default: 20 },
@@ -636,9 +636,10 @@ export const BULLS = {
     dartTone: (dart) => (dart === 'D25' ? 'is-hit' : dart === 'S25' ? 'is-near' : null),
     buttons: () => [
         // the target for the bullseye, a ring for the outer bull around it
-        { value: 'D25', label: t('Bullseye'), icon: 'pi pi-bullseye' },
-        { value: 'S25', label: t('Single (25)'), icon: 'pi pi-circle', severity: 'secondary' },
-        { value: '0', label: t('Miss'), icon: 'pi pi-times', severity: 'secondary' },
+        // what the dart scores big (50, 25), its word under it, as in Treble practice
+        { value: 'D25', label: t('Bullseye'), dart: '50' },
+        { value: 'S25', label: t('Single'), dart: '25', severity: 'secondary' },
+        { value: '0', label: t('Miss'), dart: '✕', severity: 'secondary' },
     ],
     options: [{ key: 'darts', label: t('Darts'), values: [{ value: 30, label: t('30 darts') }, { value: 60, label: t('60 darts') }, { value: 99, label: t('99 darts') }], default: 30 }],
     // a share of a few darts swings more than one of many

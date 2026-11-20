@@ -9,6 +9,15 @@ import { t } from '../../utils/i18n';
  */
 const CHANGELOG = [
     {
+        version: '2026.11.13',
+        changes: [
+            t('Treble practice: the buttons show the dart they enter (T20, 20, D20) with its word under it instead of a picture of the board; singles in the darts of a training are in the text colour instead of blue.'),
+            t('Bull practice: the buttons show what the dart scores (50, 25) with its word under it, as in Treble practice.'),
+            t('Fix: Treble practice on a phone: the count of On the number, e.g. (18 / 30), goes under the percentage, so the tile no longer runs over its edges.'),
+            t('Trainings: Hit and Miss in the darts of the visit and the last darts are smaller and lighter, like the other tags.'),
+        ],
+    },
+    {
         version: '2026.11.12',
         changes: [
             t('Your favourites on the dashboard: also the trainings you train most (the same training with the same settings), two games and two trainings; Train starts one at once.'),
