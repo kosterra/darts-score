@@ -348,12 +348,13 @@ describe('trainings', () => {
         expect(state.perFinish).toEqual([2, 0, 4]);
         const cells = CATCH_40.doubles(state);
         expect(cells).toHaveLength(40);
-        expect(cells.slice(0, 4).map(({ short, value, tone, current }) => ({ short, value, tone, current })))
+        // the finish alone, in the colour of its points; the points in its title
+        expect(cells.slice(0, 4).map(({ short, value, tone, current, plain }) => ({ short, value, tone, current, plain })))
             .toEqual([
-                { short: '61', value: 2, tone: 3, current: false },
-                { short: '62', value: '✕', tone: 0, current: false },
-                { short: '63', value: 4, tone: 1, current: false },
-                { short: '64', value: null, tone: null, current: true },
+                { short: '61', value: '3 points', tone: 3, current: false, plain: true },
+                { short: '62', value: 'Missed', tone: 0, current: false, plain: true },
+                { short: '63', value: '1 point', tone: 1, current: false, plain: true },
+                { short: '64', value: null, tone: null, current: true, plain: true },
             ]);
     });
 

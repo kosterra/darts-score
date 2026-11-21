@@ -171,7 +171,7 @@ test('Checkout ladder: a finish out of reach takes no more darts, an ended attem
     await expect(verdict).toHaveCount(0);
 });
 
-test('Catch 40: a finish checked out counts down to 0, and the strip of the 40 finishes says what each took', async ({ page }) => {
+test('Catch 40: a finish checked out counts down to 0, and the strip of the 40 finishes shows each in the colour of its points', async ({ page }) => {
     await page.addInitScript(() => localStorage.setItem('oche.x01Input', 'keypad'));
     await start(page, 'catch40');
     const keypad = page.locator('.x01-keypad');
@@ -191,7 +191,7 @@ test('Catch 40: a finish checked out counts down to 0, and the strip of the 40 f
     await expect(page.locator('.rules-hero-figures').first()).toContainText('3Points');
     await enter();
     await expect(cell(61)).toHaveClass(/is-tone-3/);
-    await expect(cell(61).locator('.rules-double-value')).toHaveText('2');
+    await expect(cell(61)).toHaveAttribute('title', '61: 3 points');
     // 62: six singles, missed
     await ring('Single');
     for (let visit = 0; visit < 2; visit++) {
@@ -199,7 +199,9 @@ test('Catch 40: a finish checked out counts down to 0, and the strip of the 40 f
         await enter();
     }
     await expect(cell(62)).toHaveClass(/is-tone-0/);
-    await expect(cell(62).locator('.rules-double-value')).toHaveText('✕');
+    // the finish alone, what it took in its title
+    await expect(cell(62).locator('.rules-double-value')).toHaveCount(0);
+    await expect(cell(62)).toHaveAttribute('title', '62: Missed');
     await expect(cell(63)).toHaveClass(/is-current/);
     await page.screenshot({ path: `test-results/catch40-strip-${test.info().project.name}.png`, fullPage: true });
 });

@@ -9,6 +9,12 @@ import { t } from '../../utils/i18n';
  */
 const CHANGELOG = [
     {
+        version: 'Next release',
+        changes: [
+            t('Catch 40: the strip of the 40 finishes shows each finish alone in the colour of its points (the brighter, the more), without the darts it took; tap and hold one for its points.'),
+        ],
+    },
+    {
         version: '2026.11.14',
         changes: [
             t('Treble practice, Bull practice and Doubles around the board: a curve of your hit rate after every dart under the figures, green at or above your usual rate (the average of your last ten attempts with the same settings, a dashed line) and amber below it.'),

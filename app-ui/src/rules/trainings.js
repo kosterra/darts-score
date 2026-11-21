@@ -531,19 +531,22 @@ export const CATCH_40 = {
     checkout: (state) => wayOut(state, 6),
     attemptOf: (state) => state.target,
     attemptDartsLeft: (state) => 6 - state.inAttempt,
-    // every finish, 61 to 100, as a strip: the darts it took (✕ missed), in the colour of its points
+    // every finish, 61 to 100, as a strip: the finish alone, in the colour of its points (no figure:
+    // plain), what it took in its title
     doubles: (state) => CATCH_40_FINISHES.map((finish, index) => {
         const darts = state.perFinish?.[index];
         const played = darts !== undefined;
+        const points = played && darts ? (darts <= 2 ? 3 : darts === 3 ? 2 : 1) : 0;
         return {
             name: String(finish),
             short: String(finish),
-            value: played ? (darts || '✕') : null,
-            tone: played ? (darts === 0 ? 0 : darts <= 2 ? 3 : darts === 3 ? 2 : 1) : null,
+            value: played ? (darts ? tn(points, '{{count}} point', '{{count}} points') : t('Missed')) : null,
+            plain: true,
+            tone: played ? points : null,
             current: !played && finish === state.target,
         };
     }),
-    doublesLabel: t('Darts per finish'),
+    doublesLabel: t('Finishes: the brighter, the more points'),
     // the second visit of a finish: not checked out, it scores nothing
     inVisit: (state) => state.inAttempt % 3,
     // on tiles under what is left and the way out (instead of the status): which of the 40 finishes

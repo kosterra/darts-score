@@ -510,6 +510,15 @@
     // still to come
     &.is-open { opacity: 0.55; }
 
+    // the name alone (Catch 40's finishes): its colour says what it took
+    &.is-plain {
+        justify-content: center;
+        padding: 0.4rem 0;
+
+        .rules-double-name { color: $textDefaultColor; font-size: $text-sm; }
+    }
+    &.is-plain.is-tone-0 .rules-double-name { color: $accentRed; }
+
     // what the double took: red for nothing, then ever stronger green
     &.is-tone-0 { background: soft($accentRed, 0.3); .rules-double-value { color: $accentRed; } }
     &.is-tone-1 { background: soft($accentGreen, 0.2); }
