@@ -355,10 +355,10 @@ const RulesTraining = () => {
         if (staged) setRunning({ ...running, pending: [...pending, dart] });
         else setRunning({ ...running, darts: [...running.darts, dart] });
     };
-    // Enter score: the darts of the visit count; the ones not tapped are misses (also the ones left
-    // for a finish that can no longer be checked out)
+    // Enter score, once the visit is complete: three darts, or fewer when the attempt (or the
+    // training) ended; the darts left for a finish that can no longer be checked out count as misses
     const enterVisit = () => {
-        if (!running || (!pending.length && !hopeless)) return;
+        if (!running || !visitFull) return;
         const darts = [...running.darts, ...pending];
         while (darts.length - running.darts.length < 3) {
             const after = replayTraining(definition, { ...running, darts });
@@ -586,7 +586,7 @@ const RulesTraining = () => {
                             {ways && <div className="mt-3"><TrainingWaysOut ways={ways} /></div>}
                             <div className="d-flex flex-wrap gap-2 justify-content-center mt-3">
                                 {/* on a phone the bar at the bottom has the darts of the visit, Enter score and Undo: not twice */}
-                                {staged && !over && <Button id="submitThrows" label={t('Enter score')} icon="pi pi-check" className="d-none d-md-inline-flex" disabled={!pending.length && !hopeless} onClick={enterVisit} />}
+                                {staged && !over && <Button id="submitThrows" label={t('Enter score')} icon="pi pi-check" className="d-none d-md-inline-flex" disabled={!visitFull} onClick={enterVisit} />}
                                 {/* once over, Undo is beside Save the result */}
                                 {!over && <Button label={t('Undo dart')} icon="pi pi-undo" severity="secondary" outlined className={staged ? 'd-none d-md-inline-flex' : ''} disabled={!canUndo} onClick={undoDart} />}
                                 <Button label={t('Stop')} icon="pi pi-stop" severity="danger" outlined onClick={quit} />
@@ -617,7 +617,7 @@ const RulesTraining = () => {
                             {status.map(([label, value], index) => <span key={label}>{index > 0 && ' · '}{label}{' '}<strong>{value}</strong></span>)}
                         </div>
                         <div className="x01-visit-actions">
-                            <Button label={t('Enter score')} icon="pi pi-check" className="justify-content-center x01-enter" disabled={!pending.length && !hopeless} onClick={enterVisit} />
+                            <Button label={t('Enter score')} icon="pi pi-check" className="justify-content-center x01-enter" disabled={!visitFull} onClick={enterVisit} />
                             <Button icon="pi pi-undo" severity="danger" className="x01-undo" aria-label={t('Undo dart')} disabled={!canUndo} onClick={undoDart} />
                         </div>
                     </div>

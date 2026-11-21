@@ -184,9 +184,12 @@ test('Catch 40: a finish checked out counts down to 0, and the strip of the 40 f
     // 61: T15 and D8, checked out with two darts: 0 left and its 3 points at once, before Enter score
     await ring('Treble');
     await key('Treble 15');
+    // darts still to throw in this visit: no Enter score yet
+    await expect(page.getByRole('button', { name: 'Enter score', exact: true })).toBeDisabled();
     await ring('Double');
     await key('Double 8');
     await expect(page.locator('.rules-attempt-verdict')).toHaveText('Checked out!');
+    await expect(page.getByRole('button', { name: 'Enter score', exact: true })).toBeEnabled();
     await expect(page.locator('.result-hero-score')).toHaveText('0');
     await expect(page.locator('.rules-hero-figures').first()).toContainText('3Points');
     await enter();

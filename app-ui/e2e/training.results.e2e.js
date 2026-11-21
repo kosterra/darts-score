@@ -82,8 +82,11 @@ test('Scoring with the keypad and the board: the visit floats above the menu bar
     await expect(bar).toBeInViewport();
     await expect(bar.locator('.x01-visit-bar-darts')).toContainText('S20');
 
-    // Enter score enters the visit (the darts not tapped are misses): the bar is empty again
+    // Enter score only once the visit is complete: then it enters it and the bar is empty again
     const enter = bar.getByRole('button', { name: 'Enter score' });
+    await expect(enter).toBeDisabled();
+    await page.locator('.dartboard-img [id="S20"]').first().click();
+    await page.locator('.dartboard-img [id="S20"]').first().click();
     await enter.click();
     await expect(bar.locator('.x01-visit-bar-darts')).not.toContainText('S20');
     await expect(enter).toBeDisabled();
