@@ -38,6 +38,9 @@ test('the double to throw at, the darts of the visit and an undo', async ({ page
     await expect(hero(page)).toHaveText('D1');
     await expect(current(page)).toHaveText('1');
     await expect(slots(page).nth(0)).toHaveClass(/is-next/);
+    // the curve of the points keeps its room before the first double: the header does not grow with it
+    const heroHeight = async () => (await page.locator('.x01-live-hero').boundingBox()).height;
+    const before = await heroHeight();
 
     await hit.click();
     await miss.click();
@@ -55,6 +58,8 @@ test('the double to throw at, the darts of the visit and an undo', async ({ page
     await expect(page.locator('.rules-double').first()).toHaveClass(/is-tone-2/);
     await expect(slots(page).nth(0)).toHaveClass(/is-next/);
     await expect(page.locator('.result-hero-score')).toHaveText('31points');
+    await expect(page.locator('.rules-progress-line')).not.toHaveCount(0);
+    expect(Math.abs(await heroHeight() - before)).toBeLessThan(1);
 
     // undo goes back into the visit of D1 and says so
     await page.getByRole('button', { name: 'Undo dart' }).click();

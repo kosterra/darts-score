@@ -26,13 +26,40 @@ const tap = (page, name) => page.locator('.rules-hitmiss').getByRole('button', {
 test('Treble practice: Treble, Single, Double and Miss count at once, the trebles on the tiles', async ({ page }) => {
     await start(page, 'trebles');
     await expect(page.locator('.rules-hero-target')).toHaveText('T20');
+    // the curve of the treble rate: its base line from the start, so the header keeps its height
+    const rate = page.locator('.rules-hero-rate .rules-progress');
+    await expect(rate).toBeVisible();
+    const heroHeight = async () => (await page.locator('.x01-live-hero').boundingBox()).height;
+    const before = await heroHeight();
     for (const name of ['Treble', 'Single', 'Treble', 'Miss']) await tap(page, name);
+    // after every dart a point: 100 %, 50 %, 67 %, 50 %, a stretch of the curve between each two
+    await expect(rate.locator('.rules-progress-line')).toHaveCount(3);
+    await expect(rate).toHaveAttribute('aria-label', 'Hit rate after every dart');
+    expect(Math.abs(await heroHeight() - before)).toBeLessThan(1);
+    await page.screenshot({ path: `test-results/trebles-rate-${test.info().project.name}.png` });
     const tiles = page.locator('.rules-hero-figures');
     await expect(tiles).toContainText('2Trebles');
     await expect(tiles).toContainText('50 %Treble rate');
     await expect(tiles).toContainText('4 / 30Darts');
     // the darts of the visit by the names of the buttons
     await expect(page.locator('.rules-visit-dart').first()).toContainText('Miss');
+});
+
+test('Treble practice against the usual treble rate: amber below it, green again at it, the usual rate dashed', async ({ page }) => {
+    // three earlier attempts of the player at T20, 40 % each
+    await post('/__test/rules-trainings', { scenario: 'trebles' });
+    await start(page, 'trebles');
+    const rate = page.locator('.rules-hero-rate .rules-progress');
+    await expect(rate.locator('.rules-progress-reference')).toHaveCount(1);
+    // a treble, then misses: 100 %, 50 %, 33 %, 25 % (below the 40 % from the second visit on)
+    for (const name of ['Treble', 'Miss', 'Miss', 'Miss']) await tap(page, name);
+    await expect(rate).toHaveAttribute('aria-label', 'Hit rate after every dart, your usual rate 40 %');
+    await expect(rate.locator('.rules-progress-line.is-warn')).toHaveCount(2);
+    // two trebles: 40 %, then 43 %, at and above the usual rate again
+    for (const name of ['Treble', 'Treble']) await tap(page, name);
+    await expect(rate.locator('.rules-progress-line').last()).toHaveClass(/is-safe/);
+    await expect(rate.locator('.rules-progress-line').nth(-2)).toHaveClass(/is-safe/);
+    await page.screenshot({ path: `test-results/trebles-usual-${test.info().project.name}.png` });
 });
 
 test('Bull practice to its last dart: the hit rate as the result, on the scoreboard', async ({ page }) => {
@@ -142,6 +169,39 @@ test('Checkout ladder: a finish out of reach takes no more darts, an ended attem
     await page.getByRole('button', { name: 'Enter score', exact: true }).click();
     await expect(figures).toContainText('3 / 20');
     await expect(verdict).toHaveCount(0);
+});
+
+test('Catch 40: a finish checked out counts down to 0, and the strip of the 40 finishes says what each took', async ({ page }) => {
+    await page.addInitScript(() => localStorage.setItem('oche.x01Input', 'keypad'));
+    await start(page, 'catch40');
+    const keypad = page.locator('.x01-keypad');
+    const ring = (name) => keypad.locator('.x01-keypad-rings').getByText(name, { exact: true }).click();
+    const key = (name) => keypad.getByRole('button', { name, exact: true }).click();
+    const enter = () => page.getByRole('button', { name: 'Enter score', exact: true }).click();
+    const cell = (finish) => page.locator('.rules-doubles .rules-double').filter({ has: page.locator('.rules-double-name', { hasText: new RegExp(`^${finish}$`) }) });
+    await expect(page.locator('.rules-doubles .rules-double')).toHaveCount(40);
+    await expect(cell(61)).toHaveClass(/is-current/);
+    // 61: T15 and D8, checked out with two darts: 0 left and its 3 points at once, before Enter score
+    await ring('Treble');
+    await key('Treble 15');
+    await ring('Double');
+    await key('Double 8');
+    await expect(page.locator('.rules-attempt-verdict')).toHaveText('Checked out!');
+    await expect(page.locator('.result-hero-score')).toHaveText('0');
+    await expect(page.locator('.rules-hero-figures').first()).toContainText('3Points');
+    await enter();
+    await expect(cell(61)).toHaveClass(/is-tone-3/);
+    await expect(cell(61).locator('.rules-double-value')).toHaveText('2');
+    // 62: six singles, missed
+    await ring('Single');
+    for (let visit = 0; visit < 2; visit++) {
+        for (let dart = 0; dart < 3; dart++) await key('Single 1');
+        await enter();
+    }
+    await expect(cell(62)).toHaveClass(/is-tone-0/);
+    await expect(cell(62).locator('.rules-double-value')).toHaveText('✕');
+    await expect(cell(63)).toHaveClass(/is-current/);
+    await page.screenshot({ path: `test-results/catch40-strip-${test.info().project.name}.png`, fullPage: true });
 });
 
 test('a fourth dart tapped on the board before Enter score says the visit is complete', async ({ page }) => {

@@ -687,6 +687,11 @@
 }
 
 .x01-hero-name .player-shirt { margin-right: 0.25rem; vertical-align: -0.2rem; }
+// the shirt and the flight do not make the line of the name taller: a name with them is as high as one
+// without (the bot's), so the scores beside each other stay level
+.x01-hero-name .player-shirt, .x01-hero-name .player-flight { margin-block: -0.3rem; }
+// room for them above and below, for every name alike: the name is cut off at its end (text-truncate), the pictures not
+.x01-hero-name { padding-block: 0.15rem; }
 .x01-hero-player.is-mirrored .x01-hero-name .player-shirt { margin-right: 0; margin-left: 0.25rem; }
 
 // the flights and barrels a player has collected, small, as in an album

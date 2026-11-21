@@ -162,12 +162,16 @@ export const withGameState = (definition, game) => {
  *   dart(state, dart, ctx) → the state after one dart (ctx: { settings })
  *   done(state, ctx) → whether the training is over
  *   target(state, ctx) → what to aim at now
+ *   hit(dart, ctx) → whether a dart hit what the training aims at: the hit rate after every dart as a
+ *     curve in the header (Treble practice, Bull practice, Doubles around the board)
  *   result(state, ctx) → { score, ...figures } once it is over (score ranks the attempts)
  *   higherIsBetter, unit, format(score)
  *   figures(result) → [[label, value]]
  *   level: { by, of(result, settings), bands, lowerIsBetter, format } → the level it was played
  *     at, an estimate for the result (see levels.play.js in the app)
  *   status(state, ctx) → [[label, value]] shown while training
+ *     (in the app ctx also has ended: an attempt ended by the darts of this visit, shown as it stood
+ *     before its last dart until Enter score, and after: the state after that dart, for what it scored)
  * A dart for a 'hitmiss' training is 'H' or 'M'.
  */
 export const replayTraining = (definition, training) => {

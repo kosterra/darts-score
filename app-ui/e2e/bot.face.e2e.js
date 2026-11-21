@@ -26,6 +26,11 @@ test('the bot\'s face: idle at the player\'s turn, throwing at its own, on a pho
     await expect(face).toBeVisible();
     // the player throws first: the bot waits, looking around
     await expect(face).toHaveClass(/is-idle/);
+    // the two sides in line: the player's tags (Started) do not push their score below the bot's
+    const top = async (selector, index) => (await page.locator(selector).nth(index).boundingBox()).y;
+    for (const selector of ['.x01-hero-name', '.result-hero-score', '.x01-live-won']) {
+        expect(Math.abs(await top(selector, 0) - await top(selector, 1)), selector).toBeLessThan(2);
+    }
     await page.screenshot({ path: `test-results/bot-face-${test.info().project.name}.png` });
 
     // a visit of the player: the bot's turn, it looks at the board

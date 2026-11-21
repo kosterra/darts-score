@@ -467,6 +467,17 @@
     @container (min-width: 40rem) {
         &, .rules-doubles.is-live & { grid-template-columns: repeat(21, minmax(0, 1fr)); }
     }
+
+    // Catch 40's forty finishes: four rows of ten (five of eight where even that is too narrow), or two of twenty
+    .rules-doubles.is-many & { grid-template-columns: repeat(8, minmax(0, 1fr)); }
+
+    @container (min-width: 20rem) {
+        .rules-doubles.is-many & { grid-template-columns: repeat(10, minmax(0, 1fr)); }
+    }
+
+    @container (min-width: 44rem) {
+        .rules-doubles.is-many & { grid-template-columns: repeat(20, minmax(0, 1fr)); }
+    }
 }
 
 .rules-double {
@@ -518,6 +529,13 @@
 
     // the double just finished
     &.is-last { animation: rules-double-done 0.5s ease-out; }
+}
+
+// the forty finishes while training: those still to come only their number, a line lower, so the
+// strip leaves the board or the keypad in view on a phone
+.rules-doubles.is-many.is-live {
+    .rules-double { padding: 0.1rem 0; }
+    .rules-double-value:empty { display: none; }
 }
 
 @keyframes rules-double-done {
@@ -842,6 +860,18 @@
     order: 4;
 }
 
+// the hit rate after every dart under the figures (Treble practice, Bull practice, …): there from the
+// start, only its base line until the second dart, so the header does not grow with the first
+.rules-hero-rate {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin-top: $space-2;
+    order: 6;
+
+    .rules-progress { height: 1.5rem; }
+}
+
 .rules-hero-double {
     color: $accentGreen;
     font-size: $text-2xl;
@@ -858,6 +888,14 @@
     .rules-progress-base {
         stroke: $surfaceHighColor;
         stroke-width: 1;
+        vector-effect: non-scaling-stroke;
+    }
+
+    // what the curve is measured against (the usual hit rate): faint, dashed, behind the curve
+    .rules-progress-reference {
+        stroke: var(--text-faint);
+        stroke-width: 1;
+        stroke-dasharray: 3 3;
         vector-effect: non-scaling-stroke;
     }
 
