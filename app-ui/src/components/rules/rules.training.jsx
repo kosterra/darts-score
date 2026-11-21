@@ -21,6 +21,7 @@ import UpLink from '../elements/up.link';
 import RulesTrainingBoard from './rules.training.board';
 import RulesDoubles from './rules.doubles';
 import RulesProgress from './rules.progress';
+import { hitRatePoints, usualHitRate } from '../../utils/hit.rate';
 import LiveHero from '../games/common/live.hero';
 import RouteLine from '../games/common/route.line';
 import RulesService from '../../services/rules.service';
@@ -265,6 +266,21 @@ const RulesTraining = () => {
         if (!checksOut || !playerId) return;
         PlayerService.loadCheckoutProfiles([playerId]).then(profiles => setCheckoutProfile(profiles?.[playerId] ?? null)).catch(() => {});
     }, [checksOut, playerId]);
+    // the player's usual hit rate in a training that counts hits (Treble practice, Bull practice, …):
+    // the curve of this attempt is amber where it is below it
+    const [hitEntries, setHitEntries] = useState(null);
+    const countsHits = Boolean(definition?.hit);
+    useEffect(() => {
+        setHitEntries(null);
+        if (!countsHits || !playerId) return undefined;
+        let current = true;
+        RulesService.loadTrainings(kind).then(loaded => { if (current) setHitEntries(loaded); }).catch(() => {});
+        return () => { current = false; };
+    }, [countsHits, playerId, kind]);
+    const usualRate = useMemo(() => (countsHits && replay ? usualHitRate(definition, hitEntries, playerId, replay.settings) : null),
+        // the settings stay the same for an attempt
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [countsHits, hitEntries, playerId, definition, replay?.settings]);
     const ways = useMemo(() => {
         if (!replay || replay.done || ended || hopeless || !definition?.checkout || preferences.waysOut === 'off') return null;
         // nothing to check out yet (a leg from 501)
@@ -369,7 +385,8 @@ const RulesTraining = () => {
     // the training under way; once over it stays until the result is saved (or the last dart undone)
     if (running && replay) {
         // ended: the figures of an attempt the visit's darts ended count that last dart too
-        const ctx = { settings: replay.settings, ended };
+        // after: the state after that dart, for what the attempt scored (Catch 40's points, the checkouts)
+        const ctx = { settings: replay.settings, ended, after: ended ? replay.state : null };
         // the darts of this visit: an attempt of a checkout training may end before its third
         const inVisit = definition.inVisit ? definition.inVisit(replay.state, ctx) : running.darts.length % 3;
         // an ended attempt checked out or not, and a finish out of reach, in place of the way out
@@ -450,7 +467,8 @@ const RulesTraining = () => {
                         score: definition.hero
                             ? definition.heroUnit
                                 ? <>{definition.hero(view.state, ctx)}<span className="rules-hero-unit">{definition.heroUnit(view.state, ctx)}</span></>
-                                : definition.hero(view.state, ctx)
+                                // a finish just checked out counts down to 0 (until Enter score the attempt stays in view)
+                                : verdict?.kind === 'is-out' ? 0 : definition.hero(view.state, ctx)
                             : heroFigures || target,
                         // the double to throw at in the accent, played again when it changes (also by an undo)
                         scoreClass: definition.heroTarget ? 'rules-hero-target' : '',
@@ -474,6 +492,15 @@ const RulesTraining = () => {
                                             // nothing more when tiles or the double to throw at are the big part
                                             : !heroFigures && !definition.heroTarget && <span className="x01-live-route">{target}</span>}
                             {definition.hero && heroFigures}
+                            {/* the hit rate after every dart, under the figures (Treble practice, Bull practice, …) */}
+                            {definition.hit && <span className="rules-hero-rate">
+                                <RulesProgress
+                                    points={hitRatePoints(definition, [...running.darts, ...pending], replay.settings, usualRate)}
+                                    length={replay.settings.darts ? replay.settings.darts - 1 : undefined}
+                                    reference={usualRate}
+                                    label={usualRate == null ? t('Hit rate after every dart') : t('Hit rate after every dart, your usual rate {{rate}} %', { rate: usualRate })}
+                                />
+                            </span>}
                         </>,
                     }]}
                 />

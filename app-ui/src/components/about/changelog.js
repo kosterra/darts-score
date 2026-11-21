@@ -9,6 +9,16 @@ import { t } from '../../utils/i18n';
  */
 const CHANGELOG = [
     {
+        version: 'Next release',
+        changes: [
+            t('Treble practice, Bull practice and Doubles around the board: a curve of your hit rate after every dart under the figures, green at or above your usual rate (the average of your last ten attempts with the same settings, a dashed line) and amber below it.'),
+            t('Catch 40: a strip of the forty finishes, 61 to 100, shows the darts each one took to check out, or ✕ for one missed, in the colour of its points; while you train, in the result and in an opened attempt on the scoreboard.'),
+            t('Fix: Catch 40, Random checkouts and the Checkout ladder: a finish checked out shows 0 left and counts its points (or the checkout) at once, not only after Enter score.'),
+            t('Fix: the header of a game on a phone lines up the players again: the names, scores and legs side by side are level, also when only one of them has a tag such as Started (e.g. against the bot).'),
+            t('Fix: Bob\'s 27 no longer jumps down after the first dart: the curve of the points keeps its room from the start.'),
+        ],
+    },
+    {
         version: '2026.11.13',
         changes: [
             t('Treble practice: the buttons show the dart they enter (T20, 20, D20) with its word under it instead of a picture of the board; singles in the darts of a training are in the text colour instead of blue.'),

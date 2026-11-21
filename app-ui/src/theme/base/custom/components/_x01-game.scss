@@ -580,8 +580,9 @@
   }
   // one player alone (a training, a solo game) takes the whole width, not half of it
   .x01-hero-players.count-1 { grid-template-columns: minmax(0, 1fr); }
-  // without a tag (one player throws alone) the row of the tags takes no room
-  .x01-live-tags:empty { display: none; }
+  // without a tag (one player throws alone) the row of the tags takes no room; with more players
+  // every row keeps its room, also an empty one, so the names, scores and legs stay level
+  .x01-hero-players.count-1 .x01-live-tags:empty { display: none; }
   // and there is room for the picture: small, above the name, with the glow of the one throwing
   .x01-live-hero .x01-hero-players.count-1 .x01-hero-portrait { display: flex; order: 0; margin: 0.35rem 0 0.5rem; }
   .x01-hero-players.count-1 .x01-hero-avatar.p-avatar { width: 3.25rem; height: 3.25rem; font-size: 1.1rem; }
@@ -1220,7 +1221,7 @@
     // who throws: the name in the accent instead of a label on a line of its own
     .x01-live-turn { display: none; }
     // the row of the tags a little lower, as high for every player: the scores stay in line
-    .x01-live-tags { min-height: 1.1rem; }
+    .x01-live-tags { min-height: 1.1rem; line-height: 1.1rem; }
     .x01-hero-player.is-turn .x01-hero-name { color: $accentGreen; }
 
     // the big number a little smaller, still the biggest thing in view

@@ -1,5 +1,6 @@
 /**
- * The doubles of a training around the board as a strip, D1 to the bull: each
+ * The doubles of a training around the board as a strip, D1 to the bull (or Catch 40's
+ * finishes, 61 to 100): each
  * double played in the colour of what it took (cells from the training's
  * doubles(), tone 0 the worst to 3 the best) with the figure in it, the one
  * to throw at now in the accent and a little bigger, the ones to come faint.
@@ -10,7 +11,8 @@
 const RulesDoubles = ({ cells, label, live = false, className = '' }) => {
     const last = live ? cells.findIndex(cell => cell.current) - 1 : -1;
     return (
-        <figure className={`rules-doubles ${live ? 'is-live' : ''} ${className}`}>
+        // more than the 21 doubles (Catch 40's 40 finishes): rows of their own
+        <figure className={`rules-doubles ${live ? 'is-live' : ''} ${cells.length > 21 ? 'is-many' : ''} ${className}`}>
             {label && <figcaption className="rules-doubles-label">{label}</figcaption>}
             <ol className="rules-doubles-cells">
                 {cells.map((cell, index) => (

@@ -342,6 +342,21 @@ describe('trainings', () => {
         expect(first.state.target).toBe(62);
     });
 
+    it('Catch 40 keeps the darts every finish took, 0 for one missed, as a strip of the 40 finishes', () => {
+        // 61 in two darts, 62 missed (six singles), 63 in four darts
+        const { state } = train(CATCH_40, ['T11', 'D14', ...Array(6).fill('S1'), 'S3', 'S20', 'S20', 'D10']);
+        expect(state.perFinish).toEqual([2, 0, 4]);
+        const cells = CATCH_40.doubles(state);
+        expect(cells).toHaveLength(40);
+        expect(cells.slice(0, 4).map(({ short, value, tone, current }) => ({ short, value, tone, current })))
+            .toEqual([
+                { short: '61', value: 2, tone: 3, current: false },
+                { short: '62', value: '✕', tone: 0, current: false },
+                { short: '63', value: 4, tone: 1, current: false },
+                { short: '64', value: null, tone: null, current: true },
+            ]);
+    });
+
     it('Treble practice counts the share of trebles, and the darts on the number', () => {
         const { result, done } = train(TREBLES, ['T20', 'S20', 'D20', 'T5', 'T20', '0'], { number: 20, darts: 30 });
         expect(done).toBe(false);

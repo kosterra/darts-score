@@ -26,11 +26,24 @@ const slopesOf = (xs, ys) => {
  * the middle to both sides with every step, as wide as the whole way (e.g. D1
  * to the bull) at the end; every stretch in the colour of how close the end was:
  * green safe, amber a few misses away, red the next double has to be a hit.
- * points: [{ score, risk }], length: the steps of the whole training.
+ * points: [{ score, risk }], length: the steps of the whole training, reference: a figure to
+ * measure the curve against (the usual hit rate), as a dashed line across, or null.
  */
-const RulesProgress = ({ points, length }) => {
-    if (points.length < 2) return null;
-    const top = Math.max(...points.map(point => point.score)) * 1.1;
+const RulesProgress = ({ points, length, reference = null, label = t('Points after every double') }) => {
+    // before the first step only the base line: the curve keeps its room, so the header does not
+    // jump down with the first dart
+    if (points.length < 2) {
+        return (
+            <svg className="rules-progress" viewBox={`0 0 ${WIDTH} ${HEIGHT}`} preserveAspectRatio="none" aria-hidden="true">
+                <line className="rules-progress-base" x1="0" x2={WIDTH} y1={HEIGHT} y2={HEIGHT} />
+                {reference != null && <line className="rules-progress-reference" x1="0" x2={WIDTH} y1={HEIGHT / 11} y2={HEIGHT / 11} />}
+            </svg>
+        );
+    }
+    // a training without a set length (Doubles around the board): the curve as wide as the darts so far
+    length = Math.max(length ?? 0, points.length - 1);
+    // all misses so far: the curve along the bottom
+    const top = Math.max(...points.map(point => point.score), reference ?? 0, 1) * 1.1;
     // the steps so far, centred in the width the whole way takes
     const offset = ((length - (points.length - 1)) / length) * WIDTH / 2;
     const x = (index) => offset + (index / length) * WIDTH;
@@ -45,8 +58,9 @@ const RulesProgress = ({ points, length }) => {
         return `M ${xs[i]} ${ys[i]} C ${xs[i] + dx} ${ys[i] + m[i] * dx}, ${xs[i + 1] - dx} ${ys[i + 1] - m[i + 1] * dx}, ${xs[i + 1]} ${ys[i + 1]}`;
     };
     return (
-        <svg className={`rules-progress is-${now.risk}`} viewBox={`0 0 ${WIDTH} ${HEIGHT}`} preserveAspectRatio="none" role="img" aria-label={t('Points after every double')}>
+        <svg className={`rules-progress is-${now.risk}`} viewBox={`0 0 ${WIDTH} ${HEIGHT}`} preserveAspectRatio="none" role="img" aria-label={label}>
             <line className="rules-progress-base" x1="0" x2={WIDTH} y1={HEIGHT} y2={HEIGHT} />
+            {reference != null && <line className="rules-progress-reference" x1="0" x2={WIDTH} y1={y(reference)} y2={y(reference)} />}
             {points.slice(1).map((point, index) => (
                 <path key={index} className={`rules-progress-line is-${point.risk}`} d={piece(index)} />
             ))}
