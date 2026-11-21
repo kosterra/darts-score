@@ -10,7 +10,8 @@ import { DOUBLES_BANDS, TREBLES_BANDS } from './levels.play.js';
 import { t, tn } from '../utils/i18n.js';
 
 const DOUBLE_TARGETS = [...Array.from({ length: 20 }, (_, index) => index + 1), 25];
-const doubleName = (number) => (number === 25 ? t('Bull') : `D${number}`);
+// the last double is the bullseye (50): the outer bull is a miss (short "Bull" on the narrow cells)
+const doubleName = (number) => (number === 25 ? t('Bullseye') : `D${number}`);
 const doubleValue = (number) => number * 2;
 const percent = (part, whole) => (whole ? `${Math.round(part / whole * 100)} %` : '–');
 // a figure of the level a training was played at, as shown beside it (see levels.play.js)
@@ -37,7 +38,7 @@ const doubleCells = (state, valueOf, toneOf, over = false) => DOUBLE_TARGETS.map
     const value = played ? valueOf(index) : null;
     return {
         name: doubleName(number),
-        short: number === 25 ? t('Bull') : String(number),
+        short: number === 25 ? t('Bull') : `D${number}`,
         value,
         tone: played ? toneOf(value) : null,
         current: !over && index === state.index,
@@ -144,10 +145,10 @@ const bobsOf = (entry) => {
 export const BOBS_27 = {
     id: 'bobs27',
     title: t('Bob\'s 27'),
-    description: t('Doubles practice: start on 27, three darts at every double from D1 to the bull; a hit adds its value, a visit without one takes it off.'),
+    description: t('Doubles practice: start on 27, three darts at every double from D1 to the bullseye; a hit adds its value, a visit without one takes it off.'),
     rules: [
-        t('You start with 27 points and throw three darts at each double in turn: D1, D2, … D20 and the bull.'),
-        t('Every hit adds the value of the double (D1 is 2, the bull 50).'),
+        t('You start with 27 points and throw three darts at each double in turn: D1, D2, … D20 and the bullseye.'),
+        t('Every hit adds the value of the double (D1 is 2, the bullseye 50). At the end only the bullseye counts: the outer bull (25) is a miss.'),
         t('A visit without a hit takes the value of the double off. At 0 or below the training is over.'),
         t('The most points at the end are the best: 1,437 is perfect.'),
     ],
@@ -442,9 +443,9 @@ export const SCORING = {
 export const DOUBLES_AROUND = {
     id: 'doublesaround',
     title: t('Doubles around the board'),
-    description: t('Every double from D1 to the bull in turn, as many darts as it takes: the fewest darts win, and you see which doubles cost most.'),
+    description: t('Every double from D1 to the bullseye in turn, as many darts as it takes: the fewest darts win, and you see which doubles cost most.'),
     rules: [
-        t('Hit D1, then D2, and so on up to D20 and the bull, in this order.'),
+        t('Hit D1, then D2, and so on up to D20 and the bullseye, in this order. The outer bull (25) is a miss.'),
         t('Every dart counts, hit or miss; a hit moves on to the next double.'),
         t('The fewest darts are the best: 21 is perfect.'),
     ],

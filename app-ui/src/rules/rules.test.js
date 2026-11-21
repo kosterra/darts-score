@@ -283,11 +283,11 @@ describe('trainings', () => {
         const cells = BOBS_27.doubles(state);
         expect(cells).toHaveLength(21);
         expect(cells.slice(0, 3)).toEqual([
-            { name: 'D1', short: '1', value: 2, tone: 2, current: false },
-            { name: 'D2', short: '2', value: 0, tone: 0, current: false },
-            { name: 'D3', short: '3', value: null, tone: null, current: true },
+            { name: 'D1', short: 'D1', value: 2, tone: 2, current: false },
+            { name: 'D2', short: 'D2', value: 0, tone: 0, current: false },
+            { name: 'D3', short: 'D3', value: null, tone: null, current: true },
         ]);
-        expect(cells[20]).toMatchObject({ name: 'Bull', short: 'Bull', value: null, current: false });
+        expect(cells[20]).toMatchObject({ name: 'Bullseye', short: 'Bull', value: null, current: false });
         expect(BOBS_27.inVisit(state)).toBe(1);
         expect(BOBS_27.heroNote(state)).toBe('D3');
         // 27 + 4 for two hits of D1, − 4 for none at D2, + 6 for a hit of D3

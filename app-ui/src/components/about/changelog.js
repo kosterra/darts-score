@@ -12,6 +12,7 @@ const CHANGELOG = [
         version: 'Next release',
         changes: [
             t('Catch 40: the strip of the 40 finishes shows each finish alone in the colour of its points (the brighter, the more), without the darts it took; tap and hold one for its points.'),
+            t('Bob\'s 27 and Doubles around the board: the last target is called Bullseye, and the rules say that only the bullseye counts there, the outer bull (25) is a miss; the cells of the doubles say D1, D2, … instead of 1, 2, ….'),
         ],
     },
     {
